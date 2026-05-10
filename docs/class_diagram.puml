@@ -1,0 +1,153 @@
+@startuml Axiom
+
+!theme plain
+skinparam dpi 100
+scale 1
+skinparam linetype ortho
+skinparam classAttributeIconSize 0
+skinparam shadowing true
+skinparam roundcorner 5
+skinparam nodesep 150
+skinparam ranksep 150
+skinparam padding 2
+hide methods
+
+class User {
+    - userName: String
+    - emailAddress: String
+    - password: String
+    - createdOn: DateTime
+    - modifiedOn: DateTime
+    - isActive: Boolean
+    - lastLogin: DateTime
+}
+
+class Role {
+    - name: String
+}
+
+class Permission {
+    - name: String
+    - code: String
+}
+
+class Project {
+    - name: String
+    - code: String
+    - description: String
+    - createdOn: DateTime
+}
+
+class Tag {
+    - name: String
+}
+
+Tag "0..*" -r- "1" Project : belongs to >
+Tag "0..*" -- "1" WorkItem : describes >
+
+class WorkItem {
+    - controlNo: Integer
+    - description: String
+    - priority: Integer
+    - type: WorkItemType
+    - status: WorkItemStatus
+    - dueDate: DateTime
+    - estimatedEffort: Integer
+}
+
+class Relation {
+    - linkType: LinkType
+}
+
+WorkItem "0..*" -d- "1" WorkItem : related to >
+(WorkItem, WorkItem) . Relation
+note right of Relation
+    Relation can not be applied to the work item itself.
+end note
+
+
+enum LinkType {
+    Blocks
+    BlockedBy
+    RelatesTo
+    Duplicates
+    ChildOf
+    ParentOf
+}
+
+Attachment "0..*" -r- "1" WorkItem : belongs to >
+Attachment "0..*" -- "1" Comment : belongs to >
+
+class Attachment {
+    - fileName: String
+    - fileType: String
+    - fileSize: Integer
+    - createdOn: DateTime
+    - createdBy: User
+}
+
+WorkItemHistory "1..*" -r- "1" WorkItem : has <
+
+class WorkItemHistory {
+    - changedOn: DateTime
+    - changedBy: User
+    - fieldName: String
+    - oldValue: String
+    - newValue: String
+    - changeDescription: String
+}
+
+enum WorkItemStatus {
+    New
+    Active
+    InDevelopment
+    InTesting
+    Resolved
+    Closed
+}
+
+enum WorkItemType {
+    Epic
+    Feature
+    UserStory
+    Task
+    Bug
+    Subtask
+}
+
+class Date <<datatype>> {
+    - day: Integer
+    - month: Integer
+    - year: Integer
+}
+
+class Time <<datatype>> {
+    - hour: Integer
+    - minute: Integer
+    - second: Integer
+}
+
+class DateTime <<datatype>> {
+    - date: Date
+    - time: Time
+}
+
+class Comment {
+    - content: String
+}
+
+Project "1" -- "0..*" WorkItem : defines >
+User "1" -l- "0..*" WorkItem : is assigned to >
+User "1" -u- "0..*" Project : is one of the members of >
+User "1" -- "1" Project : is owner of >
+User "1" -l- "0..*" WorkItem: is author of >
+User "1" -- "0..*" Comment: is author of >
+
+WorkItem "1" -- "0..*" Comment: has >
+
+Role "1..*" -l- "0..*" User: has >
+Role "1..*" -u- "0..*" Project: has >
+Role "1" -d- "0..*" Permission: has >
+
+
+@enduml
