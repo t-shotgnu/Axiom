@@ -8,7 +8,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import java.net.URI;
@@ -56,9 +55,7 @@ public class GlobalExceptionHandler {
                 );
 
         problem.setTitle("Validation Error");
-        problem.setInstance(
-                URI.create(request.getRequestURI())
-        );
+        problem.setInstance(URI.create(request.getRequestURI()));
 
         return ResponseEntity
                 .badRequest()

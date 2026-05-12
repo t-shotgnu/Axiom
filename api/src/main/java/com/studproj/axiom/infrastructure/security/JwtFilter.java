@@ -30,10 +30,7 @@ public class JwtFilter extends OncePerRequestFilter {
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
 
-        String authHeader =
-                request.getHeader(
-                        "Authorization"
-                );
+        String authHeader = request.getHeader("Authorization");
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
@@ -45,51 +42,23 @@ public class JwtFilter extends OncePerRequestFilter {
 
             String username = jwtService.extractUsername(token);
 
-            if (username != null
-                    && SecurityContextHolder
-                    .getContext()
-                    .getAuthentication()
-                    == null) {
+            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                var userDetails = userDetailsService.loadUserByUsername(username);
 
-                var userDetails =
-                        userDetailsService
-                                .loadUserByUsername(
-                                        username
-                                );
+                if (jwtService.isTokenValid(token, userDetails.getUsername())) {
+                    var auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 
-                if (jwtService.isTokenValid(
-                        token,
-                        userDetails.getUsername()
-                )) {
-
-                    var auth =
-                            new UsernamePasswordAuthenticationToken(
-                                    userDetails,
-                                    null,
-                                    userDetails.getAuthorities()
-                            );
-
-                    auth.setDetails(
-                            new WebAuthenticationDetailsSource()
-                                    .buildDetails(
-                                            request
-                                    )
-                    );
+                    auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
                     SecurityContextHolder
                             .getContext()
-                            .setAuthentication(
-                                    auth
-                            );
+                            .setAuthentication(auth);
                 }
             }
 
         } catch (Exception ignored) {
         }
 
-        filterChain.doFilter(
-                request,
-                response
-        );
+        filterChain.doFilter(request, response);
     }
 }

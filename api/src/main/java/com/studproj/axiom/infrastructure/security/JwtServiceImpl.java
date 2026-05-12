@@ -24,11 +24,10 @@ public class JwtServiceImpl
 
     @Override
     public String generateToken(User user) {
-
         return Jwts.builder()
-                .subject(user.getEmailAddress())
-                .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + expiration))
+                .setSubject(user.getEmailAddress())
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(getSignKey())
                 .compact();
     }
@@ -45,31 +44,23 @@ public class JwtServiceImpl
         return extracted.equals(username) && !isExpired(token);
     }
 
-    private boolean isExpired(
-            String token
-    ) {
+    private boolean isExpired(String token) {
         return extractClaims(token)
                 .getExpiration()
                 .before(new Date());
     }
 
     private Claims extractClaims(String token) {
-        return Jwts.parser()
-                .verifyWith(getSignKey())
+        return Jwts.parserBuilder()
+                .setSigningKey(getSignKey())
                 .build()
-                .parseSignedClaims(token)
-                .getPayload();
+                .parseClaimsJws(token)
+                .getBody();
     }
 
     private SecretKey getSignKey() {
+        byte[] keyBytes = Decoders.BASE64.decode(secret);
 
-        byte[] keyBytes =
-                Decoders.BASE64.decode(
-                        secret
-                );
-
-        return Keys.hmacShaKeyFor(
-                keyBytes
-        );
+        return Keys.hmacShaKeyFor(keyBytes);
     }
 }
