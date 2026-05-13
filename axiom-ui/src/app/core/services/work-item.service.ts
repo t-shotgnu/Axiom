@@ -17,7 +17,6 @@ export interface WorkItem {
 }
 
 export interface CreateWorkItemCommand {
-  controlNo: number;
   description: string;
   priority: number;
   type: string;
@@ -25,7 +24,6 @@ export interface CreateWorkItemCommand {
   dueDate?: string;
   estimatedEffort?: number;
   projectId: string;
-  authorId: string;
   assigneeId?: string;
 }
 

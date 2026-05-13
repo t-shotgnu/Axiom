@@ -11,6 +11,12 @@ export interface Project {
   ownerId: string;
 }
 
+export interface CreateProjectCommand {
+  name: string;
+  code: string;
+  description?: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -21,5 +27,13 @@ export class ProjectService {
 
   getAllProjects(): Observable<Project[]> {
     return this.http.get<Project[]>(this.apiUrl);
+  }
+
+  getProjectById(id: string): Observable<Project> {
+    return this.http.get<Project>(`${this.apiUrl}/${id}`);
+  }
+
+  createProject(command: CreateProjectCommand): Observable<string> {
+    return this.http.post<string>(this.apiUrl, command);
   }
 }
