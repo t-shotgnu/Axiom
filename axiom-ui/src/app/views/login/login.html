@@ -1,0 +1,140 @@
+<div
+  class="flex min-h-screen items-center justify-center bg-gradient-to-br from-zinc-100 via-white to-sky-50/50 px-4 py-12 dark:from-zinc-950 dark:via-zinc-900 dark:to-slate-950"
+>
+  <div class="w-full max-w-md">
+    <p-card
+      styleClass="overflow-hidden rounded-2xl border border-zinc-200/80 bg-white/90 shadow-xl shadow-zinc-900/5 backdrop-blur-sm dark:border-zinc-700/80 dark:bg-zinc-900/90"
+    >
+      <div class="mb-6 space-y-2">
+        <p
+          class="text-xs font-semibold uppercase tracking-[0.2em] text-sky-600/90 dark:text-sky-400/90"
+        >
+          Axiom
+        </p>
+        <h1 class="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
+          @switch (mode) {
+            @case ('login') {
+              Sign in
+            }
+            @case ('register') {
+              Create account
+            }
+          }
+        </h1>
+        <p class="text-sm text-zinc-500 dark:text-zinc-400">
+          @if (mode === 'login') {
+            Welcome back — sign in to continue.
+          }
+          @if (mode === 'register') {
+            Set up your account in a minute.
+          }
+        </p>
+      </div>
+
+      <form class="space-y-4" (ngSubmit)="submit()">
+        @if (mode === 'register') {
+          <label class="grid gap-2 text-sm">
+            <span class="font-medium text-zinc-700 dark:text-zinc-300">Username</span>
+            <input
+              pInputText
+              name="userName"
+              required
+              class="w-full"
+              [(ngModel)]="registerForm.userName"
+              placeholder="dawid"
+              autocomplete="username"
+            />
+          </label>
+        }
+
+        <label class="grid gap-2 text-sm">
+          <span class="font-medium text-zinc-700 dark:text-zinc-300">Email</span>
+          <input
+            pInputText
+            type="email"
+            name="email"
+            required
+            class="w-full"
+            [(ngModel)]="emailAddress"
+            placeholder="you@example.com"
+            autocomplete="email"
+          />
+        </label>
+
+        <label class="grid gap-2 text-sm">
+          <span class="font-medium text-zinc-700 dark:text-zinc-300">Password</span>
+          <input
+            pInputText
+            type="password"
+            name="password"
+            required
+            class="w-full"
+            [(ngModel)]="password"
+            placeholder="Your password"
+            autocomplete="current-password"
+          />
+        </label>
+
+        @if (mode === 'register') {
+          <div
+            class="grid gap-1.5 rounded-xl border border-zinc-200/80 bg-zinc-50/80 px-3 py-3 text-xs text-zinc-600 dark:border-zinc-700/80 dark:bg-zinc-800/40 dark:text-zinc-400"
+          >
+            <span
+              [ngClass]="
+                passwordLongEnough ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-600 dark:text-zinc-400'
+              "
+            >
+              At least 8 characters
+            </span>
+            <span
+              [ngClass]="
+                passwordHasUppercase && passwordHasLowercase
+                  ? 'text-emerald-600 dark:text-emerald-400'
+                  : 'text-zinc-600 dark:text-zinc-400'
+              "
+            >
+              Uppercase and lowercase letter
+            </span>
+            <span
+              [ngClass]="
+                passwordHasNumber ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-600 dark:text-zinc-400'
+              "
+            >
+              At least one number
+            </span>
+          </div>
+        }
+
+        @if (errorMessage) {
+          <div
+            class="rounded-xl border border-red-200/90 bg-red-50/90 p-3 text-sm text-red-800 dark:border-red-900/80 dark:bg-red-950/50 dark:text-red-200"
+          >
+            {{ errorMessage }}
+          </div>
+        }
+
+        <p-button
+          type="submit"
+          styleClass="w-full"
+          [label]="mode === 'login' ? 'Sign in' : 'Create account'"
+          [disabled]="submitting || !canSubmit"
+        ></p-button>
+      </form>
+
+      <p-button
+        type="button"
+        styleClass="mt-4 w-full"
+        severity="secondary"
+        [text]="true"
+        [label]="
+          mode === 'login' ? 'Need an account? Register' : 'Already have an account? Sign in'
+        "
+        (onClick)="toggleMode()"
+      ></p-button>
+    </p-card>
+
+    <p class="mt-6 text-center text-xs text-zinc-500 dark:text-zinc-500">
+      Secure workspace sign-in — your session stays on this device.
+    </p>
+  </div>
+</div>
