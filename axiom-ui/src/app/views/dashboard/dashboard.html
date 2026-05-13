@@ -1,0 +1,27 @@
+<div class="grid gap-4 p-4">
+  <h1 class="text-3xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100">Dashboard</h1>
+  
+  <div *ngIf="loading" class="text-zinc-600 dark:text-zinc-400">Loading data...</div>
+  
+  <div *ngIf="!loading" class="grid md:grid-cols-3 gap-6">
+    <p-card header="Open Tasks" styleClass="shadow-md">
+      <p class="text-4xl font-bold text-blue-500">{{ openTasksCount }}</p>
+    </p-card>
+    <p-card header="Resolved Tasks" styleClass="shadow-md">
+      <p class="text-4xl font-bold text-green-500">{{ resolvedTasksCount }}</p>
+    </p-card>
+    <p-card header="Active Projects" styleClass="shadow-md">
+      <p class="text-4xl font-bold text-purple-500">{{ activeProjectsCount }}</p>
+    </p-card>
+  </div>
+
+  <section class="mt-8" *ngIf="!loading">
+    <h2 class="text-xl font-medium mb-4 text-zinc-900 dark:text-zinc-100">Recent Tasks</h2>
+    <div class="space-y-3">
+      <app-task-item *ngFor="let task of recentTasks" [task]="task"></app-task-item>
+      <div *ngIf="recentTasks.length === 0" class="text-zinc-500 dark:text-zinc-400">
+        No recent tasks found.
+      </div>
+    </div>
+  </section>
+</div>

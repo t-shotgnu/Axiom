@@ -23,5 +23,12 @@ public class WorkItemQueryHandler {
                         w.getProjectId(), w.getAuthorId(), w.getAssigneeId()))
                 .collect(Collectors.toList());
     }
+
+    public java.util.Optional<WorkItemDto> getWorkItemById(UUID id) {
+        return workItemRepository.findById(id)
+                .map(w -> new WorkItemDto(w.getId(), w.getControlNo(), w.getDescription(), w.getPriority(),
+                        w.getType(), w.getStatus(), w.getDueDate(), w.getEstimatedEffort(),
+                        w.getProjectId(), w.getAuthorId(), w.getAssigneeId()));
+    }
 }
 

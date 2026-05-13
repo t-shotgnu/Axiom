@@ -1,20 +1,168 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { WorkItemService, WorkItem, CreateWorkItemCommand } from '../../core/services/work-item.service';
+import { TaskItemComponent } from '../../shared/components/task-item/task-item';
+import { InputTextModule } from 'primeng/inputtext';
+import { InputNumberModule } from 'primeng/inputnumber';
+import { SelectModule } from 'primeng/select';
+import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
 
 @Component({
   selector: 'app-tasks',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [
+    CommonModule,
+    RouterModule,
+    FormsModule,
+    TaskItemComponent,
+    InputTextModule,
+    InputNumberModule,
+    SelectModule,
+    ButtonModule,
+    CardModule,
+  ],
   template: `
-    <div>
+    <div class="text-zinc-900 dark:text-zinc-100">
       <h1 class="text-2xl font-semibold mb-4">Tasks</h1>
-      <div class="space-y-2">
-        <a routerLink="/tasks/1" class="block bg-white p-3 rounded shadow-sm">#1 — Fix header layout</a>
-        <a routerLink="/tasks/2" class="block bg-white p-3 rounded shadow-sm">#2 — Update login flow</a>
-        <a routerLink="/tasks/3" class="block bg-white p-3 rounded shadow-sm">#3 — Add file uploads</a>
+
+      <p-card header="Create New Task" styleClass="mb-6 shadow-sm border border-zinc-200 dark:border-zinc-700">
+        <div class="grid md:grid-cols-[2fr_1fr] gap-8">
+          <!-- Left column: Core Details -->
+          <div class="flex flex-col gap-5">
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Task Description</label>
+              <input pInputText [(ngModel)]="newTask.description" placeholder="e.g. Implement login feature" class="w-full" />
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4">
+              <div class="flex flex-col gap-2">
+                <label class="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Type</label>
+                <p-select [options]="typeOptions" [(ngModel)]="newTask.type" styleClass="w-full" [appendTo]="'body'"></p-select>
+              </div>
+              <div class="flex flex-col gap-2">
+                <label class="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Status</label>
+                <p-select [options]="statusOptions" [(ngModel)]="newTask.status" styleClass="w-full" [appendTo]="'body'"></p-select>
+              </div>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4">
+              <div class="flex flex-col gap-2">
+                <label class="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Control No</label>
+                <p-inputNumber [(ngModel)]="newTask.controlNo" styleClass="w-full"></p-inputNumber>
+              </div>
+              <div class="flex flex-col gap-2">
+                <label class="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Priority (1-10)</label>
+                <p-inputNumber [(ngModel)]="newTask.priority" styleClass="w-full"></p-inputNumber>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right column: Identifiers -->
+          <div class="flex flex-col gap-4 bg-zinc-50 dark:bg-zinc-800/50 p-5 rounded-lg border border-zinc-200 dark:border-zinc-700/50">
+            <div>
+              <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1">System Identifiers</h3>
+              <p class="text-xs text-zinc-400 dark:text-zinc-500 mb-4">Temporarily required. Will be auto-filled from session in the future.</p>
+            </div>
+            
+            <div class="flex flex-col gap-2">
+              <label class="text-xs font-semibold text-zinc-600 dark:text-zinc-400">Project ID</label>
+              <input pInputText [(ngModel)]="projectId" placeholder="UUID" class="w-full font-mono text-sm" />
+            </div>
+            <div class="flex flex-col gap-2">
+              <label class="text-xs font-semibold text-zinc-600 dark:text-zinc-400">Author ID</label>
+              <input pInputText [(ngModel)]="authorId" placeholder="UUID" class="w-full font-mono text-sm" />
+            </div>
+          </div>
+        </div>
+
+        <ng-template pTemplate="footer">
+          <div class="flex justify-end border-t border-zinc-100 dark:border-zinc-800 pt-4 mt-2">
+            <p-button label="Create Task" icon="pi pi-plus" (onClick)="createTask()"></p-button>
+          </div>
+        </ng-template>
+      </p-card>
+
+      <div class="mb-4 flex gap-2">
+        <input
+          pInputText
+          [(ngModel)]="fetchProjectId"
+          placeholder="Project ID to fetch"
+          class="w-full"
+        />
+        <p-button
+          label="Load Tasks"
+          icon="pi pi-search"
+          severity="secondary"
+          (onClick)="loadTasks()"
+        ></p-button>
+      </div>
+
+      <div class="space-y-3">
+        <app-task-item *ngFor="let t of tasks" [task]="t"></app-task-item>
+        <div *ngIf="tasks.length === 0" class="text-zinc-500 dark:text-zinc-400">
+          No tasks found.
+        </div>
       </div>
     </div>
   `,
 })
-export class TasksComponent {}
+export class TasksComponent {
+  tasks: WorkItem[] = [];
+
+  projectId: string = '00000000-0000-0000-0000-000000000000';
+  authorId: string = '00000000-0000-0000-0000-000000000000';
+  fetchProjectId: string = '00000000-0000-0000-0000-000000000000';
+
+  newTask: Partial<CreateWorkItemCommand> = {
+    controlNo: 1,
+    description: '',
+    priority: 1,
+    type: 'Task',
+    status: 'New',
+  };
+
+  typeOptions = [
+    { label: 'Task', value: 'Task' },
+    { label: 'Bug', value: 'Bug' },
+    { label: 'Epic', value: 'Epic' },
+  ];
+
+  statusOptions = [
+    { label: 'New', value: 'New' },
+    { label: 'Active', value: 'Active' },
+    { label: 'Resolved', value: 'Resolved' },
+    { label: 'Closed', value: 'Closed' },
+  ];
+
+  constructor(private workItemService: WorkItemService) {}
+
+  loadTasks() {
+    if (!this.fetchProjectId) return;
+    this.workItemService.getWorkItems(this.fetchProjectId).subscribe({
+      next: (data) => (this.tasks = data),
+      error: (err) => console.error(err),
+    });
+  }
+
+  createTask() {
+    if (!this.projectId || !this.authorId) return;
+    const command: CreateWorkItemCommand = {
+      ...(this.newTask as CreateWorkItemCommand),
+      projectId: this.projectId,
+      authorId: this.authorId,
+    };
+
+    this.workItemService.createWorkItem(command).subscribe({
+      next: () => {
+        this.newTask.description = '';
+        this.newTask.controlNo = (this.newTask.controlNo || 0) + 1;
+        this.fetchProjectId = this.projectId;
+        this.loadTasks();
+      },
+      error: (err) => console.error(err),
+    });
+  }
+}
