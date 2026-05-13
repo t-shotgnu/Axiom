@@ -111,6 +111,13 @@ export class ProjectsComponent {
       if (err.status === 401 || err.status === 403) {
         return 'You need to sign in to load projects. Sign in, then refresh this page.';
       }
+      if (err.status === 0) {
+        return 'Could not reach the API. Check your network or that the backend is running.';
+      }
+      const apiMessage = this.extractApiMessage(err);
+      if (apiMessage) {
+        return apiMessage;
+      }
     }
     return 'Could not load projects. Check if the API is running.';
   }
@@ -120,7 +127,42 @@ export class ProjectsComponent {
       if (err.status === 401 || err.status === 403) {
         return 'Your session expired or you are not allowed to create projects. Sign in again, then retry.';
       }
+      if (err.status === 409) {
+        return 'A project with this code may already exist. Try another code.';
+      }
+      if (err.status === 400) {
+        const apiMessage = this.extractApiMessage(err);
+        if (apiMessage) {
+          return apiMessage;
+        }
+        return 'Could not create project. Check that name and code meet validation rules.';
+      }
+      if (err.status === 0) {
+        return 'Could not reach the API. Check your network or that the backend is running.';
+      }
     }
     return 'Could not create project. Check name and code.';
+  }
+
+  private extractApiMessage(err: HttpErrorResponse): string | null {
+    const body = err.error;
+    if (body && typeof body === 'object') {
+      if ('detail' in body) {
+        const detail = (body as { detail?: unknown }).detail;
+        if (typeof detail === 'string' && detail.trim() !== '') {
+          return detail;
+        }
+      }
+      if ('message' in body) {
+        const message = (body as { message?: unknown }).message;
+        if (typeof message === 'string' && message.trim() !== '') {
+          return message;
+        }
+      }
+    }
+    if (typeof body === 'string' && body.trim() !== '') {
+      return body;
+    }
+    return null;
   }
 }

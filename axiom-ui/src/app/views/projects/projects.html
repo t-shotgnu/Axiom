@@ -64,6 +64,7 @@
           @for (project of projects; track project.id) {
             <a
               [routerLink]="['/projects', project.id]"
+              [attr.aria-label]="'Open project ' + project.name + ', code ' + project.code"
               class="block rounded-2xl text-inherit no-underline outline-none ring-primary/40 transition-shadow hover:shadow-md focus-visible:ring-2"
             >
               <p-card
