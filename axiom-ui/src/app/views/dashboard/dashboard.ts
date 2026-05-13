@@ -1,36 +1,62 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
+import { ProjectService } from '../../core/services/project.service';
+import { WorkItemService, WorkItem } from '../../core/services/work-item.service';
+import { forkJoin, of } from 'rxjs';
+import { catchError, map, switchMap } from 'rxjs/operators';
+import { TaskItemComponent } from '../../shared/components/task-item/task-item';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, CardModule, ButtonModule],
-  template: `
-    <div class="grid gap-4">
-      <h1 class="text-2xl font-semibold mb-2">Dashboard</h1>
-      <div class="grid md:grid-cols-3 gap-4">
-        <p-card header="My Tasks">
-          <p>Open: 12</p>
-        </p-card>
-        <p-card header="Team Tasks">
-          <p>Open: 48</p>
-        </p-card>
-        <p-card header="Active Projects">
-          <p>5</p>
-        </p-card>
-      </div>
-
-      <section class="mt-6">
-        <h2 class="text-lg font-medium mb-2">Recent activity</h2>
-        <div class="space-y-2">
-          <div class="bg-white p-3 rounded shadow-sm">Alice commented on Task #23</div>
-          <div class="bg-white p-3 rounded shadow-sm">Bob updated Project "Website Redesign"</div>
-        </div>
-      </section>
-    </div>
-  `,
-  styles: [],
+  imports: [CommonModule, CardModule, ButtonModule, TaskItemComponent],
+  templateUrl: './dashboard.html',
+  styles: []
 })
-export class DashboardComponent {}
+export class DashboardComponent implements OnInit {
+  loading = true;
+  activeProjectsCount = 0;
+  openTasksCount = 0;
+  resolvedTasksCount = 0;
+  recentTasks: WorkItem[] = [];
+
+  constructor(
+    private projectService: ProjectService,
+    private workItemService: WorkItemService
+  ) {}
+
+  ngOnInit() {
+    this.fetchDashboardData();
+  }
+
+  fetchDashboardData() {
+    this.projectService.getAllProjects().pipe(
+      switchMap(projects => {
+        this.activeProjectsCount = projects.length;
+        if (projects.length === 0) {
+          return of([]);
+        }
+        const tasksRequests = projects.map(p => 
+          this.workItemService.getWorkItems(p.id).pipe(catchError(() => of([])))
+        );
+        return forkJoin(tasksRequests);
+      }),
+      map(tasksArrays => tasksArrays.flat())
+    ).subscribe({
+      next: (allTasks) => {
+        this.openTasksCount = allTasks.filter(t => t.status === 'New' || t.status === 'Active').length;
+        this.resolvedTasksCount = allTasks.filter(t => t.status === 'Resolved' || t.status === 'Closed').length;
+        
+        // Mock recent tasks by just taking the last 5 tasks in the array
+        this.recentTasks = allTasks.slice(-5).reverse();
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Error fetching dashboard data', err);
+        this.loading = false;
+      }
+    });
+  }
+}

@@ -35,4 +35,11 @@ public class WorkItemController {
     public ResponseEntity<List<WorkItemDto>> getWorkItemsByProject(@RequestParam UUID projectId) {
         return ResponseEntity.ok(queryService.getWorkItemsByProject(projectId));
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<WorkItemDto> getWorkItem(@org.springframework.web.bind.annotation.PathVariable UUID id) {
+        return queryService.getWorkItemById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
 }
