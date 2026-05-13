@@ -25,12 +25,13 @@ public class JwtServiceImpl
 
     @Override
     public String generateToken(User user) {
-        return Jwts.builder()
-                .setSubject(user.getEmailAddress())
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + expiration))
-                .signWith(getSignKey())
-                .compact();
+    return Jwts.builder()
+            .setSubject(user.getEmailAddress())
+            .claim("userId", user.getId().toString())
+            .setIssuedAt(new Date())
+            .setExpiration(new Date(System.currentTimeMillis() + expiration))
+            .signWith(getSignKey())
+            .compact();
     }
 
     @Override

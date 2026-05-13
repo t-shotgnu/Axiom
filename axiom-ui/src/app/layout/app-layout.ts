@@ -1,13 +1,12 @@
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
-import { MenubarModule } from 'primeng/menubar';
+import { Component, inject } from '@angular/core';
+import { RouterModule, Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
+import { AuthService } from '../core/services/auth.service';
 
 @Component({
   selector: 'app-layout',
   standalone: true,
-  imports: [CommonModule, RouterModule, MenubarModule, ButtonModule],
+  imports: [RouterModule, ButtonModule],
   template: `
     <div class="min-h-screen flex flex-col bg-gray-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100">
       <header class="bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800">
@@ -17,12 +16,20 @@ import { ButtonModule } from 'primeng/button';
             <nav class="flex gap-2">
               <a routerLink="/dashboard" class="text-sm px-3 hover:text-blue-500 transition-colors">Dashboard</a>
               <a routerLink="/projects" class="text-sm px-3 hover:text-blue-500 transition-colors">Projects</a>
-              <a routerLink="/tasks" class="text-sm px-3 hover:text-blue-500 transition-colors">Tasks</a>
             </nav>
           </div>
-          <div class="flex items-center gap-2">
-            <a routerLink="/tasks" pButton type="button" label="New Task" class="p-button-outlined"></a>
-            <a routerLink="/login" class="text-sm px-3 hover:text-blue-500 transition-colors">Profile</a>
+          <div class="flex items-center gap-3">
+            <span class="text-xs text-zinc-400 dark:text-zinc-500">{{ userEmail }}</span>
+            <button
+              pButton
+              type="button"
+              label="Logout"
+              icon="pi pi-sign-out"
+              severity="secondary"
+              [outlined]="true"
+              size="small"
+              (click)="logout()"
+            ></button>
           </div>
         </div>
       </header>
@@ -38,6 +45,24 @@ import { ButtonModule } from 'primeng/button';
       </footer>
     </div>
   `,
-  styles: [],
 })
-export class AppLayoutComponent {}
+export class AppLayoutComponent {
+  private authService = inject(AuthService);
+  private router = inject(Router);
+
+  get userEmail(): string {
+    const token = this.authService.getToken();
+    if (!token) return '';
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.sub ?? '';
+    } catch {
+      return '';
+    }
+  }
+
+  logout() {
+    this.authService.logout();
+    this.router.navigate(['/login']);
+  }
+}

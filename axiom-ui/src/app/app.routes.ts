@@ -5,16 +5,22 @@ import { ProjectsComponent } from './views/projects/projects';
 import { TasksComponent } from './views/tasks/tasks';
 import { TaskDetailComponent } from './views/task-detail/task-detail';
 import { LoginComponent } from './views/login/login';
+import { RegisterComponent } from './views/register/register';
+import { ProjectDetailComponent } from './views/project-detail/project-detail';
+import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
 	{ path: 'login', component: LoginComponent },
+	{ path: 'register', component: RegisterComponent },
 	{
 		path: '',
 		component: AppLayoutComponent,
+		canActivate: [authGuard],
 		children: [
 			{ path: '', redirectTo: 'dashboard', pathMatch: 'full' },
 			{ path: 'dashboard', component: DashboardComponent },
 			{ path: 'projects', component: ProjectsComponent },
+			{ path: 'projects/:id', component: ProjectDetailComponent },
 			{ path: 'tasks', component: TasksComponent },
 			{ path: 'tasks/:id', component: TaskDetailComponent },
 		],

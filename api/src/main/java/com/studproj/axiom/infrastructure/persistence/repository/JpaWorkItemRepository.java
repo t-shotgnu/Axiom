@@ -34,6 +34,11 @@ public class JpaWorkItemRepository implements WorkItemRepository {
     }
 
     @Override
+    public Optional<Integer> findMaxControlNoByProjectId(UUID projectId) {
+        return jpaRepository.findMaxControlNoByProjectId(projectId);
+    }
+
+    @Override
     public void delete(UUID id) {
         jpaRepository.deleteById(id);
     }
