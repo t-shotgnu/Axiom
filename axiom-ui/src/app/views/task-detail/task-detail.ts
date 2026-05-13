@@ -13,55 +13,7 @@ import { TagModule } from 'primeng/tag';
   selector: 'app-task-detail',
   standalone: true,
   imports: [CommonModule, FormsModule, InputTextModule, SelectModule, ButtonModule, CardModule, TagModule],
-  template: `
-    <div *ngIf="task" class="text-zinc-900 dark:text-zinc-100 max-w-4xl mx-auto">
-      <h1 class="text-2xl font-semibold mb-4">Task Detail</h1>
-      
-      <p-card styleClass="mb-4 shadow-sm">
-        <ng-template pTemplate="title">
-          <div class="flex justify-between items-center">
-            <span class="text-xl">#{{ task.controlNo }} - {{ task.description }}</span>
-            <p-tag [value]="task.status" [severity]="getSeverity(task.status)"></p-tag>
-          </div>
-        </ng-template>
-        <ng-template pTemplate="subtitle">
-          <span class="text-sm">Task ID: {{ task.id }}</span>
-        </ng-template>
-
-        <div class="grid grid-cols-2 gap-4 mt-2 text-sm">
-          <div><span class="font-bold">Project ID:</span> {{ task.projectId }}</div>
-          <div><span class="font-bold">Author ID:</span> {{ task.authorId }}</div>
-          <div><span class="font-bold">Priority:</span> {{ task.priority }}</div>
-          <div><span class="font-bold">Type:</span> {{ task.type }}</div>
-        </div>
-
-        <hr class="my-6 border-zinc-200 dark:border-zinc-700" />
-
-        <div class="grid md:grid-cols-2 gap-8">
-          <div>
-            <h3 class="font-medium mb-3">Update Status</h3>
-            <div class="flex gap-2">
-              <p-select [options]="statusOptions" [(ngModel)]="status" placeholder="Select Status" [appendTo]="'body'"></p-select>
-              <p-button label="Save Status" icon="pi pi-check" severity="success" (onClick)="updateStatus()"></p-button>
-            </div>
-          </div>
-
-          <div>
-            <h3 class="font-medium mb-3">Assign User</h3>
-            <div class="flex gap-2">
-              <input pInputText [(ngModel)]="assigneeId" placeholder="User ID (UUID)" class="w-full max-w-xs" />
-              <p-button label="Assign" icon="pi pi-user-plus" severity="info" (onClick)="assignUser()"></p-button>
-            </div>
-            <div class="mt-3 text-sm">
-              <span class="font-bold">Current Assignee:</span> 
-              <span class="ml-2 px-2 py-1 bg-zinc-100 dark:bg-zinc-800 rounded">{{ task.assigneeId || 'Unassigned' }}</span>
-            </div>
-          </div>
-        </div>
-      </p-card>
-    </div>
-    <div *ngIf="!task" class="text-zinc-900 dark:text-zinc-100">Loading...</div>
-  `,
+  templateUrl: './task-detail.html',
 })
 export class TaskDetailComponent implements OnInit {
   id: string | null = null;
