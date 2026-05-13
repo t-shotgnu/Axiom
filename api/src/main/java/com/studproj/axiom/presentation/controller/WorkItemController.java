@@ -3,7 +3,7 @@ package com.studproj.axiom.presentation.controller;
 import com.studproj.axiom.application.dto.command.CreateWorkItemCommand;
 import com.studproj.axiom.application.dto.query.WorkItemDto;
 import com.studproj.axiom.application.handlers.WorkItemCommandHandler;
-import com.studproj.axiom.application.handlers.WorkItemQueryHandler;
+import com.studproj.axiom.infrastructure.query.WorkItemQueryHandler;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
