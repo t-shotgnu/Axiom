@@ -1,6 +1,5 @@
 package com.studproj.axiom.infrastructure.config;
 
-import com.studproj.axiom.infrastructure.security.CustomUserDetailsService;
 import com.studproj.axiom.infrastructure.security.JwtFilter;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +17,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final JwtFilter jwtFilter;
-    private final CustomUserDetailsService userDetailsService;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {

@@ -11,6 +11,7 @@ import org.jspecify.annotations.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -57,10 +58,12 @@ public class JwtFilter extends OncePerRequestFilter {
                 }
             }
 
-        } catch (JwtException ex) {
+        } catch (JwtException | IllegalArgumentException | UsernameNotFoundException ex) {
+            SecurityContextHolder.clearContext();
+
             response.sendError(
                     HttpServletResponse.SC_UNAUTHORIZED,
-                    "Invalid JWT token"
+                    "Invalid or expired JWT token"
             );
             return;
         }

@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
+import java.util.Objects;
 
 @Service
 public class JwtServiceImpl
@@ -41,7 +42,7 @@ public class JwtServiceImpl
     public boolean isTokenValid(String token, String username) {
         String extracted = extractUsername(token);
 
-        return extracted.equals(username) && !isExpired(token);
+        return Objects.equals(extracted, username) && !isExpired(token);
     }
 
     private boolean isExpired(String token) {

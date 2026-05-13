@@ -1,5 +1,6 @@
 package com.studproj.axiom.infrastructure.persistence.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
@@ -23,6 +24,7 @@ public class UserEntity {
     @Id
     private UUID id;
     private String userName;
+    @Column(name = "email_address", nullable = false, unique = true)
     private String emailAddress;
     private String password;
     private LocalDateTime createdOn;
