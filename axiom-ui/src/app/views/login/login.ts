@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
 import { AuthApi, LoginRequest, RegisterRequest } from '../../services/auth-api';
@@ -12,12 +13,12 @@ type AuthMode = 'login' | 'register';
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule, InputTextModule, ButtonModule],
+  imports: [CommonModule, FormsModule, InputTextModule, ButtonModule, CardModule],
   template: `
-    <div class="max-w-md mx-auto mt-12">
-      <div class="rounded bg-white p-6 shadow-sm">
+    <div class="max-w-md mx-auto mt-12 text-zinc-900 dark:text-zinc-100">
+      <p-card styleClass="shadow-sm border border-zinc-200 dark:border-zinc-700">
         <div class="mb-5">
-          <p class="text-sm uppercase tracking-wide text-slate-500">Axiom</p>
+          <p class="text-sm uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Axiom</p>
           <h1 class="text-2xl font-semibold">
             {{ mode === 'login' ? 'Sign in' : 'Create account' }}
           </h1>
@@ -31,6 +32,7 @@ type AuthMode = 'login' | 'register';
                 pInputText
                 name="userName"
                 required
+                class="w-full"
                 [(ngModel)]="registerForm.userName"
                 placeholder="dawid"
               />
@@ -63,33 +65,43 @@ type AuthMode = 'login' | 'register';
             />
           </label>
 
+          @if (mode === 'register') {
+            <div class="grid gap-1 text-xs text-zinc-500 dark:text-zinc-400">
+              <span [class.text-green-600]="passwordLongEnough">At least 8 characters</span>
+              <span [class.text-green-600]="passwordHasUppercase && passwordHasLowercase">
+                Uppercase and lowercase letter
+              </span>
+              <span [class.text-green-600]="passwordHasNumber">At least one number</span>
+            </div>
+          }
+
           @if (errorMessage) {
-            <div class="rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+            <div class="rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/50 dark:text-red-300">
               {{ errorMessage }}
             </div>
           }
 
-          <button
-            pButton
+          <p-button
             type="submit"
-            class="w-full"
+            styleClass="w-full"
             [label]="mode === 'login' ? 'Sign in' : 'Create account'"
             [disabled]="submitting || !canSubmit"
-          ></button>
+          ></p-button>
         </form>
 
-        <button
+        <p-button
           type="button"
-          class="mt-4 w-full text-sm text-slate-600"
-          (click)="toggleMode()"
-        >
-          {{
+          styleClass="mt-4 w-full"
+          severity="secondary"
+          [text]="true"
+          [label]="
             mode === 'login'
               ? 'Need an account? Register'
               : 'Already have an account? Sign in'
-          }}
-        </button>
-      </div>
+          "
+          (onClick)="toggleMode()"
+        ></p-button>
+      </p-card>
     </div>
   `,
 })
@@ -115,7 +127,36 @@ export class LoginComponent {
       return baseFieldsReady;
     }
 
-    return baseFieldsReady && this.registerForm.userName.trim() !== '';
+    return (
+      baseFieldsReady &&
+      this.registerForm.userName.trim() !== '' &&
+      this.passwordMeetsRegistrationRules
+    );
+  }
+
+  get passwordLongEnough(): boolean {
+    return this.password.length >= 8;
+  }
+
+  get passwordHasUppercase(): boolean {
+    return /[A-Z]/.test(this.password);
+  }
+
+  get passwordHasLowercase(): boolean {
+    return /[a-z]/.test(this.password);
+  }
+
+  get passwordHasNumber(): boolean {
+    return /\d/.test(this.password);
+  }
+
+  get passwordMeetsRegistrationRules(): boolean {
+    return (
+      this.passwordLongEnough &&
+      this.passwordHasUppercase &&
+      this.passwordHasLowercase &&
+      this.passwordHasNumber
+    );
   }
 
   submit(): void {

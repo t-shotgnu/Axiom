@@ -23,9 +23,9 @@ import { AuthApi } from '../services/auth-api';
             </nav>
           </div>
           <div class="flex items-center gap-2">
-            <button pButton type="button" label="New Task" class="p-button-outlined"></button>
+            <a routerLink="/tasks" pButton type="button" label="New Task" class="p-button-outlined"></a>
             @if (authApi.isAuthenticated) {
-              <button type="button" class="text-sm" (click)="logout()">Logout</button>
+              <button pButton type="button" label="Logout" class="p-button-text" (click)="logout()"></button>
             } @else {
               <a routerLink="/login" class="text-sm">Sign in</a>
             }

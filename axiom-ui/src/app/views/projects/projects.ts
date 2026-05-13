@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
 import { finalize } from 'rxjs';
 import { CreateProjectRequest, ProjectDto, ProjectsApi } from '../../services/projects-api';
@@ -9,119 +10,110 @@ import { CreateProjectRequest, ProjectDto, ProjectsApi } from '../../services/pr
 @Component({
   selector: 'app-projects',
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonModule, InputTextModule],
+  imports: [CommonModule, FormsModule, ButtonModule, CardModule, InputTextModule],
   template: `
-    <div class="grid gap-6">
+    <div class="grid gap-6 text-zinc-900 dark:text-zinc-100">
       <header class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p class="text-sm uppercase tracking-wide text-slate-500">Workspace</p>
+          <p class="text-sm uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Workspace</p>
           <h1 class="text-2xl font-semibold">Projects</h1>
         </div>
-        <button
-          pButton
-          type="button"
+        <p-button
           label="Refresh"
-          class="p-button-outlined"
+          icon="pi pi-refresh"
+          severity="secondary"
+          [outlined]="true"
           [disabled]="loading"
-          (click)="loadProjects()"
-        ></button>
+          (onClick)="loadProjects()"
+        ></p-button>
       </header>
 
       <section class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_24rem]">
-        <div class="grid gap-3">
+        <div class="grid gap-4">
           @if (loading) {
-            <div class="rounded bg-white p-4 text-slate-500 shadow-sm">Loading projects...</div>
+            <p-card>
+              <p class="text-zinc-500 dark:text-zinc-400">Loading projects...</p>
+            </p-card>
           } @else if (errorMessage) {
-            <div class="rounded border border-red-200 bg-red-50 p-4 text-red-700">
+            <div class="rounded border border-red-200 bg-red-50 p-4 text-red-700 dark:border-red-900 dark:bg-red-950/50 dark:text-red-300">
               {{ errorMessage }}
             </div>
           } @else if (projects.length === 0) {
-            <div class="rounded bg-white p-6 text-center text-slate-500 shadow-sm">
-              No projects yet. Create the first one from the form.
-            </div>
+            <p-card>
+              <p class="text-center text-zinc-500 dark:text-zinc-400">
+                No projects yet. Create the first one from the form.
+              </p>
+            </p-card>
           } @else {
             @for (project of projects; track project.id) {
-              <article class="rounded bg-white p-4 shadow-sm">
+              <p-card styleClass="shadow-sm border border-zinc-200 dark:border-zinc-700">
                 <div class="flex items-start justify-between gap-4">
                   <div>
                     <div class="flex items-center gap-2">
-                      <span class="rounded bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-700">
+                      <span class="rounded-full border border-zinc-200 bg-zinc-100 px-3 py-1 text-xs font-semibold text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
                         {{ project.code }}
                       </span>
-                      <h2 class="font-semibold">{{ project.name }}</h2>
+                      <h2 class="text-lg font-medium">{{ project.name }}</h2>
                     </div>
-                    <p class="mt-2 text-sm text-slate-600">
+                    <p class="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
                       {{ project.description || 'No description provided.' }}
                     </p>
                   </div>
-                  <time class="text-xs text-slate-400">{{ project.createdOn | date: 'short' }}</time>
+                  <time class="text-xs text-zinc-400 dark:text-zinc-500">{{ project.createdOn | date: 'short' }}</time>
                 </div>
-                <p class="mt-3 text-xs text-slate-400">Owner: {{ project.ownerId }}</p>
-              </article>
+                <p class="mt-3 font-mono text-xs text-zinc-400 dark:text-zinc-500">Owner: {{ project.ownerId }}</p>
+              </p-card>
             }
           }
         </div>
 
-        <form class="rounded bg-white p-4 shadow-sm" (ngSubmit)="createProject()">
-          <h2 class="text-lg font-semibold">Create project</h2>
-          <p class="mt-1 text-sm text-slate-500">
-            Backend still expects an owner id until auth context is merged.
-          </p>
+        <p-card header="Create Project" styleClass="shadow-sm border border-zinc-200 dark:border-zinc-700">
+          <form class="grid gap-4" (ngSubmit)="createProject()">
+            <p class="text-sm text-zinc-500 dark:text-zinc-400">
+              Owner id is still required until project ownership is moved to the session.
+            </p>
 
-          <div class="mt-4 grid gap-3">
-            <label class="grid gap-1 text-sm">
-              Name
-              <input
-                pInputText
-                name="name"
-                required
-                [(ngModel)]="form.name"
-                placeholder="Website Redesign"
-              />
-            </label>
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Name</label>
+              <input pInputText name="name" required [(ngModel)]="form.name" placeholder="Website Redesign" />
+            </div>
 
-            <label class="grid gap-1 text-sm">
-              Code
-              <input
-                pInputText
-                name="code"
-                required
-                [(ngModel)]="form.code"
-                placeholder="WEB"
-              />
-            </label>
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Code</label>
+              <input pInputText name="code" required [(ngModel)]="form.code" placeholder="WEB" />
+            </div>
 
-            <label class="grid gap-1 text-sm">
-              Description
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Description</label>
               <textarea
                 name="description"
                 rows="4"
-                class="rounded border border-slate-300 p-2 text-sm outline-none focus:border-primary"
+                class="rounded border border-zinc-300 p-2 text-sm outline-none focus:border-primary dark:border-zinc-700 dark:bg-zinc-900"
                 [(ngModel)]="form.description"
                 placeholder="Short project description"
               ></textarea>
-            </label>
-
-            <label class="grid gap-1 text-sm">
-              Owner ID
-              <input pInputText name="ownerId" required [(ngModel)]="form.ownerId" />
-            </label>
-          </div>
-
-          @if (createErrorMessage) {
-            <div class="mt-4 rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-              {{ createErrorMessage }}
             </div>
-          }
 
-          <button
-            pButton
-            type="submit"
-            label="Create project"
-            class="mt-4 w-full"
-            [disabled]="creating || !form.name.trim() || !form.code.trim() || !form.ownerId.trim()"
-          ></button>
-        </form>
+            <div class="flex flex-col gap-2 rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700/50 dark:bg-zinc-800/50">
+              <label class="text-xs font-semibold text-zinc-600 dark:text-zinc-400">Owner ID</label>
+              <input pInputText name="ownerId" required class="font-mono text-sm" [(ngModel)]="form.ownerId" />
+            </div>
+
+            @if (createErrorMessage) {
+              <div class="rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/50 dark:text-red-300">
+                {{ createErrorMessage }}
+              </div>
+            }
+
+            <p-button
+              type="submit"
+              label="Create Project"
+              icon="pi pi-plus"
+              styleClass="w-full"
+              [disabled]="creating || !form.name.trim() || !form.code.trim() || !form.ownerId.trim()"
+            ></p-button>
+          </form>
+        </p-card>
       </section>
     </div>
   `,
