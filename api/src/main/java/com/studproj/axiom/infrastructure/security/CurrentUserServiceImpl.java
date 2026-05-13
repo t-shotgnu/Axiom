@@ -1,5 +1,7 @@
 package com.studproj.axiom.infrastructure.security;
 
+import com.studproj.axiom.domain.exception.ForbiddenException;
+import com.studproj.axiom.domain.exception.UnauthorizedException;
 import com.studproj.axiom.domain.service.CurrentUserService;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,7 +18,7 @@ public class CurrentUserServiceImpl implements CurrentUserService {
                 .getAuthentication();
 
         if (authentication == null || !authentication.isAuthenticated()) {
-            throw new IllegalStateException("No authenticated user");
+            throw new UnauthorizedException("No authenticated user");
         }
 
         var principal = authentication.getPrincipal();
@@ -24,6 +26,6 @@ public class CurrentUserServiceImpl implements CurrentUserService {
             return userDetails.id();
         }
 
-        throw new IllegalStateException("Authenticated principal does not contain user id");
+        throw new ForbiddenException("Authenticated principal does not contain user id");
     }
 }
