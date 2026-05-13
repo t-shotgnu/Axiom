@@ -1,6 +1,7 @@
 package com.studproj.axiom.infrastructure.security;
 
 import com.studproj.axiom.domain.service.JwtService;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -56,7 +57,12 @@ public class JwtFilter extends OncePerRequestFilter {
                 }
             }
 
-        } catch (Exception ignored) {
+        } catch (JwtException ex) {
+            response.sendError(
+                    HttpServletResponse.SC_UNAUTHORIZED,
+                    "Invalid JWT token"
+            );
+            return;
         }
 
         filterChain.doFilter(request, response);

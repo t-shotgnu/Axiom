@@ -41,7 +41,7 @@ public class AuthCommandHandler {
 
         String token = jwtService.generateToken(user);
 
-        return new AuthResponse(token, user.getId(), user.getUserName(), user.getEmailAddress());
+        return new AuthResponse(token);
     }
 
     public AuthResponse login(LoginCommand command) {
@@ -56,6 +56,6 @@ public class AuthCommandHandler {
         userRepository.save(user);
 
         String token = jwtService.generateToken(user);
-        return new AuthResponse(token, user.getId(), user.getUserName(), user.getEmailAddress());
+        return new AuthResponse(token);
     }
 }
