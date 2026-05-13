@@ -21,6 +21,7 @@ export class ProjectsComponent {
   creating = false;
   errorMessage = '';
   createErrorMessage = '';
+  createSuccessMessage = '';
 
   form = {
     name: '',
@@ -63,15 +64,22 @@ export class ProjectsComponent {
   }
 
   createProject(): void {
+    if (!this.form.name.trim() || !this.form.code.trim()) {
+      return;
+    }
+
     this.creating = true;
     this.createErrorMessage = '';
+    this.createSuccessMessage = '';
 
     this.projectService
       .createProject(this.toCommand())
       .pipe(finalize(() => (this.creating = false)))
       .subscribe({
         next: () => {
+          const projectName = this.form.name.trim();
           this.resetForm();
+          this.createSuccessMessage = `${projectName} was created.`;
           this.loadProjects();
         },
         error: (err: unknown) => {

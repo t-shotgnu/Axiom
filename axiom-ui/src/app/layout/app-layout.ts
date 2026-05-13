@@ -2,13 +2,12 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
-import { MenubarModule } from 'primeng/menubar';
 import { AuthService } from '../core/services/auth.service';
 
 @Component({
   selector: 'app-layout',
   standalone: true,
-  imports: [CommonModule, RouterModule, MenubarModule, ButtonModule],
+  imports: [CommonModule, RouterModule, ButtonModule],
   templateUrl: './app-layout.html',
   styles: [],
 })

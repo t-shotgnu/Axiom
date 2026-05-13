@@ -93,9 +93,6 @@
                     <span class="text-xs font-medium text-sky-600 dark:text-sky-400">View details →</span>
                   </div>
                 </div>
-                <p class="mt-4 border-t border-zinc-100 pt-3 font-mono text-xs text-zinc-400 dark:border-zinc-800 dark:text-zinc-500">
-                  Owner: {{ project.ownerId }}
-                </p>
               </p-card>
             </a>
           }
@@ -156,11 +153,21 @@
             </div>
           }
 
+          @if (createSuccessMessage) {
+            <div
+              class="rounded-xl border border-emerald-200/90 bg-emerald-50/90 p-3 text-sm text-emerald-800 dark:border-emerald-900/80 dark:bg-emerald-950/50 dark:text-emerald-200"
+              role="status"
+            >
+              {{ createSuccessMessage }}
+            </div>
+          }
+
           <p-button
             type="submit"
             label="Create project"
             icon="pi pi-plus"
             styleClass="w-full"
+            [loading]="creating"
             [disabled]="creating || !form.name.trim() || !form.code.trim()"
           ></p-button>
         </form>

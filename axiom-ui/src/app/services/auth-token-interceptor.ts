@@ -1,6 +1,6 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { AuthApi } from './auth-api';
+import { AuthService } from '../core/services/auth.service';
 
 function isAxiomApiRequest(url: string): boolean {
   if (url.startsWith('/api')) {
@@ -17,7 +17,7 @@ function isAxiomApiRequest(url: string): boolean {
 }
 
 export const authTokenInterceptor: HttpInterceptorFn = (request, next) => {
-  const token = inject(AuthApi).token;
+  const token = inject(AuthService).getToken();
 
   if (!token || !isAxiomApiRequest(request.url)) {
     return next(request);
