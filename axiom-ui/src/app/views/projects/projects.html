@@ -1,0 +1,156 @@
+<div class="mx-auto grid max-w-6xl gap-8 text-zinc-900 dark:text-zinc-100">
+  <header
+    class="flex flex-col gap-4 border-b border-zinc-200/80 pb-6 dark:border-zinc-800/80 sm:flex-row sm:items-end sm:justify-between"
+  >
+    <div class="space-y-1">
+      <p class="text-xs font-semibold uppercase tracking-[0.2em] text-sky-600/90 dark:text-sky-400/90">
+        Workspace
+      </p>
+      <h1 class="text-3xl font-semibold tracking-tight text-zinc-900 dark:text-white">Projects</h1>
+      <p class="max-w-xl text-sm text-zinc-500 dark:text-zinc-400">
+        Browse existing work or create a new project for your team.
+      </p>
+    </div>
+    <p-button
+      label="Refresh"
+      icon="pi pi-refresh"
+      severity="secondary"
+      [outlined]="true"
+      styleClass="shrink-0"
+      [disabled]="loading"
+      (onClick)="loadProjects()"
+    ></p-button>
+  </header>
+
+  <section class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_22rem] xl:grid-cols-[minmax(0,1fr)_24rem]">
+    <div class="grid gap-4">
+      @switch (listState) {
+        @case ('loading') {
+          <p-card
+            styleClass="rounded-2xl border border-zinc-200/80 bg-white/80 shadow-sm dark:border-zinc-800/80 dark:bg-zinc-900/50"
+          >
+            <div class="flex items-center gap-3 text-zinc-500 dark:text-zinc-400">
+              <i class="pi pi-spinner animate-spin text-lg text-sky-500" aria-hidden="true"></i>
+              <p>Loading projects…</p>
+            </div>
+          </p-card>
+        }
+        @case ('error') {
+          <div
+            class="rounded-2xl border border-red-200/90 bg-red-50/90 p-5 text-red-800 shadow-sm dark:border-red-900/70 dark:bg-red-950/40 dark:text-red-200"
+          >
+            {{ errorMessage }}
+          </div>
+        }
+        @case ('empty') {
+          <p-card
+            styleClass="rounded-2xl border border-dashed border-zinc-300/90 bg-zinc-50/50 shadow-none dark:border-zinc-700 dark:bg-zinc-900/30"
+          >
+            <div class="py-6 text-center">
+              <div
+                class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-zinc-200/80 dark:bg-zinc-800 dark:ring-zinc-700"
+              >
+                <i class="pi pi-folder-open text-xl text-zinc-400 dark:text-zinc-500" aria-hidden="true"></i>
+              </div>
+              <p class="font-medium text-zinc-700 dark:text-zinc-300">No projects yet</p>
+              <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                Create the first one using the form on the right.
+              </p>
+            </div>
+          </p-card>
+        }
+        @case ('list') {
+          @for (project of projects; track project.id) {
+            <p-card
+              styleClass="rounded-2xl border border-zinc-200/80 bg-white/90 shadow-sm transition-shadow duration-200 hover:shadow-md dark:border-zinc-800/80 dark:bg-zinc-900/60"
+            >
+              <div class="flex items-start justify-between gap-4">
+                <div class="min-w-0 flex-1">
+                  <div class="flex flex-wrap items-center gap-2 gap-y-2">
+                    <span
+                      class="inline-flex items-center rounded-lg border border-sky-200/80 bg-sky-50 px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-sky-800 dark:border-sky-900/60 dark:bg-sky-950/50 dark:text-sky-200"
+                    >
+                      {{ project.code }}
+                    </span>
+                    <h2 class="text-lg font-semibold tracking-tight text-zinc-900 dark:text-white">
+                      {{ project.name }}
+                    </h2>
+                  </div>
+                  <p class="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+                    {{ project.description || 'No description provided.' }}
+                  </p>
+                </div>
+                <time
+                  class="shrink-0 rounded-lg bg-zinc-100/80 px-2 py-1 text-xs font-medium text-zinc-500 dark:bg-zinc-800/80 dark:text-zinc-400"
+                  >{{ project.createdOn | date: 'short' }}</time
+                >
+              </div>
+              <p class="mt-4 border-t border-zinc-100 pt-3 font-mono text-xs text-zinc-400 dark:border-zinc-800 dark:text-zinc-500">
+                Owner: {{ project.ownerId }}
+              </p>
+            </p-card>
+          }
+        }
+      }
+    </div>
+
+    <div class="lg:sticky lg:top-6 lg:self-start">
+      <p-card
+        header="Create project"
+        styleClass="rounded-2xl border border-zinc-200/80 bg-white/90 shadow-md shadow-zinc-900/5 dark:border-zinc-800/80 dark:bg-zinc-900/70"
+      >
+        <form class="grid gap-4" (ngSubmit)="createProject()">
+          <p class="rounded-xl border border-amber-200/80 bg-amber-50/80 text-sm text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/35 dark:text-amber-100/90 p-3">
+            Owner id is still required until project ownership is moved to the session.
+          </p>
+
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-medium text-zinc-700 dark:text-zinc-300">Name</label>
+            <input pInputText name="name" required [(ngModel)]="form.name" placeholder="Website Redesign" />
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-medium text-zinc-700 dark:text-zinc-300">Code</label>
+            <input pInputText name="code" required [(ngModel)]="form.code" placeholder="WEB" />
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-medium text-zinc-700 dark:text-zinc-300">Description</label>
+            <textarea
+              name="description"
+              rows="4"
+              class="w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 outline-none ring-primary/0 transition-shadow focus:border-sky-500 focus:ring-4 focus:ring-sky-500/15 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-100"
+              [(ngModel)]="form.description"
+              placeholder="Short project description"
+            ></textarea>
+          </div>
+
+          <div
+            class="flex flex-col gap-2 rounded-xl border border-zinc-200/90 bg-zinc-50/90 p-4 dark:border-zinc-700/80 dark:bg-zinc-800/50"
+          >
+            <label class="text-xs font-semibold uppercase tracking-wide text-zinc-600 dark:text-zinc-400"
+              >Owner ID</label
+            >
+            <input pInputText name="ownerId" required class="font-mono text-sm" [(ngModel)]="form.ownerId" />
+          </div>
+
+          @if (createErrorMessage) {
+            <div
+              class="rounded-xl border border-red-200/90 bg-red-50/90 p-3 text-sm text-red-800 dark:border-red-900/80 dark:bg-red-950/50 dark:text-red-200"
+            >
+              {{ createErrorMessage }}
+            </div>
+          }
+
+          <p-button
+            type="submit"
+            label="Create project"
+            icon="pi pi-plus"
+            styleClass="w-full"
+            [disabled]="creating || !form.name.trim() || !form.code.trim() || !form.ownerId.trim()"
+          ></p-button>
+        </form>
+      </p-card>
+    </div>
+  </section>
+</div>
