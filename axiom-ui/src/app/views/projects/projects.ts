@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
@@ -6,6 +7,9 @@ import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
 import { finalize } from 'rxjs';
 import { CreateProjectRequest, ProjectDto, ProjectsApi } from '../../services/projects-api';
+
+/** Dev placeholder until projects are scoped to the signed-in user (see API). */
+const DEFAULT_DEV_OWNER_ID = '00000000-0000-0000-0000-000000000001';
 
 @Component({
   selector: 'app-projects',
@@ -24,7 +28,7 @@ export class ProjectsComponent {
     name: '',
     code: '',
     description: '',
-    ownerId: '00000000-0000-0000-0000-000000000001',
+    ownerId: DEFAULT_DEV_OWNER_ID,
   };
 
   constructor(private readonly projectsApi: ProjectsApi) {
@@ -55,8 +59,8 @@ export class ProjectsComponent {
         next: (projects) => {
           this.projects = projects;
         },
-        error: () => {
-          this.errorMessage = 'Could not load projects. Check if the API is running.';
+        error: (err: unknown) => {
+          this.errorMessage = this.mapProjectLoadError(err);
         },
       });
   }
@@ -73,8 +77,8 @@ export class ProjectsComponent {
           this.resetForm();
           this.loadProjects();
         },
-        error: () => {
-          this.createErrorMessage = 'Could not create project. Check required fields and owner id.';
+        error: (err: unknown) => {
+          this.createErrorMessage = this.mapProjectCreateError(err);
         },
       });
   }
@@ -97,5 +101,23 @@ export class ProjectsComponent {
       description: '',
       ownerId: this.form.ownerId,
     };
+  }
+
+  private mapProjectLoadError(err: unknown): string {
+    if (err instanceof HttpErrorResponse) {
+      if (err.status === 401 || err.status === 403) {
+        return 'You need to sign in to load projects. Sign in, then refresh this page.';
+      }
+    }
+    return 'Could not load projects. Check if the API is running.';
+  }
+
+  private mapProjectCreateError(err: unknown): string {
+    if (err instanceof HttpErrorResponse) {
+      if (err.status === 401 || err.status === 403) {
+        return 'Your session expired or you are not allowed to create projects. Sign in again, then retry.';
+      }
+    }
+    return 'Could not create project. Check required fields and owner id.';
   }
 }

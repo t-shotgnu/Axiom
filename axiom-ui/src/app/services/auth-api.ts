@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { tap } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 
 export interface LoginRequest {
   emailAddress: string;
@@ -31,13 +31,13 @@ export class AuthApi {
     return this.token !== null;
   }
 
-  login(request: LoginRequest) {
+  login(request: LoginRequest): Observable<AuthResponse> {
     return this.http
       .post<AuthResponse>(`${this.baseUrl}/login`, request)
       .pipe(tap((response) => this.saveToken(response)));
   }
 
-  register(request: RegisterRequest) {
+  register(request: RegisterRequest): Observable<AuthResponse> {
     return this.http
       .post<AuthResponse>(`${this.baseUrl}/register`, request)
       .pipe(tap((response) => this.saveToken(response)));

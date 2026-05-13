@@ -33,10 +33,11 @@
 
       <form class="space-y-4" (ngSubmit)="submit()">
         @if (mode === 'register') {
-          <label class="grid gap-2 text-sm">
-            <span class="font-medium text-zinc-700 dark:text-zinc-300">Username</span>
+          <div class="grid gap-2 text-sm">
+            <label class="font-medium text-zinc-700 dark:text-zinc-300" for="auth-username">Username</label>
             <input
               pInputText
+              id="auth-username"
               name="userName"
               required
               class="w-full"
@@ -44,13 +45,14 @@
               placeholder="dawid"
               autocomplete="username"
             />
-          </label>
+          </div>
         }
 
-        <label class="grid gap-2 text-sm">
-          <span class="font-medium text-zinc-700 dark:text-zinc-300">Email</span>
+        <div class="grid gap-2 text-sm">
+          <label class="font-medium text-zinc-700 dark:text-zinc-300" for="auth-email">Email</label>
           <input
             pInputText
+            id="auth-email"
             type="email"
             name="email"
             required
@@ -59,12 +61,13 @@
             placeholder="you@example.com"
             autocomplete="email"
           />
-        </label>
+        </div>
 
-        <label class="grid gap-2 text-sm">
-          <span class="font-medium text-zinc-700 dark:text-zinc-300">Password</span>
+        <div class="grid gap-2 text-sm">
+          <label class="font-medium text-zinc-700 dark:text-zinc-300" for="auth-password">Password</label>
           <input
             pInputText
+            id="auth-password"
             type="password"
             name="password"
             required
@@ -72,12 +75,16 @@
             [(ngModel)]="password"
             placeholder="Your password"
             autocomplete="current-password"
+            [attr.aria-describedby]="mode === 'register' ? 'auth-password-hint' : null"
           />
-        </label>
+        </div>
 
         @if (mode === 'register') {
           <div
+            id="auth-password-hint"
             class="grid gap-1.5 rounded-xl border border-zinc-200/80 bg-zinc-50/80 px-3 py-3 text-xs text-zinc-600 dark:border-zinc-700/80 dark:bg-zinc-800/40 dark:text-zinc-400"
+            role="group"
+            aria-label="Password requirements"
           >
             <span
               [ngClass]="
@@ -108,6 +115,7 @@
         @if (errorMessage) {
           <div
             class="rounded-xl border border-red-200/90 bg-red-50/90 p-3 text-sm text-red-800 dark:border-red-900/80 dark:bg-red-950/50 dark:text-red-200"
+            role="alert"
           >
             {{ errorMessage }}
           </div>
@@ -128,6 +136,9 @@
         [text]="true"
         [label]="
           mode === 'login' ? 'Need an account? Register' : 'Already have an account? Sign in'
+        "
+        [attr.aria-label]="
+          mode === 'login' ? 'Switch to registration form' : 'Switch to sign-in form'
         "
         (onClick)="toggleMode()"
       ></p-button>

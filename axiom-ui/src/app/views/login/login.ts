@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { InputTextModule } from 'primeng/inputtext';
@@ -83,11 +84,8 @@ export class LoginComponent {
       next: () => {
         void this.router.navigateByUrl('/projects');
       },
-      error: () => {
-        this.errorMessage =
-          this.mode === 'login'
-            ? 'Could not sign in. Check email and password.'
-            : 'Could not create account. Check the provided data.';
+      error: (err: unknown) => {
+        this.errorMessage = this.mapAuthError(err);
       },
     });
   }
@@ -95,6 +93,23 @@ export class LoginComponent {
   toggleMode(): void {
     this.mode = this.mode === 'login' ? 'register' : 'login';
     this.errorMessage = '';
+  }
+
+  private mapAuthError(err: unknown): string {
+    if (err instanceof HttpErrorResponse) {
+      if (this.mode === 'login') {
+        if (err.status === 401 || err.status === 403) {
+          return 'Invalid email or password.';
+        }
+      } else {
+        if (err.status === 400 || err.status === 409) {
+          return 'Could not create account. The email or username may already be in use, or the data is invalid.';
+        }
+      }
+    }
+    return this.mode === 'login'
+      ? 'Could not sign in. Check email and password.'
+      : 'Could not create account. Check the provided data.';
   }
 
   private toLoginRequest(): LoginRequest {
