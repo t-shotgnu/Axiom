@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MenubarModule } from 'primeng/menubar';
 import { ButtonModule } from 'primeng/button';
+import { Router } from '@angular/router';
+import { AuthApi } from '../services/auth-api';
 
 @Component({
   selector: 'app-layout',
@@ -22,7 +24,11 @@ import { ButtonModule } from 'primeng/button';
           </div>
           <div class="flex items-center gap-2">
             <button pButton type="button" label="New Task" class="p-button-outlined"></button>
-            <a routerLink="/login" class="text-sm">Profile</a>
+            @if (authApi.isAuthenticated) {
+              <button type="button" class="text-sm" (click)="logout()">Logout</button>
+            } @else {
+              <a routerLink="/login" class="text-sm">Sign in</a>
+            }
           </div>
         </div>
       </header>
@@ -40,4 +46,14 @@ import { ButtonModule } from 'primeng/button';
   `,
   styles: [],
 })
-export class AppLayoutComponent {}
+export class AppLayoutComponent {
+  constructor(
+    protected readonly authApi: AuthApi,
+    private readonly router: Router,
+  ) {}
+
+  logout(): void {
+    this.authApi.logout();
+    void this.router.navigateByUrl('/login');
+  }
+}
