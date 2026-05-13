@@ -1,7 +1,7 @@
-package com.studproj.axiom.infrastructure.query;
+package com.studproj.axiom.application.handlers;
 
 import com.studproj.axiom.application.dto.query.WorkItemDto;
-import com.studproj.axiom.infrastructure.persistence.repository.WorkItemJpaRepository;
+import com.studproj.axiom.domain.repository.WorkItemRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,10 +14,10 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class WorkItemQueryHandler {
-    private final WorkItemJpaRepository workItemJpaRepository;
+    private final WorkItemRepository workItemRepository;
 
     public List<WorkItemDto> getWorkItemsByProject(UUID projectId) {
-        return workItemJpaRepository.findByProjectId(projectId).stream()
+        return workItemRepository.findByProjectId(projectId).stream()
                 .map(workItem -> new WorkItemDto(
                         workItem.getId(),
                         workItem.getControlNo(),
@@ -34,7 +34,7 @@ public class WorkItemQueryHandler {
     }
 
     public Optional<WorkItemDto> getWorkItemById(UUID id) {
-        return workItemJpaRepository.findById(id)
+        return workItemRepository.findById(id)
                 .map(workItem -> new WorkItemDto(
                         workItem.getId(),
                         workItem.getControlNo(),

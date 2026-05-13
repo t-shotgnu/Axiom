@@ -3,7 +3,7 @@ package com.studproj.axiom.presentation.controller;
 import com.studproj.axiom.application.dto.command.CreateProjectCommand;
 import com.studproj.axiom.application.dto.query.ProjectDto;
 import com.studproj.axiom.application.handlers.ProjectCommandHandler;
-import com.studproj.axiom.infrastructure.query.ProjectQueryHandler;
+import com.studproj.axiom.application.handlers.ProjectQueryHandler;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

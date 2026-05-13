@@ -1,7 +1,7 @@
-package com.studproj.axiom.infrastructure.query;
+package com.studproj.axiom.application.handlers;
 
 import com.studproj.axiom.application.dto.query.ProjectDto;
-import com.studproj.axiom.infrastructure.persistence.repository.ProjectJpaRepository;
+import com.studproj.axiom.domain.repository.ProjectRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,10 +14,10 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class ProjectQueryHandler {
-    private final ProjectJpaRepository projectJpaRepository;
+    private final ProjectRepository projectRepository;
 
     public List<ProjectDto> getAllProjects() {
-        return projectJpaRepository.findAll().stream()
+        return projectRepository.findAll().stream()
                 .map(project -> new ProjectDto(
                         project.getId(),
                         project.getName(),
@@ -29,7 +29,7 @@ public class ProjectQueryHandler {
     }
 
     public Optional<ProjectDto> getProjectById(UUID id) {
-        return projectJpaRepository.findById(id)
+        return projectRepository.findById(id)
                 .map(project -> new ProjectDto(
                         project.getId(),
                         project.getName(),
