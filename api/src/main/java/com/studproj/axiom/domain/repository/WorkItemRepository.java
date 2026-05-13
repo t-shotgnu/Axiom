@@ -13,5 +13,7 @@ public interface WorkItemRepository {
 
     List<WorkItem> findByProjectId(UUID projectId);
 
+    Optional<Integer> findMaxControlNoByProjectId(UUID projectId);
+
     void delete(UUID id);
 }

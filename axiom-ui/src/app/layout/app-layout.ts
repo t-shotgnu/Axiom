@@ -1,10 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
-import { MenubarModule } from 'primeng/menubar';
+import { Router, RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
-import { Router } from '@angular/router';
-import { AuthApi } from '../services/auth-api';
+import { MenubarModule } from 'primeng/menubar';
+import { AuthService } from '../core/services/auth.service';
 
 @Component({
   selector: 'app-layout',
@@ -14,13 +13,28 @@ import { AuthApi } from '../services/auth-api';
   styles: [],
 })
 export class AppLayoutComponent {
-  constructor(
-    protected readonly authApi: AuthApi,
-    private readonly router: Router,
-  ) {}
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+
+  get isAuthenticated(): boolean {
+    return this.authService.hasToken();
+  }
+
+  get userEmail(): string {
+    const token = this.authService.getToken();
+    if (!token) {
+      return '';
+    }
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1] as string));
+      return (payload.sub as string) ?? '';
+    } catch {
+      return '';
+    }
+  }
 
   logout(): void {
-    this.authApi.logout();
+    this.authService.logout();
     void this.router.navigateByUrl('/login');
   }
 }

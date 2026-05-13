@@ -20,7 +20,7 @@ export interface AuthResponse {
 @Injectable({ providedIn: 'root' })
 export class AuthApi {
   private readonly http = inject(HttpClient);
-  private readonly tokenKey = 'axiom.auth.token';
+  private readonly tokenKey = 'axiom_jwt_token';
   private readonly baseUrl = '/api/auth';
 
   get token(): string | null {

@@ -7,7 +7,7 @@ import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
-import { AuthApi, LoginRequest, RegisterRequest } from '../../services/auth-api';
+import { AuthService, LoginCommand, RegisterUserCommand } from '../../core/services/auth.service';
 
 type AuthMode = 'login' | 'register';
 
@@ -28,7 +28,7 @@ export class LoginComponent {
   };
 
   constructor(
-    private readonly authApi: AuthApi,
+    private readonly authService: AuthService,
     private readonly router: Router,
   ) {}
 
@@ -77,8 +77,8 @@ export class LoginComponent {
 
     const request =
       this.mode === 'login'
-        ? this.authApi.login(this.toLoginRequest())
-        : this.authApi.register(this.toRegisterRequest());
+        ? this.authService.login(this.toLoginCommand())
+        : this.authService.register(this.toRegisterCommand());
 
     request.pipe(finalize(() => (this.submitting = false))).subscribe({
       next: () => {
@@ -112,14 +112,14 @@ export class LoginComponent {
       : 'Could not create account. Check the provided data.';
   }
 
-  private toLoginRequest(): LoginRequest {
+  private toLoginCommand(): LoginCommand {
     return {
       emailAddress: this.emailAddress.trim(),
       password: this.password,
     };
   }
 
-  private toRegisterRequest(): RegisterRequest {
+  private toRegisterCommand(): RegisterUserCommand {
     return {
       userName: this.registerForm.userName.trim(),
       emailAddress: this.emailAddress.trim(),

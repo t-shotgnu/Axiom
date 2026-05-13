@@ -7,6 +7,7 @@ import { providePrimeNG } from 'primeng/config';
 import Aura from '@primeuix/themes/aura';
 import { authTokenInterceptor } from './services/auth-token-interceptor';
 
+/** HttpClient calls use relative `/api/*` URLs; `ng serve` proxy forwards them to the backend. */
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
@@ -16,8 +17,8 @@ export const appConfig: ApplicationConfig = {
       theme: {
         preset: Aura,
         options: {
-            darkModeSelector: '.dark'
-        }
+          darkModeSelector: '.dark',
+        },
       },
     }),
   ],

@@ -2,23 +2,21 @@ import { Component } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
 import { finalize } from 'rxjs';
-import { CreateProjectRequest, ProjectDto, ProjectsApi } from '../../services/projects-api';
-
-/** Dev placeholder until projects are scoped to the signed-in user (see API). */
-const DEFAULT_DEV_OWNER_ID = '00000000-0000-0000-0000-000000000001';
+import { CreateProjectCommand, Project, ProjectService } from '../../core/services/project.service';
 
 @Component({
   selector: 'app-projects',
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonModule, CardModule, InputTextModule],
+  imports: [CommonModule, RouterModule, FormsModule, ButtonModule, CardModule, InputTextModule],
   templateUrl: './projects.html',
 })
 export class ProjectsComponent {
-  projects: ProjectDto[] = [];
+  projects: Project[] = [];
   loading = false;
   creating = false;
   errorMessage = '';
@@ -28,10 +26,9 @@ export class ProjectsComponent {
     name: '',
     code: '',
     description: '',
-    ownerId: DEFAULT_DEV_OWNER_ID,
   };
 
-  constructor(private readonly projectsApi: ProjectsApi) {
+  constructor(private readonly projectService: ProjectService) {
     this.loadProjects();
   }
 
@@ -52,8 +49,8 @@ export class ProjectsComponent {
     this.loading = true;
     this.errorMessage = '';
 
-    this.projectsApi
-      .getProjects()
+    this.projectService
+      .getAllProjects()
       .pipe(finalize(() => (this.loading = false)))
       .subscribe({
         next: (projects) => {
@@ -69,8 +66,8 @@ export class ProjectsComponent {
     this.creating = true;
     this.createErrorMessage = '';
 
-    this.projectsApi
-      .createProject(this.toRequest())
+    this.projectService
+      .createProject(this.toCommand())
       .pipe(finalize(() => (this.creating = false)))
       .subscribe({
         next: () => {
@@ -83,14 +80,13 @@ export class ProjectsComponent {
       });
   }
 
-  private toRequest(): CreateProjectRequest {
+  private toCommand(): CreateProjectCommand {
     const description = this.form.description.trim();
 
     return {
       name: this.form.name.trim(),
       code: this.form.code.trim().toUpperCase(),
-      description: description || null,
-      ownerId: this.form.ownerId.trim(),
+      ...(description ? { description } : {}),
     };
   }
 
@@ -99,7 +95,6 @@ export class ProjectsComponent {
       name: '',
       code: '',
       description: '',
-      ownerId: this.form.ownerId,
     };
   }
 
@@ -118,6 +113,6 @@ export class ProjectsComponent {
         return 'Your session expired or you are not allowed to create projects. Sign in again, then retry.';
       }
     }
-    return 'Could not create project. Check required fields and owner id.';
+    return 'Could not create project. Check name and code.';
   }
 }

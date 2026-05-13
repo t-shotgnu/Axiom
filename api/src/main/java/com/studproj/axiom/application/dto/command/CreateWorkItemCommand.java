@@ -8,7 +8,6 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 public record CreateWorkItemCommand(
-    @NotNull Integer controlNo,
     @NotBlank String description,
     Integer priority,
     @NotNull WorkItemType type,
@@ -16,6 +15,5 @@ public record CreateWorkItemCommand(
     LocalDateTime dueDate,
     Integer estimatedEffort,
     @NotNull UUID projectId,
-    @NotNull UUID authorId,
     UUID assigneeId
 ) {}
