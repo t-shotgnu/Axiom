@@ -1,64 +1,129 @@
 import { Component } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
-import { Router, RouterModule } from '@angular/router';
-import { AuthService, LoginCommand } from '../../core/services/auth.service';
-import { MessageModule } from 'primeng/message';
+import { CardModule } from 'primeng/card';
+import { Router } from '@angular/router';
+import { finalize } from 'rxjs';
+import { AuthService, LoginCommand, RegisterUserCommand } from '../../core/services/auth.service';
+
+type AuthMode = 'login' | 'register';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule, InputTextModule, ButtonModule, RouterModule, MessageModule],
-  template: `
-    <div class="flex items-center justify-center min-h-screen bg-zinc-50 dark:bg-zinc-900">
-      <div class="max-w-md w-full bg-white dark:bg-zinc-950 p-8 rounded-xl shadow-sm border border-zinc-200 dark:border-zinc-800">
-        <h1 class="text-2xl font-semibold mb-6 text-center text-zinc-900 dark:text-white">Sign in to Axiom</h1>
-        
-        <p-message *ngIf="error" severity="error" [text]="error" styleClass="w-full mb-4"></p-message>
-        
-        <form class="space-y-4" (ngSubmit)="login()">
-          <div>
-            <label class="block text-sm mb-1 font-medium text-zinc-700 dark:text-zinc-300">Email</label>
-            <input pInputText type="email" name="email" [(ngModel)]="command.emailAddress" class="w-full" required />
-          </div>
-          <div>
-            <label class="block text-sm mb-1 font-medium text-zinc-700 dark:text-zinc-300">Password</label>
-            <input pInputText type="password" name="password" [(ngModel)]="command.password" class="w-full" required />
-          </div>
-          <div class="pt-2">
-            <button pButton type="submit" label="Sign in" class="w-full" [loading]="loading"></button>
-          </div>
-        </form>
-        
-        <div class="mt-6 text-center text-sm text-zinc-500 dark:text-zinc-400">
-          Don't have an account? <a routerLink="/register" class="text-blue-600 dark:text-blue-400 hover:underline">Register here</a>
-        </div>
-      </div>
-    </div>
-  `,
+  imports: [CommonModule, FormsModule, InputTextModule, ButtonModule, CardModule],
+  templateUrl: './login.html',
 })
 export class LoginComponent {
-  command: LoginCommand = { emailAddress: '', password: '' };
-  error = '';
-  loading = false;
+  mode: AuthMode = 'login';
+  submitting = false;
+  errorMessage = '';
+  emailAddress = '';
+  password = '';
+  registerForm = {
+    userName: '',
+  };
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly router: Router,
+  ) {}
 
-  login() {
-    this.error = '';
-    this.loading = true;
-    this.authService.login(this.command).subscribe({
+  get canSubmit(): boolean {
+    const baseFieldsReady = this.emailAddress.trim() !== '' && this.password.trim() !== '';
+
+    if (this.mode === 'login') {
+      return baseFieldsReady;
+    }
+
+    return (
+      baseFieldsReady &&
+      this.registerForm.userName.trim() !== '' &&
+      this.passwordMeetsRegistrationRules
+    );
+  }
+
+  get passwordLongEnough(): boolean {
+    return this.password.length >= 8;
+  }
+
+  get passwordHasUppercase(): boolean {
+    return /[A-Z]/.test(this.password);
+  }
+
+  get passwordHasLowercase(): boolean {
+    return /[a-z]/.test(this.password);
+  }
+
+  get passwordHasNumber(): boolean {
+    return /\d/.test(this.password);
+  }
+
+  get passwordMeetsRegistrationRules(): boolean {
+    return (
+      this.passwordLongEnough &&
+      this.passwordHasUppercase &&
+      this.passwordHasLowercase &&
+      this.passwordHasNumber
+    );
+  }
+
+  submit(): void {
+    this.submitting = true;
+    this.errorMessage = '';
+
+    const request =
+      this.mode === 'login'
+        ? this.authService.login(this.toLoginCommand())
+        : this.authService.register(this.toRegisterCommand());
+
+    request.pipe(finalize(() => (this.submitting = false))).subscribe({
       next: () => {
-        this.loading = false;
-        this.router.navigate(['/']);
+        void this.router.navigateByUrl('/projects');
       },
-      error: (err) => {
-        this.loading = false;
-        this.error = 'Invalid email or password';
-        console.error(err);
-      }
+      error: (err: unknown) => {
+        this.errorMessage = this.mapAuthError(err);
+      },
     });
+  }
+
+  toggleMode(): void {
+    this.mode = this.mode === 'login' ? 'register' : 'login';
+    this.errorMessage = '';
+  }
+
+  private mapAuthError(err: unknown): string {
+    if (err instanceof HttpErrorResponse) {
+      if (this.mode === 'login') {
+        if (err.status === 401 || err.status === 403) {
+          return 'Invalid email or password.';
+        }
+      } else {
+        if (err.status === 400 || err.status === 409) {
+          return 'Could not create account. The email or username may already be in use, or the data is invalid.';
+        }
+      }
+    }
+    return this.mode === 'login'
+      ? 'Could not sign in. Check email and password.'
+      : 'Could not create account. Check the provided data.';
+  }
+
+  private toLoginCommand(): LoginCommand {
+    return {
+      emailAddress: this.emailAddress.trim(),
+      password: this.password,
+    };
+  }
+
+  private toRegisterCommand(): RegisterUserCommand {
+    return {
+      userName: this.registerForm.userName.trim(),
+      emailAddress: this.emailAddress.trim(),
+      password: this.password,
+    };
   }
 }

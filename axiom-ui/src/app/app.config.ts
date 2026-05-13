@@ -1,41 +1,24 @@
 import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
-import { provideHttpClient, withInterceptors, HttpInterceptorFn } from '@angular/common/http';
 
 import { routes } from './app.routes';
 import { providePrimeNG } from 'primeng/config';
 import Aura from '@primeuix/themes/aura';
+import { authTokenInterceptor } from './services/auth-token-interceptor';
 
-export const baseUrlInterceptor: HttpInterceptorFn = (req, next) => {
-  const baseUrl = 'http://localhost:8080';
-  if (req.url.startsWith('/api')) {
-    const apiReq = req.clone({ url: `${baseUrl}${req.url}` });
-    return next(apiReq);
-  }
-  return next(req);
-};
-
-export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  const token = localStorage.getItem('axiom_jwt_token');
-  if (token && req.url.startsWith('http://localhost:8080/api')) {
-    req = req.clone({
-      setHeaders: { Authorization: `Bearer ${token}` }
-    });
-  }
-  return next(req);
-};
-
+/** HttpClient calls use relative `/api/*` URLs; `ng serve` proxy forwards them to the backend. */
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
+    provideHttpClient(withInterceptors([authTokenInterceptor])),
     provideRouter(routes),
-    provideHttpClient(withInterceptors([baseUrlInterceptor, authInterceptor])),
     providePrimeNG({
       theme: {
         preset: Aura,
         options: {
-            darkModeSelector: '.dark'
-        }
+          darkModeSelector: '.dark',
+        },
       },
     }),
   ],

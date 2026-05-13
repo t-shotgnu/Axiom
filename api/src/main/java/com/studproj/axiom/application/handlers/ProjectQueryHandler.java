@@ -9,7 +9,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -19,13 +18,24 @@ public class ProjectQueryHandler {
 
     public List<ProjectDto> getAllProjects() {
         return projectRepository.findAll().stream()
-                .map(p -> new ProjectDto(p.getId(), p.getName(), p.getCode(), p.getDescription(), p.getCreatedOn(), p.getOwnerId()))
-                .collect(Collectors.toList());
+                .map(project -> new ProjectDto(
+                        project.getId(),
+                        project.getName(),
+                        project.getCode(),
+                        project.getDescription(),
+                        project.getCreatedOn(),
+                        project.getOwnerId()))
+                .toList();
     }
 
     public Optional<ProjectDto> getProjectById(UUID id) {
         return projectRepository.findById(id)
-                .map(p -> new ProjectDto(p.getId(), p.getName(), p.getCode(), p.getDescription(), p.getCreatedOn(), p.getOwnerId()));
+                .map(project -> new ProjectDto(
+                        project.getId(),
+                        project.getName(),
+                        project.getCode(),
+                        project.getDescription(),
+                        project.getCreatedOn(),
+                        project.getOwnerId()));
     }
 }
-

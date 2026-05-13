@@ -1,65 +1,168 @@
-import { Component, DestroyRef, inject, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { RouterModule } from '@angular/router';
+import { Component } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
-import { ProgressSpinnerModule } from 'primeng/progressspinner';
-import { ProjectService, Project, CreateProjectCommand } from '../../core/services/project.service';
+import { finalize } from 'rxjs';
+import { CreateProjectCommand, Project, ProjectService } from '../../core/services/project.service';
 
 @Component({
   selector: 'app-projects',
   standalone: true,
-  imports: [RouterModule, FormsModule, CardModule, ButtonModule, InputTextModule, ProgressSpinnerModule],
+  imports: [CommonModule, RouterModule, FormsModule, ButtonModule, CardModule, InputTextModule],
   templateUrl: './projects.html',
 })
 export class ProjectsComponent {
-  private projectService = inject(ProjectService);
-  private destroyRef = inject(DestroyRef);
+  projects: Project[] = [];
+  loading = false;
+  creating = false;
+  errorMessage = '';
+  createErrorMessage = '';
+  createSuccessMessage = '';
 
-  projects = signal<Project[]>([]);
-  loading = signal(false);
-
-  newProject: Partial<CreateProjectCommand> = {
+  form = {
     name: '',
     code: '',
     description: '',
   };
 
-  constructor() {
+  constructor(private readonly projectService: ProjectService) {
     this.loadProjects();
   }
 
-  loadProjects() {
-    this.loading.set(true);
+  get listState(): 'loading' | 'error' | 'empty' | 'list' {
+    if (this.loading) {
+      return 'loading';
+    }
+    if (this.errorMessage) {
+      return 'error';
+    }
+    if (this.projects.length === 0) {
+      return 'empty';
+    }
+    return 'list';
+  }
+
+  loadProjects(): void {
+    this.loading = true;
+    this.errorMessage = '';
+
     this.projectService
       .getAllProjects()
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .pipe(finalize(() => (this.loading = false)))
       .subscribe({
-        next: (data) => {
-          this.projects.set(data);
-          this.loading.set(false);
+        next: (projects) => {
+          this.projects = projects;
         },
-        error: (err) => {
-          console.error(err);
-          this.loading.set(false);
+        error: (err: unknown) => {
+          this.errorMessage = this.mapProjectLoadError(err);
         },
       });
   }
 
-  createProject() {
-    if (!this.newProject.name || !this.newProject.code) return;
+  createProject(): void {
+    if (!this.form.name.trim() || !this.form.code.trim()) {
+      return;
+    }
+
+    this.creating = true;
+    this.createErrorMessage = '';
+    this.createSuccessMessage = '';
 
     this.projectService
-      .createProject(this.newProject as CreateProjectCommand)
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .createProject(this.toCommand())
+      .pipe(finalize(() => (this.creating = false)))
       .subscribe({
         next: () => {
-          this.newProject = { name: '', code: '', description: '' };
+          const projectName = this.form.name.trim();
+          this.resetForm();
+          this.createSuccessMessage = `${projectName} was created.`;
           this.loadProjects();
         },
-        error: (err) => console.error(err),
+        error: (err: unknown) => {
+          this.createErrorMessage = this.mapProjectCreateError(err);
+        },
       });
+  }
+
+  private toCommand(): CreateProjectCommand {
+    const description = this.form.description.trim();
+
+    return {
+      name: this.form.name.trim(),
+      code: this.form.code.trim().toUpperCase(),
+      ...(description ? { description } : {}),
+    };
+  }
+
+  private resetForm(): void {
+    this.form = {
+      name: '',
+      code: '',
+      description: '',
+    };
+  }
+
+  private mapProjectLoadError(err: unknown): string {
+    if (err instanceof HttpErrorResponse) {
+      if (err.status === 401 || err.status === 403) {
+        return 'You need to sign in to load projects. Sign in, then refresh this page.';
+      }
+      if (err.status === 0) {
+        return 'Could not reach the API. Check your network or that the backend is running.';
+      }
+      const apiMessage = this.extractApiMessage(err);
+      if (apiMessage) {
+        return apiMessage;
+      }
+    }
+    return 'Could not load projects. Check if the API is running.';
+  }
+
+  private mapProjectCreateError(err: unknown): string {
+    if (err instanceof HttpErrorResponse) {
+      if (err.status === 401 || err.status === 403) {
+        return 'Your session expired or you are not allowed to create projects. Sign in again, then retry.';
+      }
+      if (err.status === 409) {
+        return 'A project with this code may already exist. Try another code.';
+      }
+      if (err.status === 400) {
+        const apiMessage = this.extractApiMessage(err);
+        if (apiMessage) {
+          return apiMessage;
+        }
+        return 'Could not create project. Check that name and code meet validation rules.';
+      }
+      if (err.status === 0) {
+        return 'Could not reach the API. Check your network or that the backend is running.';
+      }
+    }
+    return 'Could not create project. Check name and code.';
+  }
+
+  private extractApiMessage(err: HttpErrorResponse): string | null {
+    const body = err.error;
+    if (body && typeof body === 'object') {
+      if ('detail' in body) {
+        const detail = (body as { detail?: unknown }).detail;
+        if (typeof detail === 'string' && detail.trim() !== '') {
+          return detail;
+        }
+      }
+      if ('message' in body) {
+        const message = (body as { message?: unknown }).message;
+        if (typeof message === 'string' && message.trim() !== '') {
+          return message;
+        }
+      }
+    }
+    if (typeof body === 'string' && body.trim() !== '') {
+      return body;
+    }
+    return null;
   }
 }

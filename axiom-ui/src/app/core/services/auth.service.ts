@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap, BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Observable, tap } from 'rxjs';
 
 export interface LoginCommand {
   emailAddress: string;
@@ -18,27 +18,27 @@ export interface AuthResponse {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AuthService {
-  private apiUrl = '/api/auth';
-  private tokenKey = 'axiom_jwt_token';
-  
-  private authStatus = new BehaviorSubject<boolean>(this.hasToken());
-  public authStatus$ = this.authStatus.asObservable();
+  private readonly apiUrl = '/api/auth';
+  private readonly tokenKey = 'axiom_jwt_token';
 
-  constructor(private http: HttpClient) {}
+  private readonly authStatus = new BehaviorSubject<boolean>(this.hasToken());
+  readonly authStatus$ = this.authStatus.asObservable();
+
+  constructor(private readonly http: HttpClient) {}
 
   login(command: LoginCommand): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/login`, command).pipe(
-      tap(res => this.setToken(res.token))
-    );
+    return this.http
+      .post<AuthResponse>(`${this.apiUrl}/login`, command)
+      .pipe(tap((response) => this.setToken(response.token)));
   }
 
   register(command: RegisterUserCommand): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/register`, command).pipe(
-      tap(res => this.setToken(res.token))
-    );
+    return this.http
+      .post<AuthResponse>(`${this.apiUrl}/register`, command)
+      .pipe(tap((response) => this.setToken(response.token)));
   }
 
   logout(): void {

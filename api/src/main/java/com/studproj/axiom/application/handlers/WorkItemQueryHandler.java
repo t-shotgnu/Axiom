@@ -7,8 +7,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -18,17 +18,34 @@ public class WorkItemQueryHandler {
 
     public List<WorkItemDto> getWorkItemsByProject(UUID projectId) {
         return workItemRepository.findByProjectId(projectId).stream()
-                .map(w -> new WorkItemDto(w.getId(), w.getControlNo(), w.getDescription(), w.getPriority(),
-                        w.getType(), w.getStatus(), w.getDueDate(), w.getEstimatedEffort(),
-                        w.getProjectId(), w.getAuthorId(), w.getAssigneeId()))
-                .collect(Collectors.toList());
+                .map(workItem -> new WorkItemDto(
+                        workItem.getId(),
+                        workItem.getControlNo(),
+                        workItem.getDescription(),
+                        workItem.getPriority(),
+                        workItem.getType(),
+                        workItem.getStatus(),
+                        workItem.getDueDate(),
+                        workItem.getEstimatedEffort(),
+                        workItem.getProjectId(),
+                        workItem.getAuthorId(),
+                        workItem.getAssigneeId()))
+                .toList();
     }
 
-    public java.util.Optional<WorkItemDto> getWorkItemById(UUID id) {
+    public Optional<WorkItemDto> getWorkItemById(UUID id) {
         return workItemRepository.findById(id)
-                .map(w -> new WorkItemDto(w.getId(), w.getControlNo(), w.getDescription(), w.getPriority(),
-                        w.getType(), w.getStatus(), w.getDueDate(), w.getEstimatedEffort(),
-                        w.getProjectId(), w.getAuthorId(), w.getAssigneeId()));
+                .map(workItem -> new WorkItemDto(
+                        workItem.getId(),
+                        workItem.getControlNo(),
+                        workItem.getDescription(),
+                        workItem.getPriority(),
+                        workItem.getType(),
+                        workItem.getStatus(),
+                        workItem.getDueDate(),
+                        workItem.getEstimatedEffort(),
+                        workItem.getProjectId(),
+                        workItem.getAuthorId(),
+                        workItem.getAssigneeId()));
     }
 }
-
