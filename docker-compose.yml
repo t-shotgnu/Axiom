@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:18-alpine
+    container_name: axiom-postgres
+    environment:
+      POSTGRES_DB: axiomdb
+      POSTGRES_USER: axiomuser
+      POSTGRES_PASSWORD: axiompassword
+    ports:
+      - "5433:5432"
+    volumes:
+      - axiom_pg_data_v3:/var/lib/postgresql
+
+volumes:
+  axiom_pg_data_v3:

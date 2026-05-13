@@ -2,19 +2,15 @@ spring:
   application:
     name: axiom
   datasource:
-    url: jdbc:h2:mem:axiomdb
-    driverClassName: org.h2.Driver
-    username: sa
-    password: password
+    url: jdbc:postgresql://localhost:5433/axiomdb
+    driverClassName: org.postgresql.Driver
+    username: axiomuser
+    password: axiompassword
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: update
     show-sql: true
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
 
 jwt:
   secret: c3VwZXJTZWNyZXRLZXlGb3JKV1QxMjM0NTY3ODkwMTIzNDU2Nzg5MA==
