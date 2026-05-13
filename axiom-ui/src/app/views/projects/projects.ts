@@ -6,30 +6,6 @@ import { CardModule } from 'primeng/card';
   selector: 'app-projects',
   standalone: true,
   imports: [CommonModule, CardModule],
-  template: `
-    <div class="text-zinc-900 dark:text-zinc-100">
-      <h1 class="text-2xl font-semibold mb-4">Projects</h1>
-      <div class="grid gap-4">
-        <p-card>
-          <div class="flex justify-between items-center">
-            <span class="text-lg font-medium">Website Redesign</span>
-            <span class="text-sm bg-zinc-100 dark:bg-zinc-800 px-3 py-1 rounded-full border border-zinc-200 dark:border-zinc-700">12 tasks</span>
-          </div>
-        </p-card>
-        <p-card>
-          <div class="flex justify-between items-center">
-            <span class="text-lg font-medium">Mobile App</span>
-            <span class="text-sm bg-zinc-100 dark:bg-zinc-800 px-3 py-1 rounded-full border border-zinc-200 dark:border-zinc-700">8 tasks</span>
-          </div>
-        </p-card>
-        <p-card>
-          <div class="flex justify-between items-center">
-            <span class="text-lg font-medium">Internal Tools</span>
-            <span class="text-sm bg-zinc-100 dark:bg-zinc-800 px-3 py-1 rounded-full border border-zinc-200 dark:border-zinc-700">5 tasks</span>
-          </div>
-        </p-card>
-      </div>
-    </div>
-  `,
+  templateUrl: './projects.html',
 })
 export class ProjectsComponent {}
