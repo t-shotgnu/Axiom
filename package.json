@@ -1,0 +1,17 @@
+{
+  "name": "axiom-monorepo",
+  "private": true,
+  "description": "Convenience scripts for local development (database, API, Angular UI)",
+  "scripts": {
+    "db:up": "node scripts/compose-run.mjs up -d --wait",
+    "db:down": "node scripts/compose-run.mjs down",
+    "db:logs": "node scripts/compose-run.mjs logs -f postgres",
+    "dev": "npm run db:up && concurrently -k -n api,ui \"npm run dev:api\" \"npm run dev:ui\"",
+    "dev:api": "cd api && ./mvnw spring-boot:run",
+    "dev:ui": "npm run start --prefix axiom-ui"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.0"
+  },
+  "packageManager": "npm@11.11.0"
+}

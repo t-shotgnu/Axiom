@@ -10,6 +10,12 @@ services:
       - "5433:5432"
     volumes:
       - axiom_pg_data_v3:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U axiomuser -d axiomdb"]
+      interval: 2s
+      timeout: 5s
+      retries: 15
+      start_period: 5s
 
 volumes:
   axiom_pg_data_v3:
