@@ -13,5 +13,7 @@ public interface ProjectRepository {
 
     List<Project> findAll();
 
+    long countAll();
+
     void delete(UUID id);
 }

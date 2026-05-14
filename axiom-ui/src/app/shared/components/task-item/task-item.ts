@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { WorkItem } from '../../../core/services/work-item.service';
@@ -8,6 +8,7 @@ import { TagModule } from 'primeng/tag';
   selector: 'app-task-item',
   standalone: true,
   imports: [CommonModule, RouterModule, TagModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <a [routerLink]="linkEnabled ? ['/tasks', task.id] : null" 
        class="block p-4 rounded-lg shadow-sm border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 transition-shadow text-zinc-900 dark:text-zinc-100"
