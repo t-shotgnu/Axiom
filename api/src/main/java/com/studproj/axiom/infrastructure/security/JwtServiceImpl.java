@@ -3,6 +3,7 @@ package com.studproj.axiom.infrastructure.security;
 import com.studproj.axiom.domain.model.User;
 import com.studproj.axiom.domain.service.JwtService;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -41,9 +42,13 @@ public class JwtServiceImpl
 
     @Override
     public boolean isTokenValid(String token, String username) {
-        String extracted = extractUsername(token);
+        try {
+            String extracted = extractUsername(token);
 
-        return Objects.equals(extracted, username) && !isExpired(token);
+            return Objects.equals(extracted, username) && !isExpired(token);
+        } catch (JwtException | IllegalArgumentException ex) {
+            return false;
+        }
     }
 
     private boolean isExpired(String token) {
