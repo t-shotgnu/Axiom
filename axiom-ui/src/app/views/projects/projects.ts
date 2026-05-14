@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -14,6 +14,7 @@ import { CreateProjectCommand, Project, ProjectService } from '../../core/servic
   standalone: true,
   imports: [CommonModule, RouterModule, FormsModule, ButtonModule, CardModule, InputTextModule],
   templateUrl: './projects.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProjectsComponent {
   projects: Project[] = [];
@@ -29,30 +30,41 @@ export class ProjectsComponent {
     description: '',
   };
 
-  constructor(private readonly projectService: ProjectService) {
+  listState: 'loading' | 'error' | 'empty' | 'list' = 'loading';
+
+  constructor(
+    private readonly projectService: ProjectService,
+    private readonly cdr: ChangeDetectorRef,
+  ) {
     this.loadProjects();
   }
 
-  get listState(): 'loading' | 'error' | 'empty' | 'list' {
+  private syncListState(): void {
     if (this.loading) {
-      return 'loading';
+      this.listState = 'loading';
+    } else if (this.errorMessage) {
+      this.listState = 'error';
+    } else if (this.projects.length === 0) {
+      this.listState = 'empty';
+    } else {
+      this.listState = 'list';
     }
-    if (this.errorMessage) {
-      return 'error';
-    }
-    if (this.projects.length === 0) {
-      return 'empty';
-    }
-    return 'list';
+    this.cdr.markForCheck();
   }
 
   loadProjects(): void {
     this.loading = true;
     this.errorMessage = '';
+    this.syncListState();
 
     this.projectService
       .getAllProjects()
-      .pipe(finalize(() => (this.loading = false)))
+      .pipe(
+        finalize(() => {
+          this.loading = false;
+          this.syncListState();
+        }),
+      )
       .subscribe({
         next: (projects) => {
           this.projects = projects;
@@ -74,16 +86,23 @@ export class ProjectsComponent {
 
     this.projectService
       .createProject(this.toCommand())
-      .pipe(finalize(() => (this.creating = false)))
+      .pipe(
+        finalize(() => {
+          this.creating = false;
+          this.cdr.markForCheck();
+        }),
+      )
       .subscribe({
         next: () => {
           const projectName = this.form.name.trim();
           this.resetForm();
           this.createSuccessMessage = `${projectName} was created.`;
+          this.cdr.markForCheck();
           this.loadProjects();
         },
         error: (err: unknown) => {
           this.createErrorMessage = this.mapProjectCreateError(err);
+          this.cdr.markForCheck();
         },
       });
   }
