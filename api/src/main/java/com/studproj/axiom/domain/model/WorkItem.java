@@ -26,6 +26,7 @@ public class WorkItem {
     private UUID projectId;
     private UUID authorId;
     private UUID assigneeId;
+    private String notes;
 
     public void updateStatus(WorkItemStatus newStatus) {
         this.status = newStatus;
@@ -33,5 +34,9 @@ public class WorkItem {
 
     public void assignTo(UUID userId) {
         this.assigneeId = userId;
+    }
+
+    public void updateNotes(String newNotes) {
+        this.notes = newNotes;
     }
 }

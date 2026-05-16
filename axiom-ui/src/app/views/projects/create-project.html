@@ -1,0 +1,76 @@
+@if (displayCreateDialog) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-xl w-full max-w-[28rem] flex flex-col max-h-full overflow-hidden">
+      
+      <div class="flex justify-between items-center p-md border-b border-outline-variant">
+        <h2 class="font-headline-sm text-headline-sm text-on-surface">Create project</h2>
+        <button type="button" (click)="displayCreateDialog = false" class="text-on-surface-variant hover:bg-surface-container-low p-xs rounded transition-colors material-symbols-outlined">close</button>
+      </div>
+
+      <form class="flex-1 overflow-y-auto p-lg flex flex-col gap-md" (ngSubmit)="createProject()">
+        <div class="flex flex-col gap-xs">
+          <label class="font-label-md text-on-surface" for="project-name">Name</label>
+          <input
+            type="text"
+            id="project-name"
+            name="name"
+            required
+            [(ngModel)]="form.name"
+            placeholder="Website Redesign"
+            autofocus
+            class="w-full px-md py-sm border border-outline-variant rounded focus:outline-none focus:border-primary bg-surface text-on-surface"
+          />
+        </div>
+
+        <div class="flex flex-col gap-xs">
+          <label class="font-label-md text-on-surface" for="project-code">Code</label>
+          <input
+            type="text"
+            id="project-code"
+            name="code"
+            required
+            [(ngModel)]="form.code"
+            placeholder="WEB"
+            class="w-full px-md py-sm border border-outline-variant rounded focus:outline-none focus:border-primary bg-surface text-on-surface uppercase"
+          />
+        </div>
+
+        <div class="flex flex-col gap-xs">
+          <label class="font-label-md text-on-surface" for="project-description">Description</label>
+          <textarea
+            id="project-description"
+            name="description"
+            rows="4"
+            class="w-full px-md py-sm border border-outline-variant rounded focus:outline-none focus:border-primary bg-surface text-on-surface resize-none"
+            [(ngModel)]="form.description"
+            placeholder="Short project description"
+          ></textarea>
+        </div>
+
+        @if (createErrorMessage) {
+          <div class="rounded bg-error-container border border-error p-sm text-sm text-on-error-container" role="alert">
+            {{ createErrorMessage }}
+          </div>
+        }
+
+        <div class="mt-md flex justify-end gap-sm pt-md border-t border-outline-variant">
+          <app-button
+            variant="outlined"
+            (onClick)="displayCreateDialog = false"
+            [disabled]="creating"
+          >
+            Cancel
+          </app-button>
+          <app-button
+            type="submit"
+            variant="primary"
+            [loading]="creating"
+            [disabled]="!form.name.trim() || !form.code.trim()"
+          >
+            Create project
+          </app-button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

@@ -16,5 +16,6 @@ public record WorkItemDto(
     Integer estimatedEffort,
     UUID projectId,
     UUID authorId,
-    UUID assigneeId
+    UUID assigneeId,
+    String notes
 ) {}

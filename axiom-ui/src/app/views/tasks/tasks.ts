@@ -1,18 +1,13 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import {
-  WorkItemService,
-  WorkItem,
-  CreateWorkItemCommand,
-} from '../../core/services/work-item.service';
-import { TaskItemComponent } from '../../shared/components/task-item/task-item';
-import { InputTextModule } from 'primeng/inputtext';
-import { InputNumberModule } from 'primeng/inputnumber';
-import { SelectModule } from 'primeng/select';
-import { ButtonModule } from 'primeng/button';
-import { CardModule } from 'primeng/card';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+
+import { ProjectService, Project } from '../../core/services/project.service';
+import { AuthService } from '../../core/services/auth.service';
+import { WorkItemService, WorkItem, CreateWorkItemCommand } from '../../core/services/work-item.service';
+import { ButtonComponent } from '../../shared/components/ui/button';
 
 @Component({
   selector: 'app-tasks',
@@ -21,65 +16,200 @@ import { CardModule } from 'primeng/card';
     CommonModule,
     RouterModule,
     FormsModule,
-    TaskItemComponent,
-    InputTextModule,
-    InputNumberModule,
-    SelectModule,
-    ButtonModule,
-    CardModule,
+    ButtonComponent,
   ],
   templateUrl: './tasks.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class TasksComponent {
+export class TasksComponent implements OnInit {
+  protected readonly Math = Math;
+
+  private readonly projectService = inject(ProjectService);
+  private readonly authService = inject(AuthService);
+  private readonly workItemService = inject(WorkItemService);
+  private readonly cdr = inject(ChangeDetectorRef);
+  private readonly destroyRef = inject(DestroyRef);
+
+  currentProject: Project | null = null;
   tasks: WorkItem[] = [];
+  filteredTasks: WorkItem[] = [];
+  visibleTasks: WorkItem[] = [];
+  loading = false;
 
-  projectId: string = '00000000-0000-0000-0000-000000000000';
-  fetchProjectId: string = '00000000-0000-0000-0000-000000000000';
+  // Filters
+  searchText = '';
+  onlyMyIssues = false;
+  recentlyUpdated = false;
 
-  newTask: Partial<CreateWorkItemCommand> = {
-    description: '',
-    priority: 1,
-    type: 'Task',
-    status: 'New',
-  };
+  // Pagination
+  currentPage = 1;
+  pageSize = 7;
+  totalPages = 1;
 
-  typeOptions = [
-    { label: 'Task', value: 'Task', icon: 'pi pi-file', color: '#eab308' },
-    { label: 'Bug', value: 'Bug', icon: 'pi pi-exclamation-circle', color: '#ef4444' },
-    { label: 'Epic', value: 'Epic', icon: 'pi pi-crown', color: '#a855f7' },
-  ];
-
-  statusOptions = [
-    { label: 'New', value: 'New', icon: 'pi pi-circle', color: '#eab308' },
-    { label: 'Active', value: 'Active', icon: 'pi pi-circle', color: '#ef4444' },
-    { label: 'Resolved', value: 'Resolved', icon: 'pi pi-circle', color: '#a855f7' },
-    { label: 'Closed', value: 'Closed', icon: 'pi pi-circle', color: '#a855f7' },
-  ];
-
-  constructor(private workItemService: WorkItemService) {}
-
-  loadTasks() {
-    if (!this.fetchProjectId) return;
-    this.workItemService.getWorkItems(this.fetchProjectId).subscribe({
-      next: (data) => (this.tasks = data),
-      error: (err) => console.error(err),
-    });
+  ngOnInit(): void {
+    this.projectService.currentProject$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (project) => {
+          this.currentProject = project;
+          this.currentPage = 1;
+          this.loadTasks();
+        },
+      });
   }
 
-  createTask() {
-    if (!this.projectId) return;
-    const command: CreateWorkItemCommand = {
-      ...(this.newTask as CreateWorkItemCommand),
-      projectId: this.projectId,
-    };
+  loadTasks(): void {
+    if (!this.currentProject) {
+      this.tasks = [];
+      this.filteredTasks = [];
+      this.visibleTasks = [];
+      this.totalPages = 1;
+      this.cdr.markForCheck();
+      return;
+    }
 
-    this.workItemService.createWorkItem(command).subscribe({
-      next: () => {
-        this.newTask.description = '';
-        this.fetchProjectId = this.projectId;
-        this.loadTasks();
-      },
-      error: (err) => console.error(err),
+    this.loading = true;
+    this.cdr.markForCheck();
+
+    this.workItemService.getWorkItems(this.currentProject.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (data) => {
+          this.tasks = data || [];
+          this.applyFiltersAndPagination();
+          this.loading = false;
+          this.cdr.markForCheck();
+        },
+        error: (err) => {
+          console.error('Error fetching tasks', err);
+          this.loading = false;
+          this.cdr.markForCheck();
+        },
+      });
+  }
+
+  getCurrentUserEmail(): string {
+    const token = this.authService.getToken();
+    if (!token) return '';
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]!));
+      return payload.sub || '';
+    } catch {
+      return '';
+    }
+  }
+
+  isMyTask(task: WorkItem): boolean {
+    if (!task.assigneeId) return false;
+    const email = this.getCurrentUserEmail();
+    if (!email) return false;
+    const namePart = email.split('@')[0] || ''; // e.g. "john.doe"
+    const normalizedName = namePart.replace('.', ' ').toLowerCase(); // "john doe"
+    return task.assigneeId.toLowerCase().includes(normalizedName) || normalizedName.includes(task.assigneeId.toLowerCase());
+  }
+
+  applyFiltersAndPagination(): void {
+    // 1. Search & Filter
+    this.filteredTasks = this.tasks.filter((t) => {
+      const matchesSearch = !this.searchText.trim() || 
+        t.description.toLowerCase().includes(this.searchText.toLowerCase()) ||
+        t.controlNo.toString().includes(this.searchText);
+
+      const matchesMyIssues = !this.onlyMyIssues || this.isMyTask(t);
+
+      return matchesSearch && matchesMyIssues;
     });
+
+    // 2. Pagination
+    this.totalPages = Math.ceil(this.filteredTasks.length / this.pageSize) || 1;
+    if (this.currentPage > this.totalPages) {
+      this.currentPage = this.totalPages;
+    }
+
+    const startIdx = (this.currentPage - 1) * this.pageSize;
+    const endIdx = startIdx + this.pageSize;
+    this.visibleTasks = this.filteredTasks.slice(startIdx, endIdx);
+  }
+
+  onSearchChange(): void {
+    this.currentPage = 1;
+    this.applyFiltersAndPagination();
+  }
+
+  toggleOnlyMyIssues(): void {
+    this.onlyMyIssues = !this.onlyMyIssues;
+    this.currentPage = 1;
+    this.applyFiltersAndPagination();
+  }
+
+  toggleRecentlyUpdated(): void {
+    this.recentlyUpdated = !this.recentlyUpdated;
+    // Mock effect or sorting by control number descending
+    if (this.recentlyUpdated) {
+      this.tasks.sort((a, b) => b.controlNo - a.controlNo);
+    } else {
+      this.tasks.sort((a, b) => a.controlNo - b.controlNo);
+    }
+    this.applyFiltersAndPagination();
+  }
+
+  goToPage(page: number): void {
+    if (page < 1 || page > this.totalPages) return;
+    this.currentPage = page;
+    this.applyFiltersAndPagination();
+  }
+
+  getPagesArray(): number[] {
+    const pages: number[] = [];
+    for (let i = 1; i <= this.totalPages; i++) {
+      pages.push(i);
+    }
+    return pages;
+  }
+
+  // Formatting helpers
+  getPriorityLabel(priority: number): string {
+    if (priority <= 2) return 'Highest';
+    if (priority <= 4) return 'High';
+    if (priority <= 6) return 'Medium';
+    if (priority <= 8) return 'Low';
+    return 'Lowest';
+  }
+
+  getPriorityIcon(priority: number): string {
+    if (priority <= 2) return 'keyboard_double_arrow_up';
+    if (priority <= 6) return 'keyboard_arrow_up';
+    return 'keyboard_arrow_down';
+  }
+
+  getPriorityColorClass(priority: number): string {
+    if (priority <= 2) return 'text-[#de350b]';
+    if (priority <= 4) return 'text-[#ff5630]';
+    if (priority <= 6) return 'text-[#0052cc]';
+    if (priority <= 8) return 'text-[#42526e]';
+    return 'text-[#8993a4]';
+  }
+
+  getStatusBadgeClass(status: string): string {
+    const s = status.toLowerCase();
+    if (s === 'resolved' || s === 'closed' || s === 'done') {
+      return 'bg-green-500/10 text-green-600 border-green-500/20';
+    }
+    if (s === 'active' || s === 'in progress' || s === 'in_progress') {
+      return 'bg-primary/10 text-primary border-primary/20';
+    }
+    if (s === 'review') {
+      return 'bg-purple-500/10 text-purple-600 border-purple-500/20';
+    }
+    return 'bg-surface-container-high text-on-surface-variant border-outline-variant';
+  }
+
+  getStatusLabel(status: string): string {
+    const s = status.toLowerCase();
+    if (s === 'in_progress' || s === 'in progress') return 'IN PROGRESS';
+    if (s === 'todo' || s === 'new') return 'TO DO';
+    if (s === 'resolved') return 'REVIEW';
+    if (s === 'closed') return 'DONE';
+    return status.toUpperCase();
   }
 }

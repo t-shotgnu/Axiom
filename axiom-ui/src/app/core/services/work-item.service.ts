@@ -14,6 +14,7 @@ export interface WorkItem {
   projectId: string;
   authorId: string;
   assigneeId: string;
+  notes?: string;
 }
 
 export interface CreateWorkItemCommand {
@@ -61,5 +62,9 @@ export class WorkItemService {
 
   updateWorkItemStatus(id: string, command: UpdateWorkItemStatusCommand): Observable<void> {
     return this.http.patch<void>(`${this.apiUrl}/${id}/status`, command);
+  }
+
+  updateWorkItemNotes(id: string, notes: string): Observable<void> {
+    return this.http.patch<void>(`${this.apiUrl}/${id}/notes`, { notes });
   }
 }

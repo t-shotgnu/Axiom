@@ -1,43 +1,45 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { InputTextModule } from 'primeng/inputtext';
-import { ButtonModule } from 'primeng/button';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService, RegisterUserCommand } from '../../core/services/auth.service';
-import { MessageModule } from 'primeng/message';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, FormsModule, InputTextModule, ButtonModule, RouterModule, MessageModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   template: `
-    <div class="flex items-center justify-center min-h-screen bg-zinc-50 dark:bg-zinc-900">
-      <div class="max-w-md w-full bg-white dark:bg-zinc-950 p-8 rounded-xl shadow-sm border border-zinc-200 dark:border-zinc-800">
-        <h1 class="text-2xl font-semibold mb-6 text-center text-zinc-900 dark:text-white">Create an Account</h1>
+    <div class="flex items-center justify-center min-h-screen bg-surface-container-lowest">
+      <div class="max-w-md w-full bg-surface-container-low p-xl rounded-xl shadow-sm border border-outline-variant">
+        <h1 class="font-headline-lg text-headline-lg mb-xl text-center text-on-surface">Create an Account</h1>
         
-        <p-message *ngIf="error" severity="error" [text]="error" styleClass="w-full mb-4"></p-message>
+        <div *ngIf="error" class="bg-error-container text-on-error-container font-body-sm p-sm rounded border border-error mb-lg">
+          {{ error }}
+        </div>
         
-        <form class="space-y-4" (ngSubmit)="register()">
+        <form class="space-y-lg" (ngSubmit)="register()">
           <div>
-            <label class="block text-sm mb-1 font-medium text-zinc-700 dark:text-zinc-300">Username</label>
-            <input pInputText type="text" name="userName" [(ngModel)]="command.userName" class="w-full" required />
+            <label class="block font-label-md mb-xs text-on-surface">Username</label>
+            <input type="text" name="userName" [(ngModel)]="command.userName" class="w-full px-md py-sm border border-outline-variant rounded focus:outline-none focus:border-primary bg-surface text-on-surface" required />
           </div>
           <div>
-            <label class="block text-sm mb-1 font-medium text-zinc-700 dark:text-zinc-300">Email</label>
-            <input pInputText type="email" name="email" [(ngModel)]="command.emailAddress" class="w-full" required />
+            <label class="block font-label-md mb-xs text-on-surface">Email</label>
+            <input type="email" name="email" [(ngModel)]="command.emailAddress" class="w-full px-md py-sm border border-outline-variant rounded focus:outline-none focus:border-primary bg-surface text-on-surface" required />
           </div>
           <div>
-            <label class="block text-sm mb-1 font-medium text-zinc-700 dark:text-zinc-300">Password</label>
-            <input pInputText type="password" name="password" [(ngModel)]="command.password" class="w-full" required />
+            <label class="block font-label-md mb-xs text-on-surface">Password</label>
+            <input type="password" name="password" [(ngModel)]="command.password" class="w-full px-md py-sm border border-outline-variant rounded focus:outline-none focus:border-primary bg-surface text-on-surface" required />
           </div>
-          <div class="pt-2">
-            <button pButton type="submit" label="Register" class="w-full" [loading]="loading"></button>
+          <div class="pt-sm">
+            <button type="submit" class="w-full bg-primary text-on-primary font-label-md py-sm rounded hover:opacity-90 transition-opacity flex items-center justify-center gap-xs" [disabled]="loading">
+              <span *ngIf="loading" class="material-symbols-outlined animate-spin text-[18px]">progress_activity</span>
+              Register
+            </button>
           </div>
         </form>
         
-        <div class="mt-6 text-center text-sm text-zinc-500 dark:text-zinc-400">
-          Already have an account? <a routerLink="/login" class="text-blue-600 dark:text-blue-400 hover:underline">Sign in here</a>
+        <div class="mt-xl text-center font-body-sm text-on-surface-variant">
+          Already have an account? <a routerLink="/login" class="text-primary hover:underline">Sign in here</a>
         </div>
       </div>
     </div>

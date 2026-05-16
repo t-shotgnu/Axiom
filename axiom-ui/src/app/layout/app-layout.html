@@ -1,110 +1,185 @@
-<div class="flex min-h-screen flex-col bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
-  <header
-    class="sticky top-0 z-20 border-b border-zinc-200/70 bg-white/75 backdrop-blur-md dark:border-zinc-800/80 dark:bg-zinc-950/75"
-  >
-    <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
-      <div class="flex min-w-0 items-center gap-6">
-        <a
-          routerLink="/dashboard"
-          class="group flex shrink-0 items-center gap-2 rounded-lg outline-none ring-primary/40 focus-visible:ring-2"
+<header class="bg-surface-container-lowest fixed top-0 left-0 right-0 z-40 border-b border-outline-variant flex justify-between items-center w-full px-lg h-14">
+  <div class="flex items-center gap-xl h-full">
+    <span class="text-primary font-extrabold text-[20px] font-headline-md tracking-tight">Axiom</span>
+    <nav class="hidden md:flex gap-md h-full items-center">
+      <a routerLink="/dashboard" routerLinkActive="text-primary border-b-2 border-primary pt-2 h-full flex items-center font-bold" [routerLinkActiveOptions]="{ exact: true }" class="font-body-md text-body-md text-on-surface-variant hover:text-on-surface transition-colors px-sm cursor-pointer h-full">Dashboards</a>
+      <a routerLink="/projects" routerLinkActive="text-primary border-b-2 border-primary pt-2 h-full flex items-center font-bold" [routerLinkActiveOptions]="{ exact: false }" class="font-body-md text-body-md text-on-surface-variant hover:text-on-surface transition-colors px-sm cursor-pointer h-full">Projects</a>
+      <a routerLink="/tasks" routerLinkActive="text-primary border-b-2 border-primary pt-2 h-full flex items-center font-bold" [routerLinkActiveOptions]="{ exact: false }" class="font-body-md text-body-md text-on-surface-variant hover:text-on-surface transition-colors px-sm cursor-pointer h-full">Issues</a>
+      <a class="font-body-md text-body-md text-on-surface-variant hover:text-on-surface transition-colors px-sm cursor-pointer h-full flex items-center">Filters</a>
+    </nav>
+  </div>
+  <div class="flex items-center gap-md">
+    <!-- Search Bar -->
+    <div class="relative flex items-center">
+      <span class="material-symbols-outlined absolute left-3 text-on-surface-variant text-[18px] pointer-events-none">search</span>
+      <input
+        type="text"
+        placeholder="Search"
+        class="pl-9 pr-4 py-1.5 border border-outline-variant rounded text-sm bg-surface-container-low text-on-surface w-44 focus:outline-none focus:border-primary focus:w-60 transition-all duration-200"
+      />
+    </div>
+
+    <!-- Create Button -->
+    <a routerLink="/tasks" class="bg-primary text-white font-label-md px-md py-xs rounded hover:opacity-90 transition-opacity flex items-center justify-center font-bold">Create</a>
+    
+    <div class="flex gap-sm items-center">
+      <span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:bg-surface-container-high p-unit rounded-full">notifications</span>
+      <span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:bg-surface-container-high p-unit rounded-full">help</span>
+      
+      <!-- Theme Switcher / Settings Button -->
+      <div class="relative">
+        <span
+          class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:bg-surface-container-high p-unit rounded-full"
+          (click)="toggleThemeDropdown($event)"
         >
-          <span
-            class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600 text-sm font-bold text-white shadow-sm shadow-sky-500/25"
-            >A</span
+          settings
+        </span>
+
+        <!-- Theme Dropdown Card -->
+        @if (showThemeDropdown) {
+          <div
+            class="absolute right-0 top-full mt-sm w-[260px] bg-surface-container-lowest border border-outline-variant rounded-xl shadow-xl z-50 p-md flex flex-col gap-sm"
+            (click)="$event.stopPropagation()"
           >
-          <span class="text-lg font-semibold tracking-tight text-zinc-900 dark:text-white">Axiom</span>
-        </a>
-        <nav class="hidden items-center gap-1 sm:flex" aria-label="Main">
-          <a
-            routerLink="/dashboard"
-            routerLinkActive="bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-white"
-            [routerLinkActiveOptions]="{ exact: true }"
-            class="rounded-lg px-3 py-2 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-100/80 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/80 dark:hover:text-zinc-100"
-            >Dashboard</a
-          >
-          <a
-            routerLink="/projects"
-            routerLinkActive="bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-white"
-            [routerLinkActiveOptions]="{ exact: false }"
-            class="rounded-lg px-3 py-2 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-100/80 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/80 dark:hover:text-zinc-100"
-            >Projects</a
-          >
-          <a
-            routerLink="/tasks"
-            routerLinkActive="bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-white"
-            [routerLinkActiveOptions]="{ exact: false }"
-            class="rounded-lg px-3 py-2 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-100/80 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/80 dark:hover:text-zinc-100"
-            >Tasks</a
-          >
-        </nav>
-      </div>
-      <div class="flex shrink-0 items-center gap-2">
-        <a
-          routerLink="/tasks"
-          pButton
-          type="button"
-          label="New Task"
-          class="p-button-outlined p-button-sm hidden sm:inline-flex"
-        ></a>
-        @if (userEmail) {
-          <span class="hidden max-w-[10rem] truncate text-xs text-zinc-500 dark:text-zinc-400 md:inline" [title]="userEmail">{{
-            userEmail
-          }}</span>
-        }
-        @if (isAuthenticated) {
-          <button
-            pButton
-            type="button"
-            label="Logout"
-            class="p-button-text p-button-sm"
-            (click)="logout()"
-          ></button>
-        } @else {
-          <a
-            routerLink="/login"
-            class="rounded-lg px-3 py-2 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
-            >Sign in</a
-          >
+            <div class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-xs px-xs">Theme</div>
+            
+            <!-- Light option -->
+            <div
+              class="flex items-center justify-between gap-md p-xs pr-sm rounded-lg border cursor-pointer select-none transition-all"
+              [class.border-primary]="themeService.currentTheme() === 'light'"
+              [class.bg-primary/5]="themeService.currentTheme() === 'light'"
+              [class.border-outline-variant]="themeService.currentTheme() !== 'light'"
+              (click)="setTheme('light')"
+            >
+              <div class="flex items-center gap-sm">
+                <!-- Light Preview Miniature -->
+                <div class="w-12 h-8 rounded border border-outline-variant overflow-hidden flex flex-col bg-white shrink-0">
+                  <div class="h-2 bg-[#0052cc] w-full"></div>
+                  <div class="flex-1 p-[3px] space-y-[2px]">
+                    <div class="h-[2px] bg-on-surface-variant/20 w-3"></div>
+                    <div class="h-[2px] bg-on-surface-variant/20 w-5"></div>
+                  </div>
+                </div>
+                <span class="text-xs font-bold text-on-surface">Light</span>
+              </div>
+              <span class="material-symbols-outlined text-[18px] text-primary" [class.text-primary]="themeService.currentTheme() === 'light'" [class.text-on-surface-variant/40]="themeService.currentTheme() !== 'light'">
+                {{ themeService.currentTheme() === 'light' ? 'radio_button_checked' : 'radio_button_unchecked' }}
+              </span>
+            </div>
+
+            <!-- Dark option -->
+            <div
+              class="flex items-center justify-between gap-md p-xs pr-sm rounded-lg border cursor-pointer select-none transition-all"
+              [class.border-primary]="themeService.currentTheme() === 'dark'"
+              [class.bg-primary/5]="themeService.currentTheme() === 'dark'"
+              [class.border-outline-variant]="themeService.currentTheme() !== 'dark'"
+              (click)="setTheme('dark')"
+            >
+              <div class="flex items-center gap-sm">
+                <!-- Dark Preview Miniature -->
+                <div class="w-12 h-8 rounded border border-outline-variant overflow-hidden flex flex-col bg-[#0b0d10] shrink-0">
+                  <div class="h-2 bg-[#161b22] w-full"></div>
+                  <div class="flex-1 p-[3px] space-y-[2px]">
+                    <div class="h-[2px] bg-white/10 w-3"></div>
+                    <div class="h-[2px] bg-white/10 w-5"></div>
+                  </div>
+                </div>
+                <span class="text-xs font-bold text-on-surface">Dark</span>
+              </div>
+              <span class="material-symbols-outlined text-[18px] text-primary" [class.text-primary]="themeService.currentTheme() === 'dark'" [class.text-on-surface-variant/40]="themeService.currentTheme() !== 'dark'">
+                {{ themeService.currentTheme() === 'dark' ? 'radio_button_checked' : 'radio_button_unchecked' }}
+              </span>
+            </div>
+
+            <!-- System option -->
+            <div
+              class="flex items-center justify-between gap-md p-xs pr-sm rounded-lg border cursor-pointer select-none transition-all"
+              [class.border-primary]="themeService.currentTheme() === 'system'"
+              [class.bg-primary/5]="themeService.currentTheme() === 'system'"
+              [class.border-outline-variant]="themeService.currentTheme() !== 'system'"
+              (click)="setTheme('system')"
+            >
+              <div class="flex items-center gap-sm">
+                <!-- System Preview Miniature -->
+                <div
+                  class="w-12 h-8 rounded border border-outline-variant overflow-hidden flex flex-col shrink-0"
+                  style="background: linear-gradient(135deg, #ffffff 50%, #0b0d10 50%)"
+                >
+                  <div class="h-2 w-full" style="background: linear-gradient(135deg, #0052cc 50%, #161b22 50%)"></div>
+                  <div class="flex-1 p-[3px] space-y-[2px] relative">
+                    <div class="h-[2px] bg-on-surface-variant/20 w-3"></div>
+                    <div class="h-[2px] bg-white/10 w-5 absolute right-[3px] bottom-[3px]"></div>
+                  </div>
+                </div>
+                <span class="text-xs font-bold text-on-surface">System</span>
+              </div>
+              <span class="material-symbols-outlined text-[18px] text-primary" [class.text-primary]="themeService.currentTheme() === 'system'" [class.text-on-surface-variant/40]="themeService.currentTheme() !== 'system'">
+                {{ themeService.currentTheme() === 'system' ? 'radio_button_checked' : 'radio_button_unchecked' }}
+              </span>
+            </div>
+          </div>
         }
       </div>
     </div>
-    <nav
-      class="mx-auto flex max-w-7xl items-center gap-1 overflow-x-auto border-t border-zinc-200/60 px-4 py-2 sm:hidden dark:border-zinc-800/70"
-      aria-label="Mobile main"
-    >
-      <a
-        routerLink="/dashboard"
-        routerLinkActive="bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-white"
-        [routerLinkActiveOptions]="{ exact: true }"
-        class="whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-100/80 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/80 dark:hover:text-zinc-100"
-        >Dashboard</a
-      >
-      <a
-        routerLink="/projects"
-        routerLinkActive="bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-white"
-        [routerLinkActiveOptions]="{ exact: false }"
-        class="whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-100/80 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/80 dark:hover:text-zinc-100"
-        >Projects</a
-      >
-      <a
-        routerLink="/tasks"
-        routerLinkActive="bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-white"
-        [routerLinkActiveOptions]="{ exact: false }"
-        class="whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-100/80 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/80 dark:hover:text-zinc-100"
-        >Tasks</a
-      >
-    </nav>
-  </header>
 
-  <div
-    class="flex-1 bg-gradient-to-b from-zinc-50 via-white to-zinc-100/90 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950"
-  >
-    <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10">
-      <router-outlet></router-outlet>
-    </main>
+    @if (isAuthenticated) {
+      <div class="flex items-center gap-sm">
+        <img
+          src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
+          class="w-8 h-8 rounded-full border border-outline-variant hover:opacity-90 transition-opacity cursor-pointer object-cover"
+          [title]="userEmail || 'Account Settings'"
+          (click)="logout()"
+        />
+      </div>
+    } @else {
+      <a routerLink="/login" class="text-on-surface-variant hover:text-primary font-label-md transition-colors">Sign in</a>
+    }
   </div>
-
-  <footer class="border-t border-zinc-200/70 bg-white/50 text-sm text-zinc-500 backdrop-blur-sm dark:border-zinc-800/80 dark:bg-zinc-950/50 dark:text-zinc-400">
-    <div class="mx-auto max-w-7xl px-4 py-4 text-center sm:px-6">© Axiom — Task management</div>
-  </footer>
+</header>
+<div class="flex pt-14 h-screen overflow-hidden">
+  <aside class="bg-surface border-r border-outline-variant w-sidebar-width h-full flex flex-col py-lg px-md gap-sm shrink-0 overflow-y-auto custom-scrollbar">
+    
+    <!-- Active Project Trigger & Selector Dropdown Component -->
+    <div class="mb-lg">
+      <app-project-dropdown
+        [activeProject]="activeProject"
+        [projects]="dropdownProjects"
+        (projectSelected)="selectProject($event)"
+        (createProject)="createProjectFromDropdown()"
+      ></app-project-dropdown>
+    </div>
+    <div class="flex flex-col gap-unit flex-1">
+      <a class="flex items-center gap-md px-md py-sm text-on-surface-variant font-label-md hover:bg-surface-container-low transition-all rounded">
+        <span class="material-symbols-outlined">list_alt</span>
+        <span>Backlog</span>
+      </a>
+      <a class="flex items-center gap-md px-md py-sm text-on-surface-variant font-label-md hover:bg-surface-container-low transition-all rounded">
+        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">view_kanban</span>
+        <span>Active Sprint</span>
+      </a>
+      <a routerLink="/dashboard" routerLinkActive="bg-primary/15 text-primary font-bold" class="flex items-center gap-md px-md py-sm text-on-surface-variant font-label-md hover:bg-surface-container-low transition-all rounded">
+        <span class="material-symbols-outlined">insights</span>
+        <span>Reports</span>
+      </a>
+      <a routerLink="/tasks" routerLinkActive="bg-primary/15 text-primary font-bold" class="flex items-center gap-md px-md py-sm text-on-surface-variant font-label-md hover:bg-surface-container-low transition-all rounded">
+        <span class="material-symbols-outlined">assignment</span>
+        <span>Issues</span>
+      </a>
+      <div class="mt-xl pt-sm border-t border-outline-variant">
+        <button class="flex items-center gap-sm text-primary font-label-md hover:underline px-sm">
+          <span class="material-symbols-outlined text-[16px]">add</span>
+          <span>Add shortcut</span>
+        </button>
+      </div>
+    </div>
+    <div class="mt-auto flex flex-col gap-unit pt-lg">
+      <a class="flex items-center gap-md px-md py-sm text-on-surface-variant font-label-md hover:bg-surface-container-low transition-all rounded">
+        <span class="material-symbols-outlined">settings</span>
+        <span>Project settings</span>
+      </a>
+    </div>
+  </aside>
+  <main class="flex-1 overflow-y-auto bg-background flex flex-col w-full h-full relative">
+    <router-outlet></router-outlet>
+  </main>
 </div>

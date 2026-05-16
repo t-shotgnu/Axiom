@@ -2,16 +2,15 @@ import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { ButtonModule } from 'primeng/button';
-import { CardModule } from 'primeng/card';
-import { DialogModule } from 'primeng/dialog';
-import { InputTextModule } from 'primeng/inputtext';
-import { SelectModule } from 'primeng/select';
-import { InputNumberModule } from 'primeng/inputnumber';
-import { ProgressSpinnerModule } from 'primeng/progressspinner';
-import { TagModule } from 'primeng/tag';
+
 import { ProjectService, Project } from '../../core/services/project.service';
 import { WorkItemService, WorkItem, CreateWorkItemCommand } from '../../core/services/work-item.service';
+import { CommonModule } from '@angular/common';
+import { ButtonComponent } from '../../shared/components/ui/button';
+import { CardComponent } from '../../shared/components/ui/card';
+import { DialogComponent } from '../../shared/components/ui/dialog';
+import { TextComponent } from '../../shared/components/ui/text';
+import { InputComponent } from '../../shared/components/ui/input';
 
 @Component({
   selector: 'app-project-detail',
@@ -19,14 +18,12 @@ import { WorkItemService, WorkItem, CreateWorkItemCommand } from '../../core/ser
   imports: [
     RouterModule,
     FormsModule,
-    ButtonModule,
-    CardModule,
-    DialogModule,
-    InputTextModule,
-    SelectModule,
-    InputNumberModule,
-    ProgressSpinnerModule,
-    TagModule,
+    CommonModule,
+    ButtonComponent,
+    CardComponent,
+    DialogComponent,
+    TextComponent,
+    InputComponent,
   ],
   templateUrl: './project-detail.html',
 })
