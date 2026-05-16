@@ -29,7 +29,8 @@ public class WorkItemQueryHandler {
                         workItem.getEstimatedEffort(),
                         workItem.getProjectId(),
                         workItem.getAuthorId(),
-                        workItem.getAssigneeId()))
+                        workItem.getAssigneeId(),
+                        workItem.getNotes()))
                 .toList();
     }
 
@@ -46,6 +47,7 @@ public class WorkItemQueryHandler {
                         workItem.getEstimatedEffort(),
                         workItem.getProjectId(),
                         workItem.getAuthorId(),
-                        workItem.getAssigneeId()));
+                        workItem.getAssigneeId(),
+                        workItem.getNotes()));
     }
 }

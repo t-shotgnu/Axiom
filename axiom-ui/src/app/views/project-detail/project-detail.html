@@ -1,131 +1,129 @@
 @if (loadingProject()) {
-  <div class="flex justify-center items-center py-24">
-    <p-progressSpinner strokeWidth="4" styleClass="w-12 h-12"></p-progressSpinner>
+  <div class="flex justify-center items-center py-24 text-primary">
+    <span class="material-symbols-outlined animate-spin text-[48px]">progress_activity</span>
   </div>
 } @else if (project()) {
-  <div class="text-zinc-900 dark:text-zinc-100">
-    <!-- Header -->
-    <div class="flex items-start justify-between mb-6">
-      <div class="flex items-center gap-3">
-        <a routerLink="/projects"
-           class="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition-colors">
-          <i class="pi pi-arrow-left text-lg"></i>
-        </a>
-        <div>
-          <div class="flex items-center gap-2">
-            <h1 class="text-2xl font-semibold">{{ project()!.name }}</h1>
-            <span class="text-sm bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 px-2 py-0.5 rounded font-mono">
-              {{ project()!.code }}
-            </span>
-          </div>
-          @if (project()!.description) {
-            <p class="text-sm text-zinc-500 dark:text-zinc-400 mt-1">{{ project()!.description }}</p>
-          }
+  <div class="max-w-container-max mx-auto px-lg py-lg">
+    <!-- Breadcrumbs -->
+    <nav class="flex items-center gap-xs text-on-surface-variant mb-sm">
+      <a routerLink="/projects" class="font-label-sm hover:underline">Projects</a>
+      <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+      <span class="font-label-sm">{{ project()!.name }}</span>
+    </nav>
+
+    <app-text tag="h1" variant="headline-xl" customClass="mb-xl">Backlog</app-text>
+
+    <!-- Backlog Section -->
+    <app-card variant="flat" customClass="p-0 overflow-hidden">
+      <div
+        class="flex justify-between items-center p-md bg-surface-container-low border-b border-outline-variant"
+      >
+        <div class="flex items-center gap-sm">
+          <span class="material-symbols-outlined text-on-surface-variant">expand_more</span>
+          <app-text tag="span" variant="headline-sm">Backlog</app-text>
+          <span class="text-on-surface-variant text-body-sm">({{ tasks().length }} issues)</span>
+        </div>
+        <div class="flex items-center gap-sm">
+          <app-button variant="outlined" customClass="py-xs">Create sprint</app-button>
         </div>
       </div>
-      <p-button
-        label="New Task"
-        icon="pi pi-plus"
-        (onClick)="openCreateDialog()"
-      ></p-button>
-    </div>
 
-    <!-- Task List -->
-    @if (loadingTasks()) {
-      <div class="flex justify-center items-center py-16">
-        <p-progressSpinner strokeWidth="4" styleClass="w-10 h-10"></p-progressSpinner>
-      </div>
-    } @else if (tasks().length === 0) {
-      <div class="text-center py-20 text-zinc-500 dark:text-zinc-400">
-        <i class="pi pi-clipboard text-5xl mb-4 block"></i>
-        <p class="text-base font-medium">No tasks yet</p>
-        <p class="text-sm mt-1">Click "New Task" to create the first one.</p>
-      </div>
-    } @else {
-      <div class="flex flex-col gap-3">
-        @for (task of tasks(); track task.id) {
-          <a [routerLink]="['/tasks', task.id]" class="block group">
-          <p-card styleClass="hover:shadow-md transition-all cursor-pointer group-hover:border-blue-300 dark:group-hover:border-blue-700">
-              <div class="flex items-center justify-between gap-4">
-                <div class="flex items-center gap-3 min-w-0">
-                  <i [class]="getTypeIcon(task.type)" [style.color]="getTypeColor(task.type)" class="text-lg shrink-0"></i>
-                  <span class="font-mono text-xs text-zinc-400 shrink-0">#{{ task.controlNo }}</span>
-                  <span class="font-medium truncate">{{ task.description }}</span>
-                </div>
-                <div class="flex items-center gap-2 shrink-0">
-                  <p-tag [value]="task.status" [severity]="getStatusSeverity(task.status)"></p-tag>
-                  @if (task.priority) {
-                    <span class="text-xs text-zinc-400 font-mono">P{{ task.priority }}</span>
-                  }
-                </div>
+      <div class="divide-y divide-outline-variant">
+        @if (loadingTasks()) {
+          <div class="flex justify-center items-center py-16 bg-surface-container-lowest text-primary">
+            <span class="material-symbols-outlined animate-spin text-[40px]"
+              >progress_activity</span
+            >
+          </div>
+        } @else if (tasks().length === 0) {
+          <div class="text-center py-20 text-on-surface-variant bg-surface-container-lowest">
+            <span class="material-symbols-outlined text-[48px] mb-4 opacity-50 block"
+              >assignment</span
+            >
+            <p class="font-body-md font-bold">No tasks yet</p>
+            <p class="text-sm mt-1">Create an issue to add to the backlog.</p>
+          </div>
+        } @else {
+          @for (task of tasks(); track task.id) {
+            <a
+              [routerLink]="['/tasks', task.id]"
+              class="issue-row flex items-center justify-between p-sm cursor-pointer transition-colors bg-surface-container-lowest hover:bg-surface-container-low block"
+            >
+              <div class="flex items-center gap-md min-w-0 flex-1 pr-4">
+                <span class="material-symbols-outlined text-primary text-[18px]">drag_handle</span>
+                <span class="text-on-surface-variant font-body-sm w-20 shrink-0"
+                  >{{ project()!.code }}-{{ task.controlNo }}</span
+                >
+                <span class="font-body-md text-on-surface truncate">{{ task.description }}</span>
               </div>
-            </p-card>
-          </a>
+              <div class="flex items-center gap-lg shrink-0">
+                <span
+                  class="bg-surface-variant text-on-surface-variant text-label-sm px-sm py-unit rounded uppercase"
+                  >{{ task.status }}</span
+                >
+                <span class="material-symbols-outlined text-outline-variant">{{
+                  task.assigneeId ? 'account_circle' : 'person_off'
+                }}</span>
+                <span
+                  class="bg-surface-container-highest text-on-surface-variant text-label-sm min-w-[24px] text-center rounded-full px-xs"
+                  [title]="'Priority P' + task.priority"
+                  >{{ task.priority }}</span
+                >
+              </div>
+            </a>
+          }
         }
       </div>
-    }
+      <div
+        (click)="openCreateDialog()"
+        class="p-sm bg-surface-container-lowest border-t border-outline-variant hover:bg-surface-container-low cursor-pointer flex items-center gap-xs"
+      >
+        <span class="material-symbols-outlined text-primary">add</span>
+        <span class="text-primary font-bold font-body-md">Create issue</span>
+      </div>
+    </app-card>
   </div>
 }
 
 <!-- Create Task Dialog -->
-<p-dialog
-  header="New Task"
-  [(visible)]="showCreateDialogVisible"
-  [modal]="true"
-  [draggable]="false"
-  [style]="{ width: '520px' }"
-  [closable]="true"
->
-  <div class="flex flex-col gap-5 pt-2">
-    <div class="flex flex-col gap-2">
-      <label class="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Description</label>
-      <input pInputText [(ngModel)]="newTask.description" placeholder="e.g. Implement login feature" class="w-full" />
-    </div>
+<app-dialog [(visible)]="showCreateDialogVisible" title="New Task">
+  <app-input
+    label="Description"
+    [(ngModel)]="newTask.description"
+    placeholder="e.g. Implement login feature"
+  ></app-input>
 
-    <!-- Type selector -->
-    <div class="flex flex-col gap-2">
-      <label class="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Type</label>
-      <p-select
-        [options]="typeOptions"
-        [(ngModel)]="newTask.type"
-        styleClass="w-full"
-        appendTo="body"
-        optionLabel="label"
-        optionValue="value"
-      >
-        <ng-template let-opt pTemplate="selectedItem">
-          @if (opt) {
-            <div class="flex items-center gap-2">
-              <i [class]="opt.icon" [style.color]="opt.color"></i>
-              <span>{{ opt.label }}</span>
-            </div>
-          }
-        </ng-template>
-        <ng-template let-opt pTemplate="item">
-          <div class="flex items-center gap-2">
-            <i [class]="opt.icon" [style.color]="opt.color"></i>
-            <span>{{ opt.label }}</span>
-          </div>
-        </ng-template>
-      </p-select>
-    </div>
-
-    <div class="grid grid-cols-2 gap-4">
-      <div class="flex flex-col gap-2">
-        <label class="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Status</label>
-        <p-select [options]="statusOptions" [(ngModel)]="newTask.status" styleClass="w-full" appendTo="body"></p-select>
-      </div>
-      <div class="flex flex-col gap-2">
-        <label class="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Priority (1–10)</label>
-        <p-inputNumber [(ngModel)]="newTask.priority" styleClass="w-full" [min]="1" [max]="10"></p-inputNumber>
-      </div>
-    </div>
+  <div class="flex flex-col gap-xs">
+    <label class="font-label-md text-on-surface font-semibold">Type</label>
+    <select
+      [(ngModel)]="newTask.type"
+      class="w-full px-md py-sm border border-outline-variant rounded focus:outline-none focus:border-primary bg-surface text-on-surface appearance-none"
+    >
+      @for (opt of typeOptions; track opt.value) {
+        <option [value]="opt.value">{{ opt.label }}</option>
+      }
+    </select>
   </div>
 
-  <ng-template pTemplate="footer">
-    <div class="flex justify-end gap-2">
-      <p-button label="Cancel" severity="secondary" (onClick)="showCreateDialog.set(false)"></p-button>
-      <p-button label="Create" icon="pi pi-check" [loading]="creating()" (onClick)="createTask()"></p-button>
+  <div class="grid grid-cols-2 gap-md">
+    <div class="flex flex-col gap-xs">
+      <label class="font-label-md text-on-surface font-semibold">Status</label>
+      <select
+        [(ngModel)]="newTask.status"
+        class="w-full px-md py-sm border border-outline-variant rounded focus:outline-none focus:border-primary bg-surface text-on-surface appearance-none"
+      >
+        @for (opt of statusOptions; track opt.value) {
+          <option [value]="opt.value">{{ opt.label }}</option>
+        }
+      </select>
     </div>
-  </ng-template>
-</p-dialog>
+    <app-input type="number" label="Priority (1–10)" [(ngModel)]="newTask.priority"></app-input>
+  </div>
+
+  <div footer>
+    <app-button variant="outlined" (onClick)="showCreateDialog.set(false)">Cancel</app-button>
+    <app-button variant="primary" (onClick)="createTask()" [loading]="creating()"
+      >Create</app-button
+    >
+  </div>
+</app-dialog>

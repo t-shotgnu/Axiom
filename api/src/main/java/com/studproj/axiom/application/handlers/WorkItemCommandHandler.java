@@ -46,5 +46,29 @@ public class WorkItemCommandHandler {
         workItemRepository.save(workItem);
         return workItem.getId();
     }
+
+    @Transactional
+    public void assignWorkItem(UUID id, UUID assigneeId) {
+        WorkItem workItem = workItemRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("WorkItem not found"));
+        workItem.assignTo(assigneeId);
+        workItemRepository.save(workItem);
+    }
+
+    @Transactional
+    public void updateStatus(UUID id, com.studproj.axiom.domain.model.WorkItemStatus status) {
+        WorkItem workItem = workItemRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("WorkItem not found"));
+        workItem.updateStatus(status);
+        workItemRepository.save(workItem);
+    }
+
+    @Transactional
+    public void updateNotes(UUID id, String notes) {
+        WorkItem workItem = workItemRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("WorkItem not found"));
+        workItem.updateNotes(notes);
+        workItemRepository.save(workItem);
+    }
 }
 

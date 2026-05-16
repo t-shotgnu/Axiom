@@ -1,16 +1,15 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { CardModule } from 'primeng/card';
-import { ButtonModule } from 'primeng/button';
+
 import { DashboardService } from '../../core/services/dashboard.service';
 import { WorkItem } from '../../core/services/work-item.service';
 import { finalize } from 'rxjs';
-import { TaskItemComponent } from '../../shared/components/task-item/task-item';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, CardModule, ButtonModule, TaskItemComponent],
+  imports: [CommonModule, RouterModule],
   templateUrl: './dashboard.html',
   styles: [],
   changeDetection: ChangeDetectionStrategy.OnPush,

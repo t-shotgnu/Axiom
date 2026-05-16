@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 
 export interface Project {
   id: string;
@@ -23,7 +23,18 @@ export interface CreateProjectCommand {
 export class ProjectService {
   private apiUrl = '/api/projects';
 
+  private readonly currentProjectSubject = new BehaviorSubject<Project | null>(null);
+  readonly currentProject$ = this.currentProjectSubject.asObservable();
+
   constructor(private http: HttpClient) {}
+
+  setCurrentProject(project: Project | null): void {
+    this.currentProjectSubject.next(project);
+  }
+
+  getCurrentProject(): Project | null {
+    return this.currentProjectSubject.value;
+  }
 
   getAllProjects(): Observable<Project[]> {
     return this.http.get<Project[]>(this.apiUrl);

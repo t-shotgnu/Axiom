@@ -41,4 +41,7 @@ public class WorkItemEntity {
     private UUID projectId;
     private UUID authorId;
     private UUID assigneeId;
+    
+    @jakarta.persistence.Column(columnDefinition = "TEXT")
+    private String notes;
 }

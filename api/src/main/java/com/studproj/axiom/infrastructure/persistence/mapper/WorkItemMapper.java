@@ -18,6 +18,7 @@ public class WorkItemMapper {
                 .projectId(entity.getProjectId())
                 .authorId(entity.getAuthorId())
                 .assigneeId(entity.getAssigneeId())
+                .notes(entity.getNotes())
                 .build();
     }
 
@@ -35,6 +36,7 @@ public class WorkItemMapper {
                 .projectId(domain.getProjectId())
                 .authorId(domain.getAuthorId())
                 .assigneeId(domain.getAssigneeId())
+                .notes(domain.getNotes())
                 .build();
     }
 }

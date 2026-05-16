@@ -1,34 +1,25 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { ButtonModule } from 'primeng/button';
-import { CardModule } from 'primeng/card';
-import { InputTextModule } from 'primeng/inputtext';
+
 import { finalize } from 'rxjs';
-import { CreateProjectCommand, Project, ProjectService } from '../../core/services/project.service';
+import { Project, ProjectService } from '../../core/services/project.service';
+import { CreateProjectComponent } from './create-project';
+import { ButtonComponent } from '../../shared/components/ui/button';
+import { CardComponent } from '../../shared/components/ui/card';
 
 @Component({
   selector: 'app-projects',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, ButtonModule, CardModule, InputTextModule],
+  imports: [CommonModule, RouterModule, CreateProjectComponent],
   templateUrl: './projects.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProjectsComponent {
   projects: Project[] = [];
   loading = false;
-  creating = false;
   errorMessage = '';
-  createErrorMessage = '';
-  createSuccessMessage = '';
-
-  form = {
-    name: '',
-    code: '',
-    description: '',
-  };
 
   listState: 'loading' | 'error' | 'empty' | 'list' = 'loading';
 
@@ -75,56 +66,6 @@ export class ProjectsComponent {
       });
   }
 
-  createProject(): void {
-    if (!this.form.name.trim() || !this.form.code.trim()) {
-      return;
-    }
-
-    this.creating = true;
-    this.createErrorMessage = '';
-    this.createSuccessMessage = '';
-
-    this.projectService
-      .createProject(this.toCommand())
-      .pipe(
-        finalize(() => {
-          this.creating = false;
-          this.cdr.markForCheck();
-        }),
-      )
-      .subscribe({
-        next: () => {
-          const projectName = this.form.name.trim();
-          this.resetForm();
-          this.createSuccessMessage = `${projectName} was created.`;
-          this.cdr.markForCheck();
-          this.loadProjects();
-        },
-        error: (err: unknown) => {
-          this.createErrorMessage = this.mapProjectCreateError(err);
-          this.cdr.markForCheck();
-        },
-      });
-  }
-
-  private toCommand(): CreateProjectCommand {
-    const description = this.form.description.trim();
-
-    return {
-      name: this.form.name.trim(),
-      code: this.form.code.trim().toUpperCase(),
-      ...(description ? { description } : {}),
-    };
-  }
-
-  private resetForm(): void {
-    this.form = {
-      name: '',
-      code: '',
-      description: '',
-    };
-  }
-
   private mapProjectLoadError(err: unknown): string {
     if (err instanceof HttpErrorResponse) {
       if (err.status === 401 || err.status === 403) {
@@ -139,28 +80,6 @@ export class ProjectsComponent {
       }
     }
     return 'Could not load projects. Check if the API is running.';
-  }
-
-  private mapProjectCreateError(err: unknown): string {
-    if (err instanceof HttpErrorResponse) {
-      if (err.status === 401 || err.status === 403) {
-        return 'Your session expired or you are not allowed to create projects. Sign in again, then retry.';
-      }
-      if (err.status === 409) {
-        return 'A project with this code may already exist. Try another code.';
-      }
-      if (err.status === 400) {
-        const apiMessage = this.extractApiMessage(err);
-        if (apiMessage) {
-          return apiMessage;
-        }
-        return 'Could not create project. Check that name and code meet validation rules.';
-      }
-      if (err.status === 0) {
-        return 'Could not reach the API. Check your network or that the backend is running.';
-      }
-    }
-    return 'Could not create project. Check name and code.';
   }
 
   private extractApiMessage(err: HttpErrorResponse): string | null {

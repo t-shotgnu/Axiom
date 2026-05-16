@@ -1,119 +1,246 @@
-<div class="text-zinc-900 dark:text-zinc-100">
-  <h1 class="text-2xl font-semibold mb-4">Tasks</h1>
-
-  <p-card
-    header="Create New Task"
-    styleClass="mb-6 shadow-sm border border-zinc-200 dark:border-zinc-700"
-  >
-    <div class="grid md:grid-cols-[2fr_1fr] gap-8">
-      <!-- Left column: Core Details -->
-      <div class="flex flex-col gap-5">
-        <div class="flex flex-col gap-2">
-          <label class="text-sm font-semibold text-zinc-700 dark:text-zinc-300"
-            >Task Description</label
-          >
-          <input
-            pInputText
-            [(ngModel)]="newTask.description"
-            placeholder="e.g. Implement login feature"
-            class="w-full"
-          />
-        </div>
-
-        <div class="grid grid-cols-2 gap-4">
-          <div class="flex flex-col gap-2">
-            <label class="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Type</label>
-            <p-select
-              [options]="typeOptions"
-              [(ngModel)]="newTask.type"
-              styleClass="w-full"
-              [appendTo]="'body'"
-            >
-              <ng-template let-option pTemplate="item">
-                <div class="flex items-center gap-2">
-                  <i [class]="option.icon" [style.color]="option.color"></i>
-                  <span>{{ option.label }}</span>
-                </div>
-              </ng-template>
-            </p-select>
-          </div>
-          <div class="flex flex-col gap-2">
-            <label class="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Status</label>
-            <p-select
-              [options]="statusOptions"
-              [(ngModel)]="newTask.status"
-              styleClass="w-full"
-              [appendTo]="'body'"
-            >
-              <ng-template let-option pTemplate="item">
-                <div class="flex items-center gap-2">
-                  <i [class]="option.icon" [style.color]="option.color"></i>
-                  <span>{{ option.label }}</span>
-                </div>
-              </ng-template>
-            </p-select>
-          </div>
-          <div class="flex flex-col gap-2">
-            <label class="text-sm font-semibold text-zinc-700 dark:text-zinc-300"
-              >Priority (1-10)</label
-            >
-            <p-inputNumber [(ngModel)]="newTask.priority" styleClass="w-full"></p-inputNumber>
-          </div>
-        </div>
+<div class="p-lg flex flex-col h-full overflow-hidden bg-background">
+  <!-- Breadcrumbs & Header -->
+  <div class="flex justify-between items-end mb-lg">
+    <div>
+      <nav class="flex text-[11px] font-bold text-on-surface-variant gap-xs mb-xs uppercase tracking-wider">
+        <a routerLink="/projects" class="hover:underline">Projects</a>
+        <span>/</span>
+        <span class="text-on-surface">{{ currentProject?.name || 'No Project' }}</span>
+      </nav>
+      <h1 class="font-headline-lg text-headline-lg text-on-surface font-black tracking-tight">
+        Active Sprint: {{ currentProject?.code || 'AX' }}-04
+      </h1>
+    </div>
+    <div class="flex gap-sm items-center">
+      <!-- Contributor Avatars -->
+      <div class="flex -space-x-1.5 items-center mr-xs">
+        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" class="w-7 h-7 rounded-full border-2 border-surface-container-lowest object-cover" title="Sarah Miller" />
+        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" class="w-7 h-7 rounded-full border-2 border-surface-container-lowest object-cover" title="Alex Kim" />
+        <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" class="w-7 h-7 rounded-full border-2 border-surface-container-lowest object-cover" title="John Doe" />
+        <div class="w-7 h-7 rounded-full border-2 border-surface-container-lowest bg-surface-container-high text-on-surface-variant flex items-center justify-center font-bold text-[10px] shrink-0">+4</div>
       </div>
+      <app-button variant="primary" customClass="py-xs font-bold text-xs">Complete Sprint</app-button>
+      <button class="material-symbols-outlined text-on-surface-variant hover:bg-surface-container-high p-xs rounded-lg transition-colors">more_horiz</button>
+    </div>
+  </div>
 
-      <!-- Right column: Identifiers -->
-      <div
-        class="flex flex-col gap-4 bg-zinc-50 dark:bg-zinc-800/50 p-5 rounded-lg border border-zinc-200 dark:border-zinc-700/50"
-      >
-        <div>
-          <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1">
-            System Identifiers
-          </h3>
-          <p class="text-xs text-zinc-400 dark:text-zinc-500 mb-4">
-            Temporarily required. Will be auto-filled from session in the future.
-          </p>
-        </div>
-
-        <div class="flex flex-col gap-2">
-          <label class="text-xs font-semibold text-zinc-600 dark:text-zinc-400">Project ID</label>
-          <input
-            pInputText
-            [(ngModel)]="projectId"
-            placeholder="UUID"
-            class="w-full font-mono text-sm"
-          />
-        </div>
-      </div>
+  <!-- Search & Filter Bar -->
+  <div class="flex flex-wrap items-center gap-md pb-md border-b border-outline-variant mb-lg">
+    <!-- Search Field -->
+    <div class="relative flex items-center min-w-[240px]">
+      <span class="material-symbols-outlined absolute left-3 text-on-surface-variant text-[18px] pointer-events-none">search</span>
+      <input
+        type="text"
+        [(ngModel)]="searchText"
+        (ngModelChange)="onSearchChange()"
+        placeholder="Search tasks..."
+        class="pl-9 pr-4 py-[7px] border border-outline-variant rounded text-sm bg-surface-container-lowest text-on-surface w-full focus:outline-none focus:border-primary transition-all duration-200"
+      />
     </div>
 
-    <ng-template pTemplate="footer">
-      <div class="flex justify-end border-t border-zinc-100 dark:border-zinc-800 pt-4 mt-2">
-        <p-button label="Create Task" icon="pi pi-plus" (onClick)="createTask()"></p-button>
+    <!-- Quick Filters -->
+    <button
+      (click)="toggleOnlyMyIssues()"
+      [class.bg-primary/10]="onlyMyIssues"
+      [class.text-primary]="onlyMyIssues"
+      [class.border-primary/30]="onlyMyIssues"
+      [class.hover:bg-primary/20]="onlyMyIssues"
+      [class.bg-surface-container-lowest]="!onlyMyIssues"
+      [class.text-on-surface-variant]="!onlyMyIssues"
+      [class.hover:bg-surface-container-low]="!onlyMyIssues"
+      class="px-md py-[7px] border border-outline-variant rounded text-xs font-bold transition-all"
+    >
+      Only My Issues
+    </button>
+
+    <button
+      (click)="toggleRecentlyUpdated()"
+      [class.bg-primary/10]="recentlyUpdated"
+      [class.text-primary]="recentlyUpdated"
+      [class.border-primary/30]="recentlyUpdated"
+      [class.hover:bg-primary/20]="recentlyUpdated"
+      [class.bg-surface-container-lowest]="!recentlyUpdated"
+      [class.text-on-surface-variant]="!recentlyUpdated"
+      [class.hover:bg-surface-container-low]="!recentlyUpdated"
+      class="px-md py-[7px] border border-outline-variant rounded text-xs font-bold transition-all"
+    >
+      Recently Updated
+    </button>
+
+    <!-- More Dropdown (Static aesthetic) -->
+    <div class="relative">
+      <button class="px-md py-[7px] bg-surface-container-lowest border border-outline-variant rounded text-xs font-bold text-on-surface-variant hover:bg-surface-container-low transition-all flex items-center gap-xs">
+        <span>More</span>
+        <span class="material-symbols-outlined text-[16px]">expand_more</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (loading) {
+    <div class="flex-1 flex justify-center items-center py-24 text-primary">
+      <span class="material-symbols-outlined animate-spin text-[48px]">progress_activity</span>
+    </div>
+  } @else if (!currentProject) {
+    <!-- Empty State: No Project -->
+    <div class="flex-1 flex flex-col justify-center items-center text-center p-xl">
+      <span class="material-symbols-outlined text-[64px] text-on-surface-variant opacity-40 mb-4">folder_open</span>
+      <h3 class="font-headline-sm text-headline-sm font-bold text-on-surface">No Project Selected</h3>
+      <p class="text-on-surface-variant mt-sm text-sm max-w-sm">
+        Select a project from the top-left dropdown to view and manage its active tasks.
+      </p>
+    </div>
+  } @else if (filteredTasks.length === 0) {
+    <!-- Empty State: No Tasks Match -->
+    <div class="flex-1 flex flex-col justify-center items-center text-center p-xl">
+      <span class="material-symbols-outlined text-[64px] text-on-surface-variant opacity-40 mb-4">assignment_late</span>
+      <h3 class="font-headline-sm text-headline-sm font-bold text-on-surface">No Tasks Found</h3>
+      <p class="text-on-surface-variant mt-sm text-sm max-w-sm">
+        Try modifying your search or quick filters, or create a new issue inside the Backlog view of this project.
+      </p>
+    </div>
+  } @else {
+    <!-- Task List Table View -->
+    <div class="flex-1 overflow-auto rounded-xl border border-outline-variant bg-surface-container-lowest shadow-sm mb-md">
+      <table class="w-full border-collapse text-left">
+        <thead>
+          <tr class="bg-surface-container-low border-b border-outline-variant text-[11px] font-bold text-on-surface-variant uppercase tracking-wider select-none">
+            <th class="py-md pl-md pr-xs w-10"></th>
+            <th class="py-md px-md w-28">Key</th>
+            <th class="py-md px-md">Summary</th>
+            <th class="py-md px-md w-36">Status</th>
+            <th class="py-md px-md w-48">Assignee</th>
+            <th class="py-md px-md w-32">Priority</th>
+            <th class="py-md pr-md pl-xs w-16 text-center">SP</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-outline-variant/60">
+          @for (task of visibleTasks; track task.id) {
+            <tr
+              [routerLink]="['/tasks', task.id]"
+              class="hover:bg-surface-container-low transition-colors duration-150 cursor-pointer"
+            >
+              <!-- Issue Icon -->
+              <td class="py-sm pl-md pr-xs text-center">
+                <span class="material-symbols-outlined text-[18px] align-middle select-none"
+                  [class.text-red-500]="task.type === 'Bug'"
+                  [class.text-green-500]="task.type === 'Story'"
+                  [class.text-blue-500]="task.type === 'Task'"
+                >
+                  {{ task.type === 'Bug' ? 'bug_report' : task.type === 'Story' ? 'menu_book' : 'assignment' }}
+                </span>
+              </td>
+
+              <!-- Key -->
+              <td class="py-sm px-md font-mono text-xs font-semibold text-on-surface-variant tracking-wider">
+                {{ currentProject.code.toUpperCase() }}-{{ task.controlNo }}
+              </td>
+
+              <!-- Summary -->
+              <td class="py-sm px-md min-w-0">
+                <a
+                  [routerLink]="['/tasks', task.id]"
+                  class="font-body-md text-on-surface font-semibold hover:text-primary hover:underline cursor-pointer block truncate"
+                  [title]="task.description"
+                >
+                  {{ task.description }}
+                </a>
+              </td>
+
+              <!-- Status -->
+              <td class="py-sm px-md">
+                <span
+                  class="px-2 py-0.5 rounded text-[9px] font-bold border uppercase inline-block select-none"
+                  [ngClass]="getStatusBadgeClass(task.status)"
+                >
+                  {{ getStatusLabel(task.status) }}
+                </span>
+              </td>
+
+              <!-- Assignee -->
+              <td class="py-sm px-md">
+                <div class="flex items-center gap-xs">
+                  <div class="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-[9px] shrink-0 select-none">
+                    {{ task.assigneeId ? task.assigneeId.substring(0, 2).toUpperCase() : '?' }}
+                  </div>
+                  <span class="text-xs text-on-surface font-medium truncate" [class.italic]="!task.assigneeId" [class.text-on-surface-variant]="!task.assigneeId">
+                    {{ task.assigneeId || 'Unassigned' }}
+                  </span>
+                </div>
+              </td>
+
+              <!-- Priority -->
+              <td class="py-sm px-md select-none">
+                <div class="flex items-center gap-unit">
+                  <span class="material-symbols-outlined text-[16px] font-bold align-middle shrink-0"
+                    [ngClass]="getPriorityColorClass(task.priority)"
+                  >
+                    {{ getPriorityIcon(task.priority) }}
+                  </span>
+                  <span class="text-xs text-on-surface font-semibold">
+                    {{ getPriorityLabel(task.priority) }}
+                  </span>
+                </div>
+              </td>
+
+              <!-- SP (Story Points / Effort) -->
+              <td class="py-sm pr-md pl-xs text-center font-mono text-xs font-bold text-on-surface-variant">
+                {{ task.estimatedEffort || (task.priority * 2 - 1) }}
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination Footer -->
+    <div class="flex justify-between items-center text-xs text-on-surface-variant select-none">
+      <div>
+        Showing
+        <span class="font-bold text-on-surface">{{ (currentPage - 1) * pageSize + 1 }}</span>
+        -
+        <span class="font-bold text-on-surface">{{ Math.min(currentPage * pageSize, filteredTasks.length) }}</span>
+        of
+        <span class="font-bold text-on-surface">{{ filteredTasks.length }}</span>
+        issues
       </div>
-    </ng-template>
-  </p-card>
 
-  <div class="mb-4 flex gap-2">
-    <input
-      pInputText
-      [(ngModel)]="fetchProjectId"
-      placeholder="Project ID to fetch"
-      class="w-full"
-    />
-    <p-button
-      label="Load Tasks"
-      icon="pi pi-search"
-      severity="secondary"
-      (onClick)="loadTasks()"
-    ></p-button>
-  </div>
+      <!-- Arrow Pager -->
+      <div class="flex items-center gap-sm">
+        <button
+          (click)="goToPage(currentPage - 1)"
+          [disabled]="currentPage === 1"
+          class="material-symbols-outlined text-[18px] p-unit rounded border border-outline-variant hover:bg-surface-container-low transition-colors disabled:opacity-40 disabled:hover:bg-transparent"
+        >
+          chevron_left
+        </button>
 
-  <div class="space-y-3">
-    @for (t of tasks; track t.controlNo) {
-      <app-task-item [task]="t"></app-task-item>
-    } @empty {
-      <div class="text-zinc-500 dark:text-zinc-400">No tasks found.</div>
-    }
-  </div>
+        <div class="flex items-center gap-xs">
+          @for (page of getPagesArray(); track page) {
+            <button
+              (click)="goToPage(page)"
+              [class.bg-primary]="currentPage === page"
+              [class.text-white]="currentPage === page"
+              [class.border-primary]="currentPage === page"
+              [class.hover:bg-primary]="currentPage === page"
+              [class.border-outline-variant]="currentPage !== page"
+              [class.hover:bg-surface-container-low]="currentPage !== page"
+              class="w-6 h-6 flex items-center justify-center font-bold text-xs border rounded transition-colors"
+            >
+              {{ page }}
+            </button>
+          }
+        </div>
+
+        <button
+          (click)="goToPage(currentPage + 1)"
+          [disabled]="currentPage === totalPages"
+          class="material-symbols-outlined text-[18px] p-unit rounded border border-outline-variant hover:bg-surface-container-low transition-colors disabled:opacity-40 disabled:hover:bg-transparent"
+        >
+          chevron_right
+        </button>
+      </div>
+    </div>
+  }
 </div>
+

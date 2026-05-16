@@ -36,7 +36,8 @@ public class DashboardQueryHandler {
                         workItem.getEstimatedEffort(),
                         workItem.getProjectId(),
                         workItem.getAuthorId(),
-                        workItem.getAssigneeId()))
+                        workItem.getAssigneeId(),
+                        workItem.getNotes()))
                 .toList();
         return new DashboardSummaryDto(activeProjects, openTasks, resolvedTasks, recentTasks);
     }
