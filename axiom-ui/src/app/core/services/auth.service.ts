@@ -20,6 +20,12 @@ export interface RefreshTokenCommand {
   refreshToken: string;
 }
 
+export interface ChangePasswordCommand {
+  oldPassword: string;
+  newPassword: string;
+  newPasswordConfirmation: string;
+}
+
 export interface AuthResponse {
   token: string;
   refreshToken: string;
@@ -66,6 +72,10 @@ export class AuthService {
     localStorage.removeItem(this.tokenKey);
     localStorage.removeItem(this.refreshTokenKey);
     this.authStatus.next(false);
+  }
+
+  changePassword(command: ChangePasswordCommand): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/change-password`, command);
   }
 
   getToken(): string | null {

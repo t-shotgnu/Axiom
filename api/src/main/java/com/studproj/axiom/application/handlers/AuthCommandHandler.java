@@ -114,6 +114,10 @@ public class AuthCommandHandler {
             throw new BadRequestException("Old password is incorrect");
         }
 
+        if (passwordEncoder.matches(command.newPassword(), user.getPassword())) {
+            throw new BadRequestException("New password cannot be the same as the current password");
+        }
+
         String encodedNewPassword = passwordEncoder.encode(command.newPassword());
         user.changePassword(encodedNewPassword);
         userRepository.save(user);

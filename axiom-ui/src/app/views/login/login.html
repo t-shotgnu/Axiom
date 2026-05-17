@@ -4,15 +4,15 @@
     <div class="flex flex-col items-center mb-lg text-center">
       <div class="flex items-center gap-xs mb-sm">
         <span class="material-symbols-outlined text-[32px] text-primary font-bold">grid_view</span>
-        <span class="text-primary font-extrabold text-[28px] font-headline-md tracking-tight"
-          >Axiom</span
-        >
+        <span class="text-primary font-extrabold text-[28px] font-headline-md tracking-tight">
+          Axiom
+        </span>
       </div>
       <p class="text-on-surface-variant font-medium text-body-md">
         @if (mode === 'login') {
-          Zaloguj się do swojego konta Enterprise
+          Sign in to your Enterprise account
         } @else {
-          Utwórz nowe konto firmowe
+          Create a new enterprise account
         }
       </p>
     </div>
@@ -36,27 +36,28 @@
         @if (mode === 'register') {
           <div class="grid gap-sm sm:grid-cols-2">
             <div class="flex flex-col gap-xs">
-              <label class="text-[11px] font-bold text-on-surface-variant tracking-wider uppercase"
-                >Nazwa użytkownika</label
-              >
+              <label class="text-[11px] font-bold text-on-surface-variant tracking-wider uppercase">
+                Username
+              </label>
               <input
                 type="text"
                 name="userName"
                 [(ngModel)]="registerForm.userName"
-                placeholder="np. JanKowalski15"
+                placeholder="e.g. JohnSmith15"
                 class="w-full px-md py-[10px] border border-outline-variant rounded focus:outline-none focus:border-primary bg-surface-container-low text-on-surface text-sm placeholder:text-on-surface-variant/60 transition-colors"
                 required
               />
               @if (registerForm.userName && !isUserNameValid(registerForm.userName)) {
                 <p class="text-xs text-error font-medium">
-                  Nazwa użytkownika powinna mieć 3-30 znaków.
+                  Username must be between 3 and 30 characters.
                 </p>
               }
             </div>
+
             <div class="flex flex-col gap-xs">
-              <label class="text-[11px] font-bold text-on-surface-variant tracking-wider uppercase"
-                >Data urodzenia</label
-              >
+              <label class="text-[11px] font-bold text-on-surface-variant tracking-wider uppercase">
+                Date of birth
+              </label>
               <input
                 type="date"
                 name="dateOfBirth"
@@ -66,44 +67,43 @@
                 required
               />
               @if (registerForm.dateOfBirth && !isDateOfBirthValid(registerForm.dateOfBirth)) {
-                <p class="text-xs text-error font-medium">
-                  Data urodzenia nie może być z przyszłości.
-                </p>
+                <p class="text-xs text-error font-medium">Date of birth cannot be in the future.</p>
               }
             </div>
           </div>
 
           <div class="grid gap-sm sm:grid-cols-2">
             <div class="flex flex-col gap-xs">
-              <label class="text-[11px] font-bold text-on-surface-variant tracking-wider uppercase"
-                >Imię</label
-              >
+              <label class="text-[11px] font-bold text-on-surface-variant tracking-wider uppercase">
+                First name
+              </label>
               <input
                 type="text"
                 name="firstName"
                 [(ngModel)]="registerForm.firstName"
-                placeholder="np. Jan"
+                placeholder="e.g. John"
                 class="w-full px-md py-[10px] border border-outline-variant rounded focus:outline-none focus:border-primary bg-surface-container-low text-on-surface text-sm placeholder:text-on-surface-variant/60 transition-colors"
                 required
               />
               @if (registerForm.firstName && !isNameValid(registerForm.firstName)) {
-                <p class="text-xs text-error font-medium">Wpisz poprawne imię.</p>
+                <p class="text-xs text-error font-medium">Enter a valid first name.</p>
               }
             </div>
+
             <div class="flex flex-col gap-xs">
-              <label class="text-[11px] font-bold text-on-surface-variant tracking-wider uppercase"
-                >Nazwisko</label
-              >
+              <label class="text-[11px] font-bold text-on-surface-variant tracking-wider uppercase">
+                Last name
+              </label>
               <input
                 type="text"
                 name="lastName"
                 [(ngModel)]="registerForm.lastName"
-                placeholder="np. Kowalski"
+                placeholder="e.g. Smith"
                 class="w-full px-md py-[10px] border border-outline-variant rounded focus:outline-none focus:border-primary bg-surface-container-low text-on-surface text-sm placeholder:text-on-surface-variant/60 transition-colors"
                 required
               />
               @if (registerForm.lastName && !isNameValid(registerForm.lastName)) {
-                <p class="text-xs text-error font-medium">Wpisz poprawne nazwisko.</p>
+                <p class="text-xs text-error font-medium">Enter a valid last name.</p>
               }
             </div>
           </div>
@@ -112,39 +112,37 @@
         <!-- Email Field -->
         <div class="flex flex-col gap-xs">
           <label class="text-[11px] font-bold text-on-surface-variant tracking-wider uppercase">
-            @if (mode === 'login') {
-              Adres e-mail
-            } @else {
-              Adres e-mail
-            }
+            Email address
           </label>
           <input
             type="email"
             name="emailAddress"
             [(ngModel)]="emailAddress"
-            placeholder="np. jan.kowalski@firma.pl"
+            placeholder="e.g. john.smith@company.com"
             class="w-full px-md py-[10px] border border-outline-variant rounded focus:outline-none focus:border-primary bg-surface-container-low text-on-surface text-sm placeholder:text-on-surface-variant/60 transition-colors"
             required
           />
           @if (mode === 'register' && emailAddress && !isEmailValid(emailAddress)) {
-            <p class="text-xs text-error font-medium">Wpisz poprawny adres e-mail.</p>
+            <p class="text-xs text-error font-medium">Enter a valid email address.</p>
           }
         </div>
 
         <!-- Password Field -->
         <div class="flex flex-col gap-xs">
-          <label class="text-[11px] font-bold text-on-surface-variant tracking-wider uppercase"
-            >Hasło</label
-          >
+          <label class="text-[11px] font-bold text-on-surface-variant tracking-wider uppercase">
+            Password
+          </label>
+
           <div class="relative w-full flex items-center">
             <input
               [type]="showPassword ? 'text' : 'password'"
               name="password"
               [(ngModel)]="password"
-              [placeholder]="mode === 'login' ? 'Wprowadź swoje hasło' : 'Minimum 8 znaków'"
+              [placeholder]="mode === 'login' ? 'Enter your password' : 'Minimum 8 characters'"
               class="w-full pl-md pr-10 py-[10px] border border-outline-variant rounded focus:outline-none focus:border-primary bg-surface-container-low text-on-surface text-sm placeholder:text-on-surface-variant/60 transition-colors"
               required
             />
+
             <span
               (click)="togglePasswordVisibility()"
               class="material-symbols-outlined absolute right-3 text-on-surface-variant cursor-pointer select-none text-[20px] hover:text-on-surface"
@@ -166,8 +164,9 @@
                   }"
                 ></div>
               </div>
+
               <p class="text-[11px] text-on-surface-variant">
-                Siła hasła:
+                Password strength:
                 <span
                   class="font-bold"
                   [ngClass]="{
@@ -175,15 +174,17 @@
                     'text-orange-500': passwordStrengthPercentage == 50,
                     'text-primary': passwordStrengthPercentage >= 100,
                   }"
-                  >{{ passwordStrengthText }}</span
                 >
+                  {{ passwordStrengthText }}
+                </span>
               </p>
             </div>
           }
 
           @if (mode === 'register' && password && !passwordMeetsRegistrationRules) {
             <p class="text-xs text-error font-medium mt-xs">
-              Hasło musi mieć min. 8 znaków, wielką i małą literę oraz cyfrę.
+              Password must contain at least 8 characters, uppercase and lowercase letters, and a
+              number.
             </p>
           }
         </div>
@@ -196,26 +197,26 @@
           [disabled]="!canSubmit"
           customClass="w-full py-[10px] text-sm font-bold mt-sm"
         >
-          {{ mode === 'login' ? 'Zaloguj się' : 'Załóż konto' }}
+          {{ mode === 'login' ? 'Sign in' : 'Create account' }}
         </app-button>
       </form>
 
       <!-- Toggle Mode Link -->
       <p class="mt-lg text-center text-sm text-on-surface-variant font-medium">
         @if (mode === 'login') {
-          Nie masz konta?
-          <a (click)="toggleMode()" class="text-primary font-bold hover:underline cursor-pointer"
-            >Zarejestruj się</a
-          >
+          Don't have an account?
+          <a (click)="toggleMode()" class="text-primary font-bold hover:underline cursor-pointer">
+            Sign up
+          </a>
         } @else {
-          Masz już konto?
-          <a (click)="toggleMode()" class="text-primary font-bold hover:underline cursor-pointer"
-            >Zaloguj się</a
-          >
+          Already have an account?
+          <a (click)="toggleMode()" class="text-primary font-bold hover:underline cursor-pointer">
+            Sign in
+          </a>
         }
       </p>
 
-      <!-- Footer Terms & Copyright -->
+      <!-- Footer -->
       <div class="mt-xl pt-lg border-t border-outline-variant/50 w-full text-center space-y-sm">
         <p class="text-[10px] text-on-surface-variant/70">© 2026 Axiom Enterprise.</p>
       </div>
