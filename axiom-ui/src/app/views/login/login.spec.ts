@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { LoginComponent } from './login';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 describe('LoginComponent', () => {
   let authService: {
@@ -10,10 +11,10 @@ describe('LoginComponent', () => {
     register: ReturnType<typeof vi.fn>;
   };
   let router: { navigateByUrl: ReturnType<typeof vi.fn> };
-  let detectChanges: ReturnType<typeof vi.fn>;
+  let fixture: ComponentFixture<LoginComponent>;
   let component: LoginComponent;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     authService = {
       login: vi.fn(),
       register: vi.fn(),
@@ -21,12 +22,19 @@ describe('LoginComponent', () => {
     router = {
       navigateByUrl: vi.fn(),
     };
-    detectChanges = vi.fn();
-    component = new LoginComponent(
-      authService as unknown as AuthService,
-      router as unknown as Router,
-    );
-    (component as unknown as { cdr: { detectChanges: () => void } }).cdr = { detectChanges };
+
+    await TestBed.configureTestingModule({
+      imports: [LoginComponent],
+      providers: [
+        { provide: AuthService, useValue: authService },
+        { provide: Router, useValue: router },
+      ],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(LoginComponent);
+    component = fixture.componentInstance;
+    // spy on internal ChangeDetectorRef used by the component
+    vi.spyOn((component as any).cdr, 'detectChanges');
   });
 
   it('allows login submit when email and password are present', () => {
@@ -129,7 +137,7 @@ describe('LoginComponent', () => {
 
     expect(component.errorMessage).toBe('Invalid email or password.');
     expect(component.submitting).toBe(false);
-    expect(detectChanges).toHaveBeenCalled();
+    expect((component as any).cdr.detectChanges).toHaveBeenCalled();
   });
 
   it('clears loading state after a login error', () => {
@@ -150,9 +158,7 @@ describe('LoginComponent', () => {
 
     component.submit();
 
-    expect(component.errorMessage).toBe(
-      'Could not create account. The email or username may already be in use, or the data is invalid.',
-    );
+    expect(component.errorMessage).toBe('Cannot create account. This email or username may already be in use.');
     expect(component.submitting).toBe(false);
   });
 

@@ -1,12 +1,15 @@
 import { of } from 'rxjs';
 import { WorkItem, WorkItemService } from '../../core/services/work-item.service';
 import { TasksComponent } from './tasks';
+import { TestBed, ComponentFixture } from '@angular/core/testing';
+import { ActivatedRoute } from '@angular/router';
 
 describe('TasksComponent', () => {
   let workItemService: {
     getWorkItems: ReturnType<typeof vi.fn>;
     createWorkItem: ReturnType<typeof vi.fn>;
   };
+  let fixture: ComponentFixture<TasksComponent>;
   let component: TasksComponent;
 
   const workItems: WorkItem[] = [
@@ -30,7 +33,19 @@ describe('TasksComponent', () => {
       getWorkItems: vi.fn(() => of(workItems)),
       createWorkItem: vi.fn(() => of('task-2')),
     };
-    component = new TasksComponent(workItemService as unknown as WorkItemService);
+
+    TestBed.configureTestingModule({
+      imports: [TasksComponent],
+      providers: [
+        { provide: WorkItemService, useValue: workItemService },
+        { provide: ActivatedRoute, useValue: { paramMap: { subscribe: () => ({ unsubscribe: () => { } }) } } },
+      ],
+    });
+
+    fixture = TestBed.createComponent(TasksComponent);
+    component = fixture.componentInstance;
+    // ensure a current project exists for loadTasks
+    (component as any).currentProject = { id: 'project-1' } as any;
   });
 
   it('loads tasks for the selected fetch project id', () => {
@@ -43,7 +58,7 @@ describe('TasksComponent', () => {
   });
 
   it('does not load tasks without a fetch project id', () => {
-    component.fetchProjectId = '';
+    (component as any).currentProject = null;
 
     component.loadTasks();
 
@@ -58,7 +73,6 @@ describe('TasksComponent', () => {
       type: 'Task',
       status: 'New',
     };
-
     component.createTask();
 
     expect(workItemService.createWorkItem).toHaveBeenCalledWith({
@@ -75,6 +89,8 @@ describe('TasksComponent', () => {
 
   it('does not create a task without a project id', () => {
     component.projectId = '';
+    component.fetchProjectId = '';
+    (component as any).currentProject = null;
 
     component.createTask();
 

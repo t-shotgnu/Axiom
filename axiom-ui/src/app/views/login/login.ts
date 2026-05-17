@@ -88,11 +88,11 @@ export class LoginComponent {
   }
 
   get passwordStrengthText(): string {
-    if (!this.password) return 'Brak';
+    if (!this.password) return 'None';
     const pct = this.passwordStrengthPercentage;
-    if (pct >= 100) return 'Mocne';
-    if (pct >= 50) return 'Średnie';
-    return 'Słabe';
+    if (pct >= 100) return 'Strong';
+    if (pct >= 50) return 'Medium';
+    return 'Weak';
   }
 
   get passwordStrengthPercentage(): number {
@@ -146,17 +146,17 @@ export class LoginComponent {
     if (err instanceof HttpErrorResponse) {
       if (this.mode === 'login') {
         if (err.status === 401 || err.status === 403) {
-          return 'Nieprawidłowy e-mail lub hasło.';
+          return 'Invalid email or password.';
         }
       } else {
         if (err.status === 400 || err.status === 409) {
-          return 'Nie można utworzyć konta. Ten e-mail lub nazwa użytkownika mogą być już w użyciu.';
+          return 'Cannot create account. This email or username may already be in use.';
         }
       }
     }
     return this.mode === 'login'
-      ? 'Nie można się zalogować. Sprawdź e-mail i hasło.'
-      : 'Nie można utworzyć konta. Sprawdź wprowadzone dane.';
+      ? 'Cannot log in. Please check your email and password.'
+      : 'Cannot create account. Please check the entered data.';
   }
 
   toLoginCommand(): LoginCommand {
