@@ -15,11 +15,13 @@ import { AuthService } from '../core/services/auth.service';
 import { ProjectService } from '../core/services/project.service';
 import { ThemeService, Theme } from '../core/services/theme.service';
 import { ProjectDropdownComponent, DropdownProject } from '../shared/components/ui/project-dropdown';
+import { ChangePasswordComponent } from '../shared/components/user/change-password';
+import { EditUserComponent } from '../shared/components/user/edit-user';
 
 @Component({
   selector: 'app-layout',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, ProjectDropdownComponent],
+  imports: [CommonModule, RouterModule, FormsModule, ProjectDropdownComponent, ChangePasswordComponent, EditUserComponent],
   templateUrl: './app-layout.html',
   styles: [],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -33,6 +35,9 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
   private subs = new Subscription();
 
   protected showThemeDropdown = false;
+  protected showUserMenu = false;
+  protected showChangePasswordDialog = false;
+  protected showEditProfileDialog = false;
 
   protected activeProject: DropdownProject = {
     id: '',
@@ -43,6 +48,16 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
   };
 
   protected dropdownProjects: DropdownProject[] = [];
+
+  toggleUserMenu(event: Event): void {
+    event.stopPropagation();
+    this.showUserMenu = !this.showUserMenu;
+  }
+
+  closeMenus(): void {
+    this.showUserMenu = false;
+    this.showThemeDropdown = false;
+  }
 
   selectProject(proj: DropdownProject): void {
     this.activeProject = proj;
@@ -72,9 +87,22 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
     this.cdr.markForCheck();
   }
 
+  openChangePasswordDialog(): void {
+    this.showChangePasswordDialog = true;
+  }
+
+  openEditProfileDialog(): void {
+    this.showEditProfileDialog = true;
+  }
+
+  onProfileSaved(): void {
+    // reload projects/user info if needed
+    this.refreshSessionBanner();
+  }
+
   @HostListener('document:click')
   onDocumentClick(): void {
-    this.showThemeDropdown = false;
+    this.closeMenus();
   }
 
   /** Cached — avoid decoding JWT on every change detection tick (was dominating render cost). */

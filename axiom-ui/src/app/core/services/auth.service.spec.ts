@@ -28,17 +28,19 @@ describe('AuthService', () => {
     service.authStatus$.subscribe((state) => authStates.push(state));
 
     service.login({ emailAddress: 'user@example.com', password: 'secret' }).subscribe((response) => {
-      expect(response).toEqual({ token: 'jwt-token' });
+      expect(response).toEqual({ token: 'jwt-token', refreshToken: 'refresh-token' });
     });
 
     const request = httpMock.expectOne('/api/auth/login');
     expect(request.request.method).toBe('POST');
     expect(request.request.body).toEqual({ emailAddress: 'user@example.com', password: 'secret' });
 
-    request.flush({ token: 'jwt-token' });
+    request.flush({ token: 'jwt-token', refreshToken: 'refresh-token' });
 
     expect(localStorage.getItem('axiom_jwt_token')).toBe('jwt-token');
+    expect(localStorage.getItem('axiom_refresh_token')).toBe('refresh-token');
     expect(service.getToken()).toBe('jwt-token');
+    expect(service.getRefreshToken()).toBe('refresh-token');
     expect(service.hasToken()).toBe(true);
     expect(authStates).toEqual([false, true]);
   });
@@ -49,6 +51,9 @@ describe('AuthService', () => {
         userName: 'tester',
         emailAddress: 'tester@example.com',
         password: 'Secret123',
+        firstName: 'Test',
+        lastName: 'User',
+        dateOfBirth: '1990-05-20',
       })
       .subscribe();
 
@@ -58,22 +63,45 @@ describe('AuthService', () => {
       userName: 'tester',
       emailAddress: 'tester@example.com',
       password: 'Secret123',
+      firstName: 'Test',
+      lastName: 'User',
+      dateOfBirth: '1990-05-20',
     });
 
-    request.flush({ token: 'register-token' });
+    request.flush({ token: 'register-token', refreshToken: 'register-refresh-token' });
 
     expect(service.getToken()).toBe('register-token');
+    expect(service.getRefreshToken()).toBe('register-refresh-token');
     expect(service.hasToken()).toBe(true);
+  });
+
+  it('refreshes tokens using the stored refresh token', () => {
+    localStorage.setItem('axiom_refresh_token', 'stored-refresh-token');
+
+    service.refresh().subscribe((response) => {
+      expect(response).toEqual({ token: 'new-jwt', refreshToken: 'new-refresh' });
+    });
+
+    const request = httpMock.expectOne('/api/auth/refresh-token');
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual({ refreshToken: 'stored-refresh-token' });
+
+    request.flush({ token: 'new-jwt', refreshToken: 'new-refresh' });
+
+    expect(service.getToken()).toBe('new-jwt');
+    expect(service.getRefreshToken()).toBe('new-refresh');
   });
 
   it('removes the token and publishes an unauthenticated state on logout', () => {
     localStorage.setItem('axiom_jwt_token', 'existing-token');
+    localStorage.setItem('axiom_refresh_token', 'existing-refresh-token');
     const authStates: boolean[] = [];
     service.authStatus$.subscribe((state) => authStates.push(state));
 
     service.logout();
 
     expect(service.getToken()).toBeNull();
+    expect(service.getRefreshToken()).toBeNull();
     expect(service.hasToken()).toBe(false);
     expect(authStates.at(-1)).toBe(false);
   });

@@ -6,6 +6,9 @@ export interface User {
   id: string;
   userName: string;
   emailAddress: string;
+  firstName?: string;
+  lastName?: string;
+  dateOfBirth?: string;
 }
 
 @Injectable({
@@ -21,5 +24,13 @@ export class UserService {
 
   getAllUsers(): Observable<User[]> {
     return this.http.get<User[]>(this.apiUrl);
+  }
+
+  getCurrentUserProfile(): Observable<User> {
+    return this.http.get<User>(`${this.apiUrl}/me`);
+  }
+
+  updateCurrentUserProfile(command: { firstName: string; lastName: string; dateOfBirth: string }): Observable<void> {
+    return this.http.put<void>(`${this.apiUrl}/me`, command);
   }
 }

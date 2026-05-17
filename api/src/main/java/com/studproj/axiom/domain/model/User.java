@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -19,6 +20,9 @@ public class User {
     private String userName;
     private String emailAddress;
     private String password;
+    private String firstName;
+    private String lastName;
+    private LocalDate dateOfBirth;
     private LocalDateTime createdOn;
     private LocalDateTime modifiedOn;
     private boolean active;
@@ -36,5 +40,17 @@ public class User {
 
     public void updateLoginTime() {
         lastLogin = LocalDateTime.now();
+    }
+
+    public void updateProfile(String firstName, String lastName, LocalDate dateOfBirth) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.dateOfBirth = dateOfBirth;
+        this.modifiedOn = LocalDateTime.now();
+    }
+
+    public void changePassword(String encodedPassword) {
+        this.password = encodedPassword;
+        this.modifiedOn = LocalDateTime.now();
     }
 }

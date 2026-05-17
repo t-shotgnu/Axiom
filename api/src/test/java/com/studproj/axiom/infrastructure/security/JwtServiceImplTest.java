@@ -46,4 +46,46 @@ class JwtServiceImplTest {
         ReflectionTestUtils.setField(service, "expiration", expiration);
         return service;
     }
+
+    @Test
+    void generateRefreshTokenStringProducesUrlSafeToken() {
+        JwtServiceImpl service = jwtService(60_000);
+
+        String refresh = service.generateRefreshTokenString();
+
+        assertThat(refresh).isNotBlank();
+        // URL-safe Base64 should not contain + or / or =
+        assertThat(refresh).doesNotContain("+");
+        assertThat(refresh).doesNotContain("/");
+        assertThat(refresh).doesNotContain("=");
+    }
+
+    @Test
+    void createRefreshTokenHasProperFieldsAndExpiration() {
+        JwtServiceImpl service = jwtService(60_000);
+        UUID userId = UUID.randomUUID();
+
+        var rt = service.createRefreshToken(userId);
+
+        assertThat(rt).isNotNull();
+        assertThat(rt.getUserId()).isEqualTo(userId);
+        assertThat(rt.getToken()).isNotBlank();
+        assertThat(rt.getCreatedAt()).isNotNull();
+        assertThat(rt.getExpiresAt()).isAfter(rt.getCreatedAt());
+    }
+
+    @Test
+    void tokenSignedWithDifferentSecretIsNotValid() {
+        JwtServiceImpl s1 = jwtService(60_000);
+        JwtServiceImpl s2 = jwtService(60_000);
+
+        // change secret on second service
+        ReflectionTestUtils.setField(s2, "secret", "dGVzdC1vdGhlci1zZWNyZXQ=");
+
+        User user = User.builder().id(UUID.randomUUID()).emailAddress("user@example.com").build();
+        String token = s1.generateToken(user);
+
+        assertThat(s1.isTokenValid(token, "user@example.com")).isTrue();
+        assertThat(s2.isTokenValid(token, "user@example.com")).isFalse();
+    }
 }

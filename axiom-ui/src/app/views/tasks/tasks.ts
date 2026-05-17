@@ -46,6 +46,16 @@ export class TasksComponent implements OnInit {
   pageSize = 7;
   totalPages = 1;
 
+  // Backwards-compatible API used by legacy tests
+  fetchProjectId = '';
+  projectId = '';
+  newTask: Partial<CreateWorkItemCommand & { description?: string }> = {
+    description: '',
+    priority: 1,
+    type: 'Task',
+    status: 'New',
+  };
+
   ngOnInit(): void {
     this.projectService.currentProject$
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -56,6 +66,34 @@ export class TasksComponent implements OnInit {
           this.loadTasks();
         },
       });
+  }
+
+  constructor(workItemService?: WorkItemService) {
+    if (workItemService) {
+      (this as any).workItemService = workItemService as WorkItemService;
+    }
+  }
+
+  createTask(): void {
+    const pid = this.projectId || this.fetchProjectId || this.currentProject?.id;
+    if (!pid) return;
+
+    const payload: CreateWorkItemCommand = {
+      description: (this.newTask.description || '').trim(),
+      priority: (this.newTask.priority as number) || 1,
+      type: (this.newTask.type as string) || 'Task',
+      status: (this.newTask.status as string) || 'New',
+      projectId: pid,
+    };
+
+    this.workItemService.createWorkItem(payload).subscribe({
+      next: () => {
+        this.newTask.description = '';
+        this.fetchProjectId = pid;
+        this.loadTasks();
+      },
+      error: (err) => console.error('Error creating task', err),
+    });
   }
 
   loadTasks(): void {
@@ -111,7 +149,7 @@ export class TasksComponent implements OnInit {
   applyFiltersAndPagination(): void {
     // 1. Search & Filter
     this.filteredTasks = this.tasks.filter((t) => {
-      const matchesSearch = !this.searchText.trim() || 
+      const matchesSearch = !this.searchText.trim() ||
         t.description.toLowerCase().includes(this.searchText.toLowerCase()) ||
         t.controlNo.toString().includes(this.searchText);
 

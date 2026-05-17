@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { LoginComponent } from './login';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 describe('LoginComponent', () => {
   let authService: {
@@ -10,9 +11,10 @@ describe('LoginComponent', () => {
     register: ReturnType<typeof vi.fn>;
   };
   let router: { navigateByUrl: ReturnType<typeof vi.fn> };
+  let fixture: ComponentFixture<LoginComponent>;
   let component: LoginComponent;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     authService = {
       login: vi.fn(),
       register: vi.fn(),
@@ -20,10 +22,19 @@ describe('LoginComponent', () => {
     router = {
       navigateByUrl: vi.fn(),
     };
-    component = new LoginComponent(
-      authService as unknown as AuthService,
-      router as unknown as Router,
-    );
+
+    await TestBed.configureTestingModule({
+      imports: [LoginComponent],
+      providers: [
+        { provide: AuthService, useValue: authService },
+        { provide: Router, useValue: router },
+      ],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(LoginComponent);
+    component = fixture.componentInstance;
+    // spy on internal ChangeDetectorRef used by the component
+    vi.spyOn((component as any).cdr, 'detectChanges');
   });
 
   it('allows login submit when email and password are present', () => {
@@ -37,6 +48,9 @@ describe('LoginComponent', () => {
     component.toggleMode();
     component.emailAddress = 'new@example.com';
     component.registerForm.userName = 'new-user';
+    component.registerForm.firstName = 'New';
+    component.registerForm.lastName = 'User';
+    component.registerForm.dateOfBirth = '1990-05-20';
     component.password = 'weak';
 
     expect(component.canSubmit).toBe(false);
@@ -50,8 +64,32 @@ describe('LoginComponent', () => {
     expect(component.canSubmit).toBe(true);
   });
 
+  it('rejects future birth dates in register mode', () => {
+    component.toggleMode();
+    component.emailAddress = 'new@example.com';
+    component.registerForm.userName = 'new-user';
+    component.registerForm.firstName = 'New';
+    component.registerForm.lastName = 'User';
+    component.registerForm.dateOfBirth = '2999-01-01';
+    component.password = 'Strong123';
+
+    expect(component.canSubmit).toBe(false);
+  });
+
+  it('rejects invalid email in register mode', () => {
+    component.toggleMode();
+    component.emailAddress = 'not-an-email';
+    component.registerForm.userName = 'new-user';
+    component.registerForm.firstName = 'New';
+    component.registerForm.lastName = 'User';
+    component.registerForm.dateOfBirth = '1990-05-20';
+    component.password = 'Strong123';
+
+    expect(component.canSubmit).toBe(false);
+  });
+
   it('trims login email and navigates to projects on success', () => {
-    authService.login.mockReturnValue(of({ token: 'jwt-token' }));
+    authService.login.mockReturnValue(of({ token: 'jwt-token', refreshToken: 'refresh-token' }));
     component.emailAddress = ' user@example.com ';
     component.password = 'secret';
 
@@ -67,16 +105,22 @@ describe('LoginComponent', () => {
   });
 
   it('trims register fields and navigates to projects on success', () => {
-    authService.register.mockReturnValue(of({ token: 'jwt-token' }));
+    authService.register.mockReturnValue(of({ token: 'jwt-token', refreshToken: 'refresh-token' }));
     component.toggleMode();
     component.emailAddress = ' new@example.com ';
     component.registerForm.userName = ' new-user ';
+    component.registerForm.firstName = ' New ';
+    component.registerForm.lastName = ' User ';
+    component.registerForm.dateOfBirth = '1990-05-20';
     component.password = 'Strong123';
 
     component.submit();
 
     expect(authService.register).toHaveBeenCalledWith({
       userName: 'new-user',
+      firstName: 'New',
+      lastName: 'User',
+      dateOfBirth: '1990-05-20',
       emailAddress: 'new@example.com',
       password: 'Strong123',
     });
@@ -93,6 +137,17 @@ describe('LoginComponent', () => {
 
     expect(component.errorMessage).toBe('Invalid email or password.');
     expect(component.submitting).toBe(false);
+    expect((component as any).cdr.detectChanges).toHaveBeenCalled();
+  });
+
+  it('clears loading state after a login error', () => {
+    authService.login.mockReturnValue(
+      throwError(() => new HttpErrorResponse({ status: 400 })),
+    );
+
+    component.submit();
+
+    expect(component.submitting).toBe(false);
   });
 
   it('shows a specific register error for validation or conflict responses', () => {
@@ -103,18 +158,30 @@ describe('LoginComponent', () => {
 
     component.submit();
 
-    expect(component.errorMessage).toBe(
-      'Could not create account. The email or username may already be in use, or the data is invalid.',
-    );
+    expect(component.errorMessage).toBe('Cannot create account. This email or username may already be in use.');
     expect(component.submitting).toBe(false);
   });
 
   it('clears errors when switching modes', () => {
     component.errorMessage = 'Previous error';
+    component.emailAddress = 'user@example.com';
+    component.password = 'Strong123';
+    component.registerForm.userName = 'new-user';
+    component.registerForm.firstName = 'New';
+    component.registerForm.lastName = 'User';
+    component.registerForm.dateOfBirth = '1990-05-20';
 
     component.toggleMode();
 
     expect(component.mode).toBe('register');
     expect(component.errorMessage).toBe('');
+    expect(component.emailAddress).toBe('');
+    expect(component.password).toBe('');
+    expect(component.registerForm).toEqual({
+      userName: '',
+      firstName: '',
+      lastName: '',
+      dateOfBirth: '',
+    });
   });
 });

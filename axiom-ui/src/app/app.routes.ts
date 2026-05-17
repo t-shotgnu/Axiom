@@ -5,13 +5,11 @@ import { ProjectsComponent } from './views/projects/projects';
 import { TasksComponent } from './views/tasks/tasks';
 import { TaskDetailComponent } from './views/task-detail/task-detail';
 import { LoginComponent } from './views/login/login';
-import { RegisterComponent } from './views/register/register';
 import { ProjectDetailComponent } from './views/project-detail/project-detail';
 import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
 	{ path: 'login', component: LoginComponent },
-	{ path: 'register', component: RegisterComponent },
 	{
 		path: '',
 		component: AppLayoutComponent,

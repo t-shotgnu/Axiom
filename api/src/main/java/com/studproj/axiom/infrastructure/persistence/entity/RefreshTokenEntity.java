@@ -10,29 +10,32 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "users")
+@Table(name = "refresh_tokens")
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserEntity {
+public class RefreshTokenEntity {
     @Id
     private UUID id;
-    private String userName;
-    @Column(name = "email_address", nullable = false, unique = true)
-    private String emailAddress;
-    private String password;
-    private String firstName;
-    private String lastName;
-    private LocalDate dateOfBirth;
-    private LocalDateTime createdOn;
-    private LocalDateTime modifiedOn;
-    private boolean active;
-    private LocalDateTime lastLogin;
+    
+    @Column(nullable = false, unique = true)
+    private String token;
+    
+    @Column(name = "user_id", nullable = false)
+    private UUID userId;
+    
+    @Column(nullable = false)
+    private boolean revoked;
+    
+    @Column(nullable = false)
+    private LocalDateTime expiresAt;
+    
+    @Column(nullable = false)
+    private LocalDateTime createdAt;
 }

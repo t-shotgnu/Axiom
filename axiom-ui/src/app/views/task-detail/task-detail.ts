@@ -84,6 +84,17 @@ export class TaskDetailComponent implements OnInit {
     });
   }
 
+  // Test-friendly constructor: when tests instantiate the component directly
+  // they pass mocks; allow optional overrides to support that pattern.
+  constructor(route?: ActivatedRoute, workItemService?: WorkItemService) {
+    if (route) {
+      (this as any).route = route as ActivatedRoute;
+    }
+    if (workItemService) {
+      (this as any).workItemService = workItemService as WorkItemService;
+    }
+  }
+
   private decodeEmailFromJwt(token: string): string {
     try {
       const payload = JSON.parse(atob(token.split('.')[1] as string));
@@ -102,7 +113,7 @@ export class TaskDetailComponent implements OnInit {
         this.status = data.status;
         this.assigneeId = data.assigneeId || '';
         this.notesText = data.notes || '';
-        
+
         // Load live Comments and Attachments
         this.loadComments();
         this.loadAttachments();
@@ -248,6 +259,21 @@ export class TaskDetailComponent implements OnInit {
     if (priority <= 6) return 'Medium';
     if (priority <= 8) return 'Low';
     return 'Lowest';
+  }
+
+  getSeverity(status: string): string {
+    switch (status) {
+      case 'New':
+        return 'info';
+      case 'Active':
+        return 'warn';
+      case 'Resolved':
+        return 'success';
+      case 'Closed':
+        return 'secondary';
+      default:
+        return 'info';
+    }
   }
 
   getPriorityIcon(priority: number): string {

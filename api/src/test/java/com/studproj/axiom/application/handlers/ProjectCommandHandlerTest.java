@@ -5,6 +5,7 @@ import com.studproj.axiom.domain.model.Project;
 import com.studproj.axiom.domain.model.User;
 import com.studproj.axiom.domain.repository.ProjectRepository;
 import com.studproj.axiom.domain.repository.UserRepository;
+import com.studproj.axiom.domain.service.AuthenticatedUserProvider;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,13 +33,18 @@ class ProjectCommandHandlerTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private AuthenticatedUserProvider authenticatedUserProvider;
+
+
     private ProjectCommandHandler handler;
 
     @BeforeEach
     void setUp() {
-        handler = new ProjectCommandHandler(projectRepository, userRepository);
+        handler = new ProjectCommandHandler(projectRepository, userRepository, authenticatedUserProvider);
         SecurityContextHolder.getContext()
                 .setAuthentication(new UsernamePasswordAuthenticationToken("owner@example.com", "password"));
+        org.mockito.Mockito.lenient().when(authenticatedUserProvider.getAuthenticatedUserEmail()).thenReturn("owner@example.com");
     }
 
     @AfterEach

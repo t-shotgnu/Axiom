@@ -1,0 +1,108 @@
+@if (display) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+    <div
+      class="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-xl w-full max-w-[28rem] flex flex-col max-h-full overflow-hidden"
+    >
+      <div class="flex justify-between items-center p-md border-b border-outline-variant">
+        <h2 class="font-headline-sm text-headline-sm text-on-surface">Edit profile</h2>
+        <button
+          type="button"
+          (click)="close()"
+          class="text-on-surface-variant hover:bg-surface-container-low p-xs rounded transition-colors material-symbols-outlined"
+        >
+          close
+        </button>
+      </div>
+
+      @if (loading) {
+        <div class="flex-1 flex items-center justify-center p-lg">
+          <span class="material-symbols-outlined text-3xl animate-spin">autorenew</span>
+        </div>
+      } @else {
+        <form class="flex-1 overflow-y-auto p-lg flex flex-col gap-md" (ngSubmit)="submit()">
+          <div class="flex flex-col gap-xs">
+            <label class="font-label-md text-on-surface">First name</label>
+            <input
+              type="text"
+              name="firstName"
+              required
+              [(ngModel)]="form.firstName"
+              class="w-full px-md py-sm pr-10 border border-outline-variant rounded focus:outline-none focus:border-primary bg-surface text-on-surface"
+              [class.border-error]="fieldErrors['firstName']"
+            />
+            @if (form.firstName && !isNameValid(form.firstName)) {
+              <p class="text-xs text-error">Enter a valid first name.</p>
+            }
+            @if (fieldErrors['firstName']) {
+              <p class="text-xs text-error">{{ fieldErrors['firstName'] }}</p>
+            }
+          </div>
+
+          <div class="flex flex-col gap-xs">
+            <label class="font-label-md text-on-surface">Last name</label>
+            <input
+              type="text"
+              name="lastName"
+              required
+              [(ngModel)]="form.lastName"
+              class="w-full px-md py-sm pr-10 border border-outline-variant rounded focus:outline-none focus:border-primary bg-surface text-on-surface"
+              [class.border-error]="fieldErrors['lastName']"
+            />
+            @if (form.lastName && !isNameValid(form.lastName)) {
+              <p class="text-xs text-error">Enter a valid last name.</p>
+            }
+            @if (fieldErrors['lastName']) {
+              <p class="text-xs text-error">{{ fieldErrors['lastName'] }}</p>
+            }
+          </div>
+
+          <div class="flex flex-col gap-xs">
+            <label class="font-label-md text-on-surface">Date of birth</label>
+            <input
+              type="date"
+              name="dateOfBirth"
+              required
+              [(ngModel)]="form.dateOfBirth"
+              [max]="todayDate"
+              class="w-full px-md py-sm pr-10 border border-outline-variant rounded focus:outline-none focus:border-primary bg-surface text-on-surface"
+              [class.border-error]="fieldErrors['dateOfBirth']"
+            />
+            @if (form.dateOfBirth && !isDateOfBirthValid(form.dateOfBirth)) {
+              <p class="text-xs text-error">Date of birth cannot be in the future.</p>
+            }
+            @if (fieldErrors['dateOfBirth']) {
+              <p class="text-xs text-error">{{ fieldErrors['dateOfBirth'] }}</p>
+            }
+          </div>
+
+          @if (errorMessage) {
+            <div
+              class="rounded bg-error-container border border-error p-sm text-sm text-on-error-container"
+              role="alert"
+            >
+              {{ errorMessage }}
+            </div>
+          }
+
+          @if (successMessage) {
+            <div
+              class="rounded bg-green-100 border border-green-400 p-sm text-sm text-green-800"
+              role="status"
+            >
+              {{ successMessage }}
+            </div>
+          }
+
+          <div class="mt-md flex justify-between gap-sm pt-md border-t border-outline-variant">
+            <app-button variant="outlined" (onClick)="close()" [disabled]="loading"
+              >Cancel</app-button
+            >
+            <app-button type="submit" variant="primary" [disabled]="loading || !canSave"
+              >Save</app-button
+            >
+          </div>
+        </form>
+      }
+    </div>
+  </div>
+}

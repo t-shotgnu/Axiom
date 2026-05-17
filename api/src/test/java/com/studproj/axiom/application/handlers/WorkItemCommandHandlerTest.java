@@ -7,6 +7,7 @@ import com.studproj.axiom.domain.model.WorkItemStatus;
 import com.studproj.axiom.domain.model.WorkItemType;
 import com.studproj.axiom.domain.repository.UserRepository;
 import com.studproj.axiom.domain.repository.WorkItemRepository;
+import com.studproj.axiom.domain.service.AuthenticatedUserProvider;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,13 +36,18 @@ class WorkItemCommandHandlerTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private AuthenticatedUserProvider authenticatedUserProvider;
+
+
     private WorkItemCommandHandler handler;
 
     @BeforeEach
     void setUp() {
-        handler = new WorkItemCommandHandler(workItemRepository, userRepository);
+        handler = new WorkItemCommandHandler(workItemRepository, userRepository, authenticatedUserProvider);
         SecurityContextHolder.getContext()
                 .setAuthentication(new UsernamePasswordAuthenticationToken("author@example.com", "password"));
+                when(authenticatedUserProvider.getAuthenticatedUserEmail()).thenReturn("author@example.com");
     }
 
     @AfterEach
