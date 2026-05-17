@@ -1,11 +1,11 @@
 package com.studproj.axiom.presentation.controller;
 
 import com.studproj.axiom.domain.repository.UserRepository;
+import com.studproj.axiom.domain.service.AuthenticatedUserProvider;
 import com.studproj.axiom.infrastructure.persistence.entity.CommentEntity;
 import com.studproj.axiom.infrastructure.persistence.repository.CommentJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,6 +24,7 @@ import java.util.UUID;
 public class CommentController {
     private final CommentJpaRepository commentRepository;
     private final UserRepository userRepository;
+    private final AuthenticatedUserProvider authenticatedUserProvider;
 
     public record CreateCommentReq(String text) {}
 
@@ -34,7 +35,7 @@ public class CommentController {
 
     @PostMapping("/work-items/{workItemId}/comments")
     public ResponseEntity<CommentEntity> addComment(@PathVariable UUID workItemId, @RequestBody CreateCommentReq req) {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        String email = authenticatedUserProvider.getAuthenticatedUserEmail();
         String authorName = userRepository.findByEmail(email)
                 .map(u -> u.getUserName())
                 .orElse(email);

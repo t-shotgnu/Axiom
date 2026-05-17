@@ -1,6 +1,8 @@
 package com.studproj.axiom.presentation.controller;
 
+import com.studproj.axiom.application.dto.command.ChangePasswordCommand;
 import com.studproj.axiom.application.dto.command.LoginCommand;
+import com.studproj.axiom.application.dto.command.RefreshTokenCommand;
 import com.studproj.axiom.application.dto.command.RegisterUserCommand;
 import com.studproj.axiom.application.dto.response.AuthResponse;
 import com.studproj.axiom.application.handlers.AuthCommandHandler;
@@ -27,6 +29,18 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginCommand command) {
         var resp = handler.login(command);
+        return ResponseEntity.ok(resp);
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<Void> changePassword(@Valid @RequestBody ChangePasswordCommand command) {
+        handler.changePassword(command);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/refresh-token")
+    public ResponseEntity<AuthResponse> refreshToken(@Valid @RequestBody RefreshTokenCommand command) {
+        var resp = handler.refreshToken(command);
         return ResponseEntity.ok(resp);
     }
 }

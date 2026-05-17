@@ -4,8 +4,8 @@ import com.studproj.axiom.application.dto.command.CreateWorkItemCommand;
 import com.studproj.axiom.domain.model.WorkItem;
 import com.studproj.axiom.domain.repository.UserRepository;
 import com.studproj.axiom.domain.repository.WorkItemRepository;
+import com.studproj.axiom.domain.service.AuthenticatedUserProvider;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,10 +16,11 @@ import java.util.UUID;
 public class WorkItemCommandHandler {
     private final WorkItemRepository workItemRepository;
     private final UserRepository userRepository;
+    private final AuthenticatedUserProvider authenticatedUserProvider;
 
     @Transactional
     public UUID createWorkItem(CreateWorkItemCommand command) {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        String email = authenticatedUserProvider.getAuthenticatedUserEmail();
         UUID authorId = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Authenticated user not found"))
                 .getId();
