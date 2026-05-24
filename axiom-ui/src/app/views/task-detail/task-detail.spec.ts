@@ -5,6 +5,7 @@ import { TaskDetailComponent } from './task-detail';
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { ProjectService } from '../../core/services/project.service';
 import { UserService } from '../../core/services/user.service';
+import { ProjectMemberService } from '../../core/services/project-member.service';
 import { CommentService } from '../../core/services/comment.service';
 import { AttachmentService } from '../../core/services/attachment.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -60,7 +61,14 @@ describe('TaskDetailComponent', () => {
         { provide: WorkItemService, useValue: workItemService },
         // shallow stubs for other injected services
         { provide: ProjectService, useValue: { getProjectById: vi.fn(() => of(null)) } },
-        { provide: UserService, useValue: { getAllUsers: vi.fn(() => of([])), getUserById: vi.fn(() => of({ userName: 'u' })) } },
+        {
+          provide: UserService,
+          useValue: {
+            getCurrentUserProfile: vi.fn(() => of({ id: 'user-1', userName: 'current', emailAddress: 'current@example.com' })),
+            getUserById: vi.fn(() => of({ userName: 'u' })),
+          },
+        },
+        { provide: ProjectMemberService, useValue: { getProjectMembers: vi.fn(() => of([])) } },
         { provide: CommentService, useValue: { getComments: vi.fn(() => of([])) } },
         { provide: AttachmentService, useValue: { getAttachments: vi.fn(() => of([])) } },
         { provide: AuthService, useValue: { getToken: vi.fn(() => null) } },
@@ -89,7 +97,14 @@ describe('TaskDetailComponent', () => {
         { provide: ActivatedRoute, useValue: createRoute(null) },
         { provide: WorkItemService, useValue: workItemService },
         { provide: ProjectService, useValue: { getProjectById: vi.fn(() => of(null)) } },
-        { provide: UserService, useValue: { getAllUsers: vi.fn(() => of([])), getUserById: vi.fn(() => of({ userName: 'u' })) } },
+        {
+          provide: UserService,
+          useValue: {
+            getCurrentUserProfile: vi.fn(() => of({ id: 'user-1', userName: 'current', emailAddress: 'current@example.com' })),
+            getUserById: vi.fn(() => of({ userName: 'u' })),
+          },
+        },
+        { provide: ProjectMemberService, useValue: { getProjectMembers: vi.fn(() => of([])) } },
         { provide: CommentService, useValue: { getComments: vi.fn(() => of([])) } },
         { provide: AttachmentService, useValue: { getAttachments: vi.fn(() => of([])) } },
         { provide: AuthService, useValue: { getToken: vi.fn(() => null) } },

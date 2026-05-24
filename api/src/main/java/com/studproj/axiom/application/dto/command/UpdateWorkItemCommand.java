@@ -3,6 +3,7 @@ package com.studproj.axiom.application.dto.command;
 import com.studproj.axiom.domain.model.WorkItemType;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public record UpdateWorkItemCommand(
         String description,
@@ -10,5 +11,6 @@ public record UpdateWorkItemCommand(
         WorkItemType type,
         LocalDateTime dueDate,
         Integer estimatedEffort,
-        String notes
+        String notes,
+        UUID assigneeId
 ) {}

@@ -29,7 +29,7 @@ export interface CreateWorkItemCommand {
 }
 
 export interface AssignWorkItemCommand {
-  assigneeId: string;
+  assigneeId: string | null;
 }
 
 export interface UpdateWorkItemStatusCommand {
@@ -66,6 +66,10 @@ export class WorkItemService {
 
   updateWorkItemNotes(id: string, notes: string): Observable<void> {
     return this.http.patch<void>(`${this.apiUrl}/${id}/notes`, { notes });
+  }
+
+  updateWorkItem(id: string, command: Partial<CreateWorkItemCommand & { notes?: string; estimatedEffort?: number; assigneeId?: string | null }>): Observable<void> {
+    return this.http.put<void>(`${this.apiUrl}/${id}`, command);
   }
 
   deleteWorkItem(id: string): Observable<void> {

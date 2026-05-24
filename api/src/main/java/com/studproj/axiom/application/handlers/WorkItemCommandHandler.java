@@ -76,7 +76,7 @@ public class WorkItemCommandHandler {
             throw new ForbiddenException("You are not a member of this project");
         }
 
-        if (!projectMembershipRepository.existsByProjectIdAndUserId(workItem.getProjectId(), assigneeId)) {
+        if (assigneeId != null && !projectMembershipRepository.existsByProjectIdAndUserId(workItem.getProjectId(), assigneeId)) {
             throw new ForbiddenException("Assignee must be a member of this project");
         }
 
@@ -114,6 +114,10 @@ public class WorkItemCommandHandler {
 
         ensureAuthorOrProjectAdmin(workItem);
 
+        if (command.assigneeId() != null && !projectMembershipRepository.existsByProjectIdAndUserId(workItem.getProjectId(), command.assigneeId())) {
+            throw new ForbiddenException("Assignee must be a member of this project");
+        }
+
         workItem.updateDetails(
                         command.description(),
                         command.priority(),
@@ -123,6 +127,7 @@ public class WorkItemCommandHandler {
         if (command.notes() != null) {
                 workItem.updateNotes(command.notes());
         }
+        workItem.assignTo(command.assigneeId());
 
         workItemRepository.save(workItem);
     }
