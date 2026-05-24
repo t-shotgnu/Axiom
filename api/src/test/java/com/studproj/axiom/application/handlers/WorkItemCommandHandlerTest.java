@@ -1,10 +1,14 @@
 package com.studproj.axiom.application.handlers;
 
 import com.studproj.axiom.application.dto.command.CreateWorkItemCommand;
+import com.studproj.axiom.application.dto.command.UpdateWorkItemCommand;
 import com.studproj.axiom.domain.model.User;
 import com.studproj.axiom.domain.model.WorkItem;
 import com.studproj.axiom.domain.model.WorkItemStatus;
 import com.studproj.axiom.domain.model.WorkItemType;
+import com.studproj.axiom.domain.repository.ProjectMembershipRepository;
+import com.studproj.axiom.domain.repository.ProjectRepository;
+import com.studproj.axiom.domain.repository.ProjectRoleRepository;
 import com.studproj.axiom.domain.repository.UserRepository;
 import com.studproj.axiom.domain.repository.WorkItemRepository;
 import com.studproj.axiom.domain.service.AuthenticatedUserProvider;
@@ -24,6 +28,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -36,6 +41,15 @@ class WorkItemCommandHandlerTest {
     @Mock
     private UserRepository userRepository;
 
+        @Mock
+        private ProjectRepository projectRepository;
+
+        @Mock
+        private ProjectMembershipRepository projectMembershipRepository;
+
+        @Mock
+        private ProjectRoleRepository projectRoleRepository;
+
     @Mock
     private AuthenticatedUserProvider authenticatedUserProvider;
 
@@ -44,10 +58,16 @@ class WorkItemCommandHandlerTest {
 
     @BeforeEach
     void setUp() {
-        handler = new WorkItemCommandHandler(workItemRepository, userRepository, authenticatedUserProvider);
+        handler = new WorkItemCommandHandler(
+                workItemRepository,
+                userRepository,
+                projectRepository,
+                projectMembershipRepository,
+                projectRoleRepository,
+                authenticatedUserProvider);
         SecurityContextHolder.getContext()
                 .setAuthentication(new UsernamePasswordAuthenticationToken("author@example.com", "password"));
-                when(authenticatedUserProvider.getAuthenticatedUserEmail()).thenReturn("author@example.com");
+        lenient().when(authenticatedUserProvider.getAuthenticatedUserEmail()).thenReturn("author@example.com");
     }
 
     @AfterEach
@@ -60,9 +80,13 @@ class WorkItemCommandHandlerTest {
         UUID authorId = UUID.randomUUID();
         UUID assigneeId = UUID.randomUUID();
         UUID projectId = UUID.randomUUID();
+        when(authenticatedUserProvider.getAuthenticatedUserId()).thenReturn(authorId);
         LocalDateTime dueDate = LocalDateTime.now().plusDays(3);
         when(userRepository.findByEmail("author@example.com"))
                 .thenReturn(Optional.of(User.builder().id(authorId).emailAddress("author@example.com").build()));
+        when(projectRepository.findById(projectId)).thenReturn(Optional.of(com.studproj.axiom.domain.model.Project.builder().id(projectId).build()));
+        when(projectMembershipRepository.existsByProjectIdAndUserId(projectId, authorId)).thenReturn(true);
+        when(projectMembershipRepository.existsByProjectIdAndUserId(projectId, assigneeId)).thenReturn(true);
         when(workItemRepository.findMaxControlNoByProjectId(projectId)).thenReturn(Optional.of(41));
 
         UUID workItemId = handler.createWorkItem(new CreateWorkItemCommand(
@@ -97,8 +121,11 @@ class WorkItemCommandHandlerTest {
     void createWorkItemStartsControlNumbersAtOne() {
         UUID authorId = UUID.randomUUID();
         UUID projectId = UUID.randomUUID();
+        when(authenticatedUserProvider.getAuthenticatedUserId()).thenReturn(authorId);
         when(userRepository.findByEmail("author@example.com"))
                 .thenReturn(Optional.of(User.builder().id(authorId).emailAddress("author@example.com").build()));
+        when(projectRepository.findById(projectId)).thenReturn(Optional.of(com.studproj.axiom.domain.model.Project.builder().id(projectId).build()));
+        when(projectMembershipRepository.existsByProjectIdAndUserId(projectId, authorId)).thenReturn(true);
         when(workItemRepository.findMaxControlNoByProjectId(projectId)).thenReturn(Optional.empty());
 
         handler.createWorkItem(new CreateWorkItemCommand(
@@ -135,4 +162,36 @@ class WorkItemCommandHandlerTest {
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("Authenticated user not found");
     }
+
+        @Test
+        void updateWorkItemAllowsAuthorToEditDetails() {
+                UUID projectId = UUID.randomUUID();
+                UUID authorId = UUID.randomUUID();
+                UUID workItemId = UUID.randomUUID();
+                when(authenticatedUserProvider.getAuthenticatedUserId()).thenReturn(authorId);
+                when(projectRepository.findById(projectId)).thenReturn(Optional.of(com.studproj.axiom.domain.model.Project.builder().id(projectId).build()));
+                when(projectMembershipRepository.existsByProjectIdAndUserId(projectId, authorId)).thenReturn(true);
+                when(workItemRepository.findById(workItemId)).thenReturn(Optional.of(WorkItem.builder().id(workItemId).projectId(projectId).authorId(authorId).build()));
+
+                handler.updateWorkItem(workItemId, new UpdateWorkItemCommand("Updated", 3, WorkItemType.Bug, null, 8, "note"));
+
+                verify(workItemRepository).save(org.mockito.ArgumentMatchers.any(WorkItem.class));
+        }
+
+        @Test
+        void deleteWorkItemRejectsNonAuthorNonAdmin() {
+                UUID projectId = UUID.randomUUID();
+                UUID authorId = UUID.randomUUID();
+                UUID currentUserId = UUID.randomUUID();
+                UUID workItemId = UUID.randomUUID();
+                when(authenticatedUserProvider.getAuthenticatedUserId()).thenReturn(currentUserId);
+                when(projectRepository.findById(projectId)).thenReturn(Optional.of(com.studproj.axiom.domain.model.Project.builder().id(projectId).build()));
+                when(projectMembershipRepository.existsByProjectIdAndUserId(projectId, currentUserId)).thenReturn(true);
+                when(projectMembershipRepository.findByProjectIdAndUserId(projectId, currentUserId)).thenReturn(Optional.of(com.studproj.axiom.domain.model.ProjectMembership.builder().id(UUID.randomUUID()).projectId(projectId).userId(currentUserId).roleId(UUID.randomUUID()).build()));
+                when(projectRoleRepository.findById(org.mockito.ArgumentMatchers.any())).thenReturn(Optional.of(com.studproj.axiom.domain.model.ProjectRole.builder().id(UUID.randomUUID()).type(com.studproj.axiom.domain.model.ProjectRoleType.MEMBER).build()));
+                when(workItemRepository.findById(workItemId)).thenReturn(Optional.of(WorkItem.builder().id(workItemId).projectId(projectId).authorId(authorId).build()));
+
+                assertThatThrownBy(() -> handler.deleteWorkItem(workItemId))
+                                .isInstanceOf(com.studproj.axiom.domain.exception.ForbiddenException.class);
+        }
 }

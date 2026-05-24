@@ -3,7 +3,10 @@ package com.studproj.axiom.application.handlers;
 import com.studproj.axiom.domain.model.WorkItem;
 import com.studproj.axiom.domain.model.WorkItemStatus;
 import com.studproj.axiom.domain.model.WorkItemType;
+import com.studproj.axiom.domain.repository.ProjectMembershipRepository;
+import com.studproj.axiom.domain.repository.ProjectRepository;
 import com.studproj.axiom.domain.repository.WorkItemRepository;
+import com.studproj.axiom.domain.service.AuthenticatedUserProvider;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
@@ -18,7 +21,14 @@ import static org.mockito.Mockito.when;
 class WorkItemQueryHandlerTest {
 
     private final WorkItemRepository workItemRepository = mock(WorkItemRepository.class);
-    private final WorkItemQueryHandler handler = new WorkItemQueryHandler(workItemRepository);
+    private final ProjectRepository projectRepository = mock(ProjectRepository.class);
+    private final ProjectMembershipRepository projectMembershipRepository = mock(ProjectMembershipRepository.class);
+    private final AuthenticatedUserProvider authenticatedUserProvider = mock(AuthenticatedUserProvider.class);
+    private final WorkItemQueryHandler handler = new WorkItemQueryHandler(
+            workItemRepository,
+            projectRepository,
+            projectMembershipRepository,
+            authenticatedUserProvider);
 
     @Test
     void getWorkItemsByProjectMapsDomainModelsToDtos() {
@@ -27,6 +37,10 @@ class WorkItemQueryHandlerTest {
         UUID authorId = UUID.randomUUID();
         UUID assigneeId = UUID.randomUUID();
         LocalDateTime dueDate = LocalDateTime.now().plusDays(2);
+        UUID userId = UUID.randomUUID();
+        when(authenticatedUserProvider.getAuthenticatedUserId()).thenReturn(userId);
+        when(projectRepository.findById(projectId)).thenReturn(Optional.of(com.studproj.axiom.domain.model.Project.builder().id(projectId).build()));
+        when(projectMembershipRepository.existsByProjectIdAndUserId(projectId, userId)).thenReturn(true);
         when(workItemRepository.findByProjectId(projectId)).thenReturn(List.of(WorkItem.builder()
                 .id(workItemId)
                 .controlNo(7)
@@ -60,6 +74,9 @@ class WorkItemQueryHandlerTest {
     @Test
     void getWorkItemByIdReturnsMappedDtoWhenFound() {
         UUID workItemId = UUID.randomUUID();
+        UUID projectId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        when(authenticatedUserProvider.getAuthenticatedUserId()).thenReturn(userId);
         when(workItemRepository.findById(workItemId)).thenReturn(Optional.of(WorkItem.builder()
                 .id(workItemId)
                 .controlNo(1)
@@ -67,9 +84,11 @@ class WorkItemQueryHandlerTest {
                 .priority(1)
                 .type(WorkItemType.Task)
                 .status(WorkItemStatus.New)
-                .projectId(UUID.randomUUID())
+            .projectId(projectId)
                 .authorId(UUID.randomUUID())
                 .build()));
+        when(projectRepository.findById(projectId)).thenReturn(Optional.of(com.studproj.axiom.domain.model.Project.builder().id(projectId).build()));
+        when(projectMembershipRepository.existsByProjectIdAndUserId(projectId, userId)).thenReturn(true);
 
         var item = handler.getWorkItemById(workItemId);
 
