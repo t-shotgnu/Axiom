@@ -3,7 +3,9 @@ package com.studproj.axiom.application.handlers;
 import com.studproj.axiom.application.dto.command.AddProjectMemberCommand;
 import com.studproj.axiom.application.dto.command.ChangeProjectMemberRoleCommand;
 import com.studproj.axiom.domain.exception.BadRequestException;
+import com.studproj.axiom.domain.exception.ForbiddenException;
 import com.studproj.axiom.domain.exception.NotFoundException;
+import com.studproj.axiom.domain.model.Project;
 import com.studproj.axiom.domain.model.ProjectMembership;
 import com.studproj.axiom.domain.repository.ProjectMembershipRepository;
 import com.studproj.axiom.domain.repository.ProjectRoleRepository;
@@ -54,6 +56,17 @@ public class ProjectMemberCommandHandler {
     public void changeRole(UUID projectId, UUID userId, ChangeProjectMemberRoleCommand command) {
         ProjectAccessChecks.ensureProjectAdmin(projectRepository, projectMembershipRepository, projectRoleRepository, authenticatedUserProvider, projectId);
 
+        if (authenticatedUserProvider.getAuthenticatedUserId().equals(userId)) {
+            throw new ForbiddenException("You cannot change your own role");
+        }
+
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new NotFoundException("Project not found"));
+
+        if (project.getOwnerId() != null && project.getOwnerId().equals(userId)) {
+            throw new ForbiddenException("Project lead role cannot be changed");
+        }
+
         ProjectMembership membership = projectMembershipRepository.findByProjectIdAndUserId(projectId, userId)
                 .orElseThrow(() -> new NotFoundException("Project member not found"));
 
@@ -67,6 +80,17 @@ public class ProjectMemberCommandHandler {
     @Transactional
     public void removeMember(UUID projectId, UUID userId) {
         ProjectAccessChecks.ensureProjectAdmin(projectRepository, projectMembershipRepository, projectRoleRepository, authenticatedUserProvider, projectId);
+
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new NotFoundException("Project not found"));
+
+        if (project.getOwnerId() != null && project.getOwnerId().equals(userId)) {
+            throw new ForbiddenException("Project lead cannot be removed from the project");
+        }
+
+        if (authenticatedUserProvider.getAuthenticatedUserId().equals(userId)) {
+            throw new ForbiddenException("You cannot remove yourself from the project");
+        }
 
         if (projectMembershipRepository.findByProjectIdAndUserId(projectId, userId).isEmpty()) {
             throw new NotFoundException("Project member not found");

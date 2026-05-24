@@ -1,14 +1,17 @@
 <div class="max-w-container-max mx-auto px-lg py-lg w-full">
-  
   <!-- Header -->
-  <header class="flex flex-col gap-4 border-b border-outline-variant pb-6 sm:flex-row sm:items-center sm:justify-between mb-lg">
+  <header
+    class="flex flex-col gap-4 border-b border-outline-variant pb-6 sm:flex-row sm:items-center sm:justify-between mb-lg"
+  >
     <div class="space-y-1">
       <nav class="flex items-center gap-xs text-on-surface-variant mb-xs font-semibold text-xs">
         <span class="hover:underline cursor-pointer">Organization</span>
         <span class="material-symbols-outlined text-[12px]">chevron_right</span>
         <span>All Projects</span>
       </nav>
-      <h1 class="font-headline-xl text-headline-xl text-on-surface font-extrabold tracking-tight">Projects</h1>
+      <h1 class="font-headline-xl text-headline-xl text-on-surface font-extrabold tracking-tight">
+        Projects
+      </h1>
     </div>
     <div class="flex items-center gap-3">
       <button
@@ -22,19 +25,31 @@
   </header>
 
   <!-- Filters Row -->
-  <div class="flex flex-col gap-md sm:flex-row sm:items-center sm:justify-between mb-lg border border-outline-variant rounded p-sm bg-surface-container-lowest">
+  <div
+    class="flex flex-col gap-md sm:flex-row sm:items-center sm:justify-between mb-lg border border-outline-variant rounded p-sm bg-surface-container-lowest"
+  >
     <div class="flex flex-wrap items-center gap-sm">
-      <span class="text-xs text-on-surface-variant font-bold uppercase tracking-wider px-xs">Filter by:</span>
-      <button class="bg-surface-container-low border border-outline-variant rounded px-sm py-[6px] text-xs font-bold text-on-surface hover:bg-surface-container-high transition-colors">
+      <span class="text-xs text-on-surface-variant font-bold uppercase tracking-wider px-xs"
+        >Filter by:</span
+      >
+      <button
+        class="bg-surface-container-low border border-outline-variant rounded px-sm py-[6px] text-xs font-bold text-on-surface hover:bg-surface-container-high transition-colors"
+      >
         Status: <span class="text-primary">All</span>
       </button>
-      <button class="bg-surface-container-low border border-outline-variant rounded px-sm py-[6px] text-xs font-bold text-on-surface hover:bg-surface-container-high transition-colors">
+      <button
+        class="bg-surface-container-low border border-outline-variant rounded px-sm py-[6px] text-xs font-bold text-on-surface hover:bg-surface-container-high transition-colors"
+      >
         Lead: <span class="text-primary">Everyone</span>
       </button>
-      <button class="bg-surface-container-low border border-outline-variant rounded px-sm py-[6px] text-xs font-bold text-on-surface hover:bg-surface-container-high transition-colors">
+      <button
+        class="bg-surface-container-low border border-outline-variant rounded px-sm py-[6px] text-xs font-bold text-on-surface hover:bg-surface-container-high transition-colors"
+      >
         Category: <span class="text-primary">All</span>
       </button>
-      <button class="text-on-surface-variant hover:text-primary font-bold text-xs flex items-center gap-xs ml-sm py-1">
+      <button
+        class="text-on-surface-variant hover:text-primary font-bold text-xs flex items-center gap-xs ml-sm py-1"
+      >
         <span class="material-symbols-outlined text-[16px]">clear_all</span>
         <span>Clear All</span>
       </button>
@@ -43,7 +58,9 @@
       <button class="p-1 rounded text-primary hover:bg-primary/10 bg-primary/15 transition-all">
         <span class="material-symbols-outlined text-[20px] font-bold">list</span>
       </button>
-      <button class="p-1 rounded text-on-surface-variant hover:bg-surface-container-low transition-all">
+      <button
+        class="p-1 rounded text-on-surface-variant hover:bg-surface-container-low transition-all"
+      >
         <span class="material-symbols-outlined text-[20px]">grid_on</span>
       </button>
     </div>
@@ -52,19 +69,28 @@
   <!-- Projects List Section -->
   @switch (listState) {
     @case ('loading') {
-      <div class="flex items-center gap-3 text-on-surface-variant bg-surface-container-lowest border border-outline-variant rounded p-lg py-xl justify-center mb-xl shadow-sm">
+      <div
+        class="flex items-center gap-3 text-on-surface-variant bg-surface-container-lowest border border-outline-variant rounded p-lg py-xl justify-center mb-xl shadow-sm"
+      >
         <span class="material-symbols-outlined animate-spin text-primary">progress_activity</span>
         <p class="font-body-md">Loading projects…</p>
       </div>
     }
     @case ('error') {
-      <div class="rounded-xl border border-red-200 bg-red-50 dark:bg-red-950/20 dark:text-red-400 p-5 text-red-800 font-semibold mb-xl shadow-sm text-center" role="alert">
+      <div
+        class="rounded-xl border border-red-200 bg-red-50 dark:bg-red-950/20 dark:text-red-400 p-5 text-red-800 font-semibold mb-xl shadow-sm text-center"
+        role="alert"
+      >
         {{ errorMessage }}
       </div>
     }
     @case ('empty') {
-      <div class="bg-surface-container-lowest border border-outline-variant border-dashed rounded-xl p-xl text-center shadow-sm mb-xl">
-        <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-surface-container-low border border-outline-variant shadow-sm text-primary">
+      <div
+        class="bg-surface-container-lowest border border-outline-variant border-dashed rounded-xl p-xl text-center shadow-sm mb-xl"
+      >
+        <div
+          class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-surface-container-low border border-outline-variant shadow-sm text-primary"
+        >
           <span class="material-symbols-outlined text-[32px]">folder_open</span>
         </div>
         <p class="font-headline-sm text-on-surface font-extrabold text-lg">No projects yet</p>
@@ -74,55 +100,80 @@
       </div>
     }
     @case ('list') {
-      <div class="bg-surface-container-lowest border border-outline-variant rounded overflow-hidden mb-xl">
+      <div
+        class="bg-surface-container-lowest border border-outline-variant rounded overflow-hidden mb-xl"
+      >
         <div class="overflow-x-auto w-full">
           <table class="w-full text-left border-collapse">
             <thead>
-              <tr class="bg-surface-container-low border-b border-outline-variant text-[11px] font-bold text-on-surface-variant tracking-wider uppercase">
-                <th class="py-sm px-lg w-[40px]"></th>
+              <tr
+                class="bg-surface-container-low border-b border-outline-variant text-[11px] font-bold text-on-surface-variant tracking-wider uppercase"
+              >
                 <th class="py-sm px-md">Project Name</th>
                 <th class="py-sm px-md w-[100px]">Key</th>
                 <th class="py-sm px-md w-[120px]">Type</th>
                 <th class="py-sm px-md w-[160px]">Lead</th>
                 <th class="py-sm px-md w-[120px]">Status</th>
                 <th class="py-sm px-md w-[220px]">Progress</th>
+                <th class="py-sm px-md w-[72px]"></th>
               </tr>
             </thead>
             <tbody class="divide-y divide-outline-variant/65">
               @for (project of projects; track project.id) {
                 <tr class="hover:bg-surface-container-lowest/50 transition-colors group">
-                  <td class="py-md px-lg text-center">
-                    <span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-yellow-500 transition-colors text-[20px]">star</span>
-                  </td>
                   <td class="py-md px-md">
                     <div class="flex items-center gap-md">
-                      <div class="w-10 h-10 bg-primary/10 text-primary rounded flex items-center justify-center font-bold shrink-0 text-sm">
+                      <div
+                        class="w-10 h-10 bg-primary/10 text-primary rounded flex items-center justify-center font-bold shrink-0 text-sm"
+                      >
                         {{ project.code.substring(0, 2) | uppercase }}
                       </div>
                       <div>
-                        <a [routerLink]="['/projects', project.id]" class="font-extrabold text-on-surface hover:text-primary transition-colors cursor-pointer text-sm">{{ project.name }}</a>
-                        <p class="text-xs text-on-surface-variant mt-[2px] font-medium max-w-[280px] truncate">{{ project.description || 'No description provided.' }}</p>
+                        <a
+                          [routerLink]="['/projects', project.id]"
+                          class="font-extrabold text-on-surface hover:text-primary transition-colors cursor-pointer text-sm"
+                          >{{ project.name }}</a
+                        >
+                        <p
+                          class="text-xs text-on-surface-variant mt-[2px] font-medium max-w-[280px] truncate"
+                        >
+                          {{ project.description || 'No description provided.' }}
+                        </p>
                       </div>
                     </div>
                   </td>
-                  <td class="py-md px-md text-xs font-semibold text-on-surface-variant font-code">{{ project.code | uppercase }}</td>
+                  <td class="py-md px-md text-xs font-semibold text-on-surface-variant font-code">
+                    {{ project.code | uppercase }}
+                  </td>
                   <td class="py-md px-md">
-                    <span class="bg-primary/15 text-primary font-bold text-[10px] px-2 py-0.5 rounded uppercase">Software</span>
+                    <span
+                      class="bg-primary/15 text-primary font-bold text-[10px] px-2 py-0.5 rounded uppercase"
+                      >Software</span
+                    >
                   </td>
                   <td class="py-md px-md">
                     <div class="flex items-center gap-sm">
-                      <div class="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary font-extrabold text-[10px]">
-                        {{ project.code.substring(0, 1) | uppercase }}
+                      <div
+                        class="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary font-extrabold text-[10px]"
+                      >
+                        {{ (project.ownerName || project.name).substring(0, 1) | uppercase }}
                       </div>
-                      <span class="text-xs font-bold text-on-surface">You</span>
+                      <span class="text-xs font-bold text-on-surface">
+                        {{ project.ownerName || 'Unknown lead' }}
+                      </span>
                     </div>
                   </td>
                   <td class="py-md px-md">
-                    <span class="bg-green-500/10 text-green-600 dark:text-green-400 font-bold text-[10px] px-2 py-0.5 rounded border border-green-500/20">ACTIVE</span>
+                    <span
+                      class="bg-green-500/10 text-green-600 dark:text-green-400 font-bold text-[10px] px-2 py-0.5 rounded border border-green-500/20"
+                      >ACTIVE</span
+                    >
                   </td>
                   <td class="py-md px-md">
                     <div class="flex flex-col gap-1 w-full max-w-[180px]">
-                      <div class="flex justify-between items-center text-[10px] font-bold text-on-surface-variant">
+                      <div
+                        class="flex justify-between items-center text-[10px] font-bold text-on-surface-variant"
+                      >
                         <span>100%</span>
                         <span>1 of 1 issues</span>
                       </div>
@@ -131,6 +182,17 @@
                       </div>
                     </div>
                   </td>
+                  <td class="py-md px-md text-right">
+                    <button
+                      type="button"
+                      (click)="openDeleteDialog(project)"
+                      class="inline-flex h-8 w-8 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:bg-red-500/10 hover:text-red-600"
+                      [attr.aria-label]="'Delete project ' + project.name"
+                      title="Delete project"
+                    >
+                      <span class="material-symbols-outlined text-[18px]">delete</span>
+                    </button>
+                  </td>
                 </tr>
               }
             </tbody>
@@ -138,14 +200,26 @@
         </div>
 
         <!-- Table Footer Pagination -->
-        <div class="flex items-center justify-between border-t border-outline-variant p-md bg-surface-container-lowest">
-          <span class="text-xs text-on-surface-variant font-semibold">Showing 1-{{ projects.length }} of {{ projects.length }} projects</span>
+        <div
+          class="flex items-center justify-between border-t border-outline-variant p-md bg-surface-container-lowest"
+        >
+          <span class="text-xs text-on-surface-variant font-semibold"
+            >Showing 1-{{ projects.length }} of {{ projects.length }} projects</span
+          >
           <div class="flex items-center gap-xs">
-            <button class="p-1 border border-outline-variant rounded hover:bg-surface-container-low transition-all">
+            <button
+              class="p-1 border border-outline-variant rounded hover:bg-surface-container-low transition-all"
+            >
               <span class="material-symbols-outlined text-[16px] font-bold">chevron_left</span>
             </button>
-            <button class="w-6 h-6 text-xs font-bold rounded bg-primary text-white flex items-center justify-center">1</button>
-            <button class="p-1 border border-outline-variant rounded hover:bg-surface-container-low transition-all">
+            <button
+              class="w-6 h-6 text-xs font-bold rounded bg-primary text-white flex items-center justify-center"
+            >
+              1
+            </button>
+            <button
+              class="p-1 border border-outline-variant rounded hover:bg-surface-container-low transition-all"
+            >
               <span class="material-symbols-outlined text-[16px] font-bold">chevron_right</span>
             </button>
           </div>
@@ -157,34 +231,50 @@
   <!-- Bento Analytics Cards (3 Columns) -->
   <div class="grid grid-cols-12 gap-lg mb-xl">
     <!-- Card 1 -->
-    <div class="col-span-12 md:col-span-4 bg-surface-container-lowest border border-outline-variant rounded p-lg flex flex-col justify-between min-h-[140px]">
+    <div
+      class="col-span-12 md:col-span-4 bg-surface-container-lowest border border-outline-variant rounded p-lg flex flex-col justify-between min-h-[140px]"
+    >
       <div class="flex justify-between items-start">
         <div>
-          <p class="text-[11px] font-bold tracking-wider uppercase text-on-surface-variant mb-xs">Efficiency Rate</p>
+          <p class="text-[11px] font-bold tracking-wider uppercase text-on-surface-variant mb-xs">
+            Efficiency Rate
+          </p>
           <h3 class="text-[32px] font-black text-on-surface leading-none">94.2%</h3>
         </div>
-        <span class="material-symbols-outlined text-primary text-[28px] font-bold">trending_up</span>
+        <span class="material-symbols-outlined text-primary text-[28px] font-bold"
+          >trending_up</span
+        >
       </div>
       <p class="text-xs text-green-600 font-bold mt-sm">+2.4% from last month</p>
     </div>
 
     <!-- Card 2 -->
-    <div class="col-span-12 md:col-span-4 bg-surface-container-lowest border border-outline-variant rounded p-lg flex flex-col justify-between min-h-[140px]">
+    <div
+      class="col-span-12 md:col-span-4 bg-surface-container-lowest border border-outline-variant rounded p-lg flex flex-col justify-between min-h-[140px]"
+    >
       <div class="flex justify-between items-start">
         <div>
-          <p class="text-[11px] font-bold tracking-wider uppercase text-on-surface-variant mb-xs">Risk Profile</p>
+          <p class="text-[11px] font-bold tracking-wider uppercase text-on-surface-variant mb-xs">
+            Risk Profile
+          </p>
           <h3 class="text-[32px] font-black text-on-surface leading-none">Low</h3>
         </div>
         <span class="material-symbols-outlined text-red-500 text-[28px]">warning</span>
       </div>
-      <p class="text-xs text-on-surface-variant font-semibold mt-sm">2 projects require attention</p>
+      <p class="text-xs text-on-surface-variant font-semibold mt-sm">
+        2 projects require attention
+      </p>
     </div>
 
     <!-- Card 3 -->
-    <div class="col-span-12 md:col-span-4 bg-surface-container-lowest border border-outline-variant rounded p-lg flex flex-col justify-between min-h-[140px]">
+    <div
+      class="col-span-12 md:col-span-4 bg-surface-container-lowest border border-outline-variant rounded p-lg flex flex-col justify-between min-h-[140px]"
+    >
       <div class="flex justify-between items-start">
         <div>
-          <p class="text-[11px] font-bold tracking-wider uppercase text-on-surface-variant mb-xs">Resource Load</p>
+          <p class="text-[11px] font-bold tracking-wider uppercase text-on-surface-variant mb-xs">
+            Resource Load
+          </p>
           <h3 class="text-[32px] font-black text-on-surface leading-none">Balanced</h3>
         </div>
         <span class="material-symbols-outlined text-primary text-[28px]">group</span>
@@ -194,18 +284,70 @@
   </div>
 
   <!-- Bottom CTA Promo Banner -->
-  <div class="bg-gradient-to-r from-primary to-indigo-700 rounded p-xl text-white relative overflow-hidden flex flex-col justify-between md:flex-row md:items-center md:py-lg min-h-[150px] shadow-lg">
+  <div
+    class="bg-gradient-to-r from-primary to-indigo-700 rounded p-xl text-white relative overflow-hidden flex flex-col justify-between md:flex-row md:items-center md:py-lg min-h-[150px] shadow-lg"
+  >
     <div class="relative z-10 max-w-[650px] mb-lg md:mb-0">
-      <h2 class="text-xl font-black mb-sm tracking-tight">Project Analytics 2024 is now available</h2>
+      <h2 class="text-xl font-black mb-sm tracking-tight">
+        Project Analytics 2024 is now available
+      </h2>
       <p class="text-white/80 text-sm leading-relaxed font-medium">
-        Unlock advanced insights into your team's velocity and identify bottlenecks before they happen with our new AI-driven forecasting tool.
+        Unlock advanced insights into your team's velocity and identify bottlenecks before they
+        happen with our new AI-driven forecasting tool.
       </p>
     </div>
-    <button class="relative z-10 bg-white hover:bg-white/90 text-on-surface font-extrabold text-sm px-lg py-[12px] rounded shrink-0 self-start md:self-auto transition-all shadow-[0_2px_8px_rgba(0,0,0,0.1)]">
+    <button
+      class="relative z-10 bg-white hover:bg-white/90 text-on-surface font-extrabold text-sm px-lg py-[12px] rounded shrink-0 self-start md:self-auto transition-all shadow-[0_2px_8px_rgba(0,0,0,0.1)]"
+    >
       Explore Dashboards
     </button>
-    <div class="absolute inset-0 bg-no-repeat bg-right bg-cover opacity-15 pointer-events-none" style="background-image: url('https://images.unsplash.com/photo-1557683316-973673baf926?auto=format&fit=crop&w=600&q=80');"></div>
+    <div
+      class="absolute inset-0 bg-no-repeat bg-right bg-cover opacity-15 pointer-events-none"
+      style="
+        background-image: url('https://images.unsplash.com/photo-1557683316-973673baf926?auto=format&fit=crop&w=600&q=80');
+      "
+    ></div>
   </div>
 
   <app-create-project #createProjectDialog (projectCreated)="loadProjects()"></app-create-project>
+
+  <app-dialog
+    [(visible)]="deleteDialogVisible"
+    title="Confirm delete"
+    size="sm"
+    footerStyle="plain"
+  >
+    <div class="space-y-md">
+      <p class="text-base leading-relaxed text-on-surface">
+        Are you sure you want to delete the project
+        <span class="font-semibold">{{ deleteDialogProject?.name }}</span
+        >? This operation can not be undone and will permanently remove all associated data.
+      </p>
+
+      @if (deleteErrorMessage) {
+        <div
+          class="rounded border border-red-200 bg-red-50 px-md py-sm text-sm font-medium text-red-800"
+          role="alert"
+        >
+          {{ deleteErrorMessage }}
+        </div>
+      }
+    </div>
+
+    <div footer class="w-full">
+      <div class="flex w-full items-center justify-between gap-sm">
+        <app-button variant="outlined" (onClick)="cancelDeleteDialog()" [disabled]="deleting">
+          Cancel
+        </app-button>
+        <app-button
+          variant="primary"
+          (onClick)="confirmDeleteProject()"
+          [loading]="deleting"
+          customClass="bg-red-600 hover:bg-red-700 text-white"
+        >
+          Confirm
+        </app-button>
+      </div>
+    </div>
+  </app-dialog>
 </div>

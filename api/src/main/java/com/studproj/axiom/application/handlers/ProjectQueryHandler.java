@@ -4,6 +4,7 @@ import com.studproj.axiom.application.dto.query.ProjectDto;
 import com.studproj.axiom.domain.model.ProjectMembership;
 import com.studproj.axiom.domain.repository.ProjectRepository;
 import com.studproj.axiom.domain.repository.ProjectMembershipRepository;
+import com.studproj.axiom.domain.repository.UserRepository;
 import com.studproj.axiom.domain.service.AuthenticatedUserProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,7 @@ import java.util.UUID;
 public class ProjectQueryHandler {
     private final ProjectRepository projectRepository;
     private final ProjectMembershipRepository projectMembershipRepository;
+        private final UserRepository userRepository;
     private final AuthenticatedUserProvider authenticatedUserProvider;
 
     public List<ProjectDto> getAllProjects() {
@@ -28,13 +30,7 @@ public class ProjectQueryHandler {
                 .toList();
 
         return projectRepository.findByIds(projectIds).stream()
-                .map(project -> new ProjectDto(
-                        project.getId(),
-                        project.getName(),
-                        project.getCode(),
-                        project.getDescription(),
-                        project.getCreatedOn(),
-                        project.getOwnerId()))
+                .map(this::toDto)
                 .toList();
     }
 
@@ -43,12 +39,42 @@ public class ProjectQueryHandler {
         boolean isMember = projectMembershipRepository.existsByProjectIdAndUserId(id, userId);
 
         return isMember ? projectRepository.findById(id)
-                .map(project -> new ProjectDto(
-                        project.getId(),
-                        project.getName(),
-                        project.getCode(),
-                        project.getDescription(),
-                        project.getCreatedOn(),
-                        project.getOwnerId())) : Optional.empty();
+                                .map(this::toDto) : Optional.empty();
+        }
+
+        private ProjectDto toDto(com.studproj.axiom.domain.model.Project project) {
+                return new ProjectDto(
+                                project.getId(),
+                                project.getName(),
+                                project.getCode(),
+                                project.getDescription(),
+                                project.getCreatedOn(),
+                                project.getOwnerId(),
+                                resolveOwnerName(project.getOwnerId()));
+        }
+
+        private String resolveOwnerName(UUID ownerId) {
+                return userRepository.findById(ownerId)
+                                .map(user -> {
+                                        String fullName = buildFullName(user.getFirstName(), user.getLastName());
+                                        if (!fullName.isBlank()) {
+                                                return fullName;
+                                        }
+                                        if (user.getUserName() != null && !user.getUserName().isBlank()) {
+                                                return user.getUserName();
+                                        }
+                                        if (user.getEmailAddress() != null && !user.getEmailAddress().isBlank()) {
+                                                return user.getEmailAddress();
+                                        }
+                                        return ownerId.toString();
+                                })
+                                .orElse(ownerId.toString());
+        }
+
+        private String buildFullName(String firstName, String lastName) {
+                String first = firstName == null ? "" : firstName.trim();
+                String last = lastName == null ? "" : lastName.trim();
+                String fullName = (first + " " + last).trim();
+                return fullName.isBlank() ? "" : fullName;
     }
 }

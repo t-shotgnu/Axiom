@@ -1,8 +1,10 @@
 package com.studproj.axiom.application.handlers;
 
 import com.studproj.axiom.domain.model.Project;
+import com.studproj.axiom.domain.model.User;
 import com.studproj.axiom.domain.repository.ProjectRepository;
 import com.studproj.axiom.domain.repository.ProjectMembershipRepository;
+import com.studproj.axiom.domain.repository.UserRepository;
 import com.studproj.axiom.domain.service.AuthenticatedUserProvider;
 import org.junit.jupiter.api.Test;
 
@@ -19,10 +21,12 @@ class ProjectQueryHandlerTest {
 
     private final ProjectRepository projectRepository = mock(ProjectRepository.class);
     private final ProjectMembershipRepository projectMembershipRepository = mock(ProjectMembershipRepository.class);
+    private final UserRepository userRepository = mock(UserRepository.class);
     private final AuthenticatedUserProvider authenticatedUserProvider = mock(AuthenticatedUserProvider.class);
     private final ProjectQueryHandler handler = new ProjectQueryHandler(
             projectRepository,
             projectMembershipRepository,
+            userRepository,
             authenticatedUserProvider);
 
     @Test
@@ -46,6 +50,12 @@ class ProjectQueryHandlerTest {
                 .createdOn(createdOn)
                 .ownerId(ownerId)
                 .build()));
+        when(userRepository.findById(ownerId)).thenReturn(Optional.of(User.builder()
+            .id(ownerId)
+            .userName("jane.doe")
+            .firstName("Jane")
+            .lastName("Doe")
+            .build()));
 
         var projects = handler.getAllProjects();
 
@@ -56,6 +66,7 @@ class ProjectQueryHandlerTest {
         assertThat(projects.getFirst().description()).isEqualTo("Main project");
         assertThat(projects.getFirst().createdOn()).isEqualTo(createdOn);
         assertThat(projects.getFirst().ownerId()).isEqualTo(ownerId);
+        assertThat(projects.getFirst().ownerName()).isEqualTo("Jane Doe");
     }
 
     @Test
@@ -73,12 +84,19 @@ class ProjectQueryHandlerTest {
                 .createdOn(LocalDateTime.now())
                 .ownerId(ownerId)
                 .build()));
+        when(userRepository.findById(ownerId)).thenReturn(Optional.of(User.builder()
+            .id(ownerId)
+            .userName("jane.doe")
+            .firstName("Jane")
+            .lastName("Doe")
+            .build()));
 
         var project = handler.getProjectById(projectId);
 
         assertThat(project).isPresent();
         assertThat(project.orElseThrow().id()).isEqualTo(projectId);
         assertThat(project.orElseThrow().ownerId()).isEqualTo(ownerId);
+        assertThat(project.orElseThrow().ownerName()).isEqualTo("Jane Doe");
     }
 
     @Test

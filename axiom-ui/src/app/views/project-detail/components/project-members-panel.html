@@ -1,0 +1,136 @@
+<div class="rounded-2xl border border-outline-variant bg-surface-container-lowest p-lg shadow-sm lg:sticky lg:top-20">
+  <div class="mb-md">
+    <p class="text-[11px] font-black uppercase tracking-widest text-on-surface-variant">People</p>
+    <p class="mt-1 text-sm font-semibold text-on-surface">Project members and lead</p>
+  </div>
+
+  <div class="space-y-md">
+    <div class="flex items-center gap-sm rounded-xl bg-surface-container-low px-3 py-2">
+      <div class="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary font-black text-xs">
+        {{ (leadName || 'L').substring(0, 1) | uppercase }}
+      </div>
+      <div class="min-w-0 flex-1">
+        <div class="text-sm font-bold text-on-surface truncate">{{ leadName || 'Unknown lead' }}</div>
+        <div class="text-[11px] font-semibold uppercase tracking-wider text-on-surface-variant">Lead</div>
+      </div>
+    </div>
+
+    @if (canManageProject()) {
+      <div class="grid gap-md sm:grid-cols-[minmax(0,1.4fr)_140px_auto]">
+        <div class="flex flex-col gap-xs">
+          <label class="text-[11px] font-black uppercase tracking-widest text-on-surface-variant">
+            Add user
+          </label>
+          <select
+            [ngModel]="selectedMemberUserId()"
+            (ngModelChange)="selectedMemberUserId.set($event)"
+            class="w-full rounded-lg border border-outline-variant bg-surface px-3 py-2 text-sm text-on-surface focus:outline-none focus:border-primary"
+          >
+            <option value="">Select a user</option>
+            @for (user of availableUsers; track user.id) {
+              <option [value]="user.id">{{ getUserLabel(user) }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="flex flex-col gap-xs">
+          <label class="text-[11px] font-black uppercase tracking-widest text-on-surface-variant">
+            Role
+          </label>
+          <select
+            [ngModel]="selectedMemberRole()"
+            (ngModelChange)="selectedMemberRole.set($event)"
+            class="w-full rounded-lg border border-outline-variant bg-surface px-3 py-2 text-sm text-on-surface focus:outline-none focus:border-primary"
+          >
+            <option value="MEMBER">Member</option>
+            <option value="ADMIN">Admin</option>
+          </select>
+        </div>
+
+        <div class="flex items-end">
+          <button
+            type="button"
+            (click)="addMember()"
+            [disabled]="!selectedMemberUserId()"
+            class="inline-flex h-10 items-center justify-center rounded-lg bg-primary px-4 text-sm font-bold text-white transition-colors hover:bg-[#0747a6] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Add
+          </button>
+        </div>
+      </div>
+    }
+
+    @if (memberActionError()) {
+      <div class="rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-700" role="alert">
+        {{ memberActionError() }}
+      </div>
+    }
+
+    <div class="flex items-center justify-between gap-md">
+      <span class="text-[11px] font-black uppercase tracking-widest text-on-surface-variant">Members</span>
+      <span class="text-xs font-bold text-on-surface">{{ members().length }}</span>
+    </div>
+
+    @if (loadingMembers()) {
+      <div class="rounded-xl border border-dashed border-outline-variant px-3 py-4 text-sm text-on-surface-variant">
+        Loading members...
+      </div>
+    } @else if (members().length === 0) {
+      <div class="rounded-xl border border-dashed border-outline-variant px-3 py-4 text-sm text-on-surface-variant">
+        No project members yet.
+      </div>
+    } @else {
+      <div class="space-y-2 max-h-52 overflow-auto pr-1">
+        @for (member of members(); track member.userId) {
+          <div class="flex flex-wrap items-center justify-between gap-md rounded-xl bg-surface-container-low px-3 py-2">
+            <div class="min-w-0 flex items-center gap-sm">
+              <div class="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary font-black text-[11px] shrink-0">
+                {{ getMemberLabel(member).substring(0, 1) | uppercase }}
+              </div>
+              <div class="min-w-0">
+                <div class="truncate text-sm font-bold text-on-surface">{{ getMemberLabel(member) }}</div>
+                <div class="truncate text-[11px] font-semibold text-on-surface-variant">{{ member.emailAddress }}</div>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-sm">
+              @if (isProjectLead(member)) {
+                <span class="rounded-full bg-primary/10 px-3 py-1 text-[11px] font-black uppercase tracking-widest text-primary">
+                  Lead
+                </span>
+              } @else if (isCurrentUser(member)) {
+                <span class="rounded-full bg-violet-500/10 px-3 py-1 text-[11px] font-black uppercase tracking-widest text-violet-700">
+                  You
+                </span>
+                <span class="inline-flex items-center rounded-full bg-surface-variant text-on-surface-variant text-[11px] px-sm py-1 ml-2">{{ member.role === 'ADMIN' ? 'Admin' : 'Member' }}</span>
+              } @else if (canManageProject() && !isProjectLead(member)) {
+                <select
+                  [ngModel]="member.role"
+                  (ngModelChange)="changeMemberRole(member, $event)"
+                  class="rounded-lg border border-outline-variant bg-surface px-3 py-2 text-xs font-bold text-on-surface focus:outline-none focus:border-primary"
+                >
+                  <option value="MEMBER">Member</option>
+                  <option value="ADMIN">Admin</option>
+                </select>
+              } @else {
+                <span class="inline-flex items-center rounded-full bg-surface-variant text-on-surface-variant text-[11px] px-sm py-1">{{ member.role === 'ADMIN' ? 'Admin' : 'Member' }}</span>
+              }
+
+              @if (canRemoveMember(member)) {
+                <button
+                  type="button"
+                  (click)="removeMember(member)"
+                  class="inline-flex h-9 w-9 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:bg-red-500/10 hover:text-red-600"
+                  [attr.aria-label]="'Remove member ' + getMemberLabel(member)"
+                  title="Remove member"
+                >
+                  <span class="material-symbols-outlined text-[18px]">person_remove</span>
+                </button>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>

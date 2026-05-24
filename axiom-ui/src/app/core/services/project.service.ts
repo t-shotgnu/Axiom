@@ -9,6 +9,7 @@ export interface Project {
   description: string;
   createdOn: string;
   ownerId: string;
+  ownerName?: string;
 }
 
 export interface CreateProjectCommand {
@@ -26,7 +27,7 @@ export class ProjectService {
   private readonly currentProjectSubject = new BehaviorSubject<Project | null>(null);
   readonly currentProject$ = this.currentProjectSubject.asObservable();
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   setCurrentProject(project: Project | null): void {
     this.currentProjectSubject.next(project);
@@ -46,5 +47,9 @@ export class ProjectService {
 
   createProject(command: CreateProjectCommand): Observable<string> {
     return this.http.post<string>(this.apiUrl, command);
+  }
+
+  deleteProject(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }
