@@ -29,6 +29,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -173,9 +174,55 @@ class WorkItemCommandHandlerTest {
                 when(projectMembershipRepository.existsByProjectIdAndUserId(projectId, authorId)).thenReturn(true);
                 when(workItemRepository.findById(workItemId)).thenReturn(Optional.of(WorkItem.builder().id(workItemId).projectId(projectId).authorId(authorId).build()));
 
-                handler.updateWorkItem(workItemId, new UpdateWorkItemCommand("Updated", 3, WorkItemType.Bug, null, 8, "note"));
+                handler.updateWorkItem(workItemId, new UpdateWorkItemCommand("Updated", 3, WorkItemType.Bug, null, 8, "note", null));
 
                 verify(workItemRepository).save(org.mockito.ArgumentMatchers.any(WorkItem.class));
+        }
+
+        @Test
+        void updateWorkItemAssignsMemberWhenAssigneeProvided() {
+                UUID projectId = UUID.randomUUID();
+                UUID authorId = UUID.randomUUID();
+                UUID workItemId = UUID.randomUUID();
+                UUID assigneeId = UUID.randomUUID();
+                WorkItem existing = WorkItem.builder()
+                                .id(workItemId)
+                                .projectId(projectId)
+                                .authorId(authorId)
+                                .assigneeId(null)
+                                .build();
+
+                when(authenticatedUserProvider.getAuthenticatedUserId()).thenReturn(authorId);
+                when(projectRepository.findById(projectId)).thenReturn(Optional.of(com.studproj.axiom.domain.model.Project.builder().id(projectId).build()));
+                when(projectMembershipRepository.existsByProjectIdAndUserId(projectId, authorId)).thenReturn(true);
+                when(projectMembershipRepository.existsByProjectIdAndUserId(projectId, assigneeId)).thenReturn(true);
+                when(workItemRepository.findById(workItemId)).thenReturn(Optional.of(existing));
+
+                handler.updateWorkItem(workItemId, new UpdateWorkItemCommand("Updated", 3, WorkItemType.Bug, null, 8, "note", assigneeId));
+
+                ArgumentCaptor<WorkItem> captor = ArgumentCaptor.forClass(WorkItem.class);
+                verify(workItemRepository).save(captor.capture());
+                assertThat(captor.getValue().getAssigneeId()).isEqualTo(assigneeId);
+        }
+
+        @Test
+        void updateWorkItemRejectsAssigneeOutsideProject() {
+                UUID projectId = UUID.randomUUID();
+                UUID authorId = UUID.randomUUID();
+                UUID workItemId = UUID.randomUUID();
+                UUID assigneeId = UUID.randomUUID();
+
+                when(authenticatedUserProvider.getAuthenticatedUserId()).thenReturn(authorId);
+                when(projectRepository.findById(projectId)).thenReturn(Optional.of(com.studproj.axiom.domain.model.Project.builder().id(projectId).build()));
+                when(projectMembershipRepository.existsByProjectIdAndUserId(projectId, authorId)).thenReturn(true);
+                when(projectMembershipRepository.existsByProjectIdAndUserId(projectId, assigneeId)).thenReturn(false);
+                when(workItemRepository.findById(workItemId)).thenReturn(Optional.of(WorkItem.builder().id(workItemId).projectId(projectId).authorId(authorId).build()));
+
+                assertThatThrownBy(() -> handler.updateWorkItem(workItemId, new UpdateWorkItemCommand("Updated", 3, WorkItemType.Bug, null, 8, "note", assigneeId)))
+                                .isInstanceOf(com.studproj.axiom.domain.exception.ForbiddenException.class)
+                                .hasMessage("Assignee must be a member of this project");
+
+                verify(workItemRepository, never()).save(org.mockito.ArgumentMatchers.any(WorkItem.class));
         }
 
         @Test

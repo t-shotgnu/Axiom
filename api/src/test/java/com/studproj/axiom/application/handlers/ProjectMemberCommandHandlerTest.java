@@ -12,11 +12,13 @@ import com.studproj.axiom.domain.repository.ProjectRoleRepository;
 import com.studproj.axiom.domain.repository.UserRepository;
 import com.studproj.axiom.domain.service.AuthenticatedUserProvider;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -149,7 +151,7 @@ class ProjectMemberCommandHandlerTest {
         when(projectRoleRepository.findById(roleId)).thenReturn(Optional.of(
                 ProjectRole.builder().id(roleId).type(ProjectRoleType.ADMIN).build()));
 
-        assertThatThrownBy(() -> handler.changeRole(projectId, leadUserId, new ChangeProjectMemberRoleCommand("MEMBER")))
+        assertThatThrownBy(() -> handler.changeRole(projectId, leadUserId, new ChangeProjectMemberRoleCommand(ProjectRoleType.MEMBER)))
                 .isInstanceOf(ForbiddenException.class)
                 .hasMessage("Project lead role cannot be changed");
 
@@ -177,10 +179,48 @@ class ProjectMemberCommandHandlerTest {
         when(projectRoleRepository.findById(roleId)).thenReturn(Optional.of(
                 ProjectRole.builder().id(roleId).type(ProjectRoleType.ADMIN).build()));
 
-        assertThatThrownBy(() -> handler.changeRole(projectId, currentUserId, new ChangeProjectMemberRoleCommand("MEMBER")))
+        assertThatThrownBy(() -> handler.changeRole(projectId, currentUserId, new ChangeProjectMemberRoleCommand(ProjectRoleType.MEMBER)))
                 .isInstanceOf(ForbiddenException.class)
                 .hasMessage("You cannot change your own role");
 
         verify(projectMembershipRepository, never()).save(org.mockito.Mockito.any());
+    }
+
+    @Test
+    void changeRoleUpdatesRoleForNonLeadMember() {
+            UUID projectId = UUID.randomUUID();
+            UUID currentUserId = UUID.randomUUID();
+            UUID memberUserId = UUID.randomUUID();
+            UUID adminRoleId = UUID.randomUUID();
+            UUID memberRoleId = UUID.randomUUID();
+            UUID targetRoleId = UUID.randomUUID();
+
+            ProjectMembership membership = ProjectMembership.builder()
+                            .id(UUID.randomUUID())
+                            .projectId(projectId)
+                            .userId(memberUserId)
+                            .roleId(memberRoleId)
+                            .createdOn(LocalDateTime.now())
+                            .build();
+
+            when(authenticatedUserProvider.getAuthenticatedUserId()).thenReturn(currentUserId);
+            when(projectRepository.findById(projectId)).thenReturn(Optional.of(Project.builder().id(projectId).ownerId(UUID.randomUUID()).build()));
+            when(projectMembershipRepository.findByProjectIdAndUserId(projectId, currentUserId)).thenReturn(Optional.of(
+                            ProjectMembership.builder()
+                                            .id(UUID.randomUUID())
+                                            .projectId(projectId)
+                                            .userId(currentUserId)
+                                            .roleId(adminRoleId)
+                                            .createdOn(LocalDateTime.now())
+                                            .build()));
+            when(projectRoleRepository.findById(adminRoleId)).thenReturn(Optional.of(ProjectRole.builder().id(adminRoleId).type(ProjectRoleType.ADMIN).build()));
+            when(projectMembershipRepository.findByProjectIdAndUserId(projectId, memberUserId)).thenReturn(Optional.of(membership));
+            when(projectRoleRepository.findByType(ProjectRoleType.ADMIN)).thenReturn(Optional.of(ProjectRole.builder().id(targetRoleId).type(ProjectRoleType.ADMIN).build()));
+
+            handler.changeRole(projectId, memberUserId, new ChangeProjectMemberRoleCommand(ProjectRoleType.ADMIN));
+
+            ArgumentCaptor<ProjectMembership> captor = ArgumentCaptor.forClass(ProjectMembership.class);
+            verify(projectMembershipRepository).save(captor.capture());
+            assertThat(captor.getValue().getRoleId()).isEqualTo(targetRoleId);
     }
 }

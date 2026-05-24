@@ -78,7 +78,7 @@ describe('ProjectService', () => {
 
   it('deletes a project', () => {
     service.deleteProject('project-1').subscribe((result) => {
-      expect(result).toBeUndefined();
+      expect(result).toBeNull();
     });
 
     const request = httpMock.expectOne('/api/projects/project-1');

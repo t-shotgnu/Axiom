@@ -60,6 +60,7 @@ describe('ProjectDetailComponent', () => {
   });
 
   it('opens the project delete dialog and confirms deletion', () => {
+    component.canManageProject.set(true);
     component.openDeleteProjectDialog();
 
     expect(component.showDeleteProjectDialog()).toBe(true);
