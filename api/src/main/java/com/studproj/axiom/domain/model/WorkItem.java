@@ -36,6 +36,14 @@ public class WorkItem {
         this.assigneeId = userId;
     }
 
+    public void updateDetails(String description, Integer priority, WorkItemType type, LocalDateTime dueDate, Integer estimatedEffort) {
+        this.description = description;
+        this.priority = priority;
+        this.type = type;
+        this.dueDate = dueDate;
+        this.estimatedEffort = estimatedEffort;
+    }
+
     public void updateNotes(String newNotes) {
         this.notes = newNotes;
     }

@@ -1,31 +1,60 @@
 <div *ngIf="!task" class="flex flex-col items-center justify-center h-full pt-24 bg-background">
-  <span class="material-symbols-outlined animate-spin text-[48px] text-primary mb-4">progress_activity</span>
+  <span class="material-symbols-outlined animate-spin text-[48px] text-primary mb-4"
+    >progress_activity</span
+  >
   <span class="font-body-lg text-on-surface-variant font-bold">Loading task details...</span>
 </div>
 
-<div *ngIf="task" class="max-w-container-max mx-auto px-lg py-lg w-full bg-background min-h-full flex flex-col">
+<div
+  *ngIf="task"
+  class="max-w-container-max mx-auto px-lg py-lg w-full bg-background min-h-full flex flex-col"
+>
   <!-- Breadcrumbs -->
-  <nav class="flex items-center gap-xs mb-sm text-xs font-bold text-on-surface-variant uppercase tracking-wider select-none">
+  <nav
+    class="flex items-center gap-xs mb-sm text-xs font-bold text-on-surface-variant uppercase tracking-wider select-none"
+  >
     <a routerLink="/projects" class="hover:underline">Projects</a>
     <span class="material-symbols-outlined text-[14px]">chevron_right</span>
-    <a [routerLink]="['/projects', task.projectId]" class="hover:underline">{{ project?.name || 'Project Alpha' }}</a>
+    <a [routerLink]="['/projects', task.projectId]" class="hover:underline">{{
+      project?.name || 'Project Alpha'
+    }}</a>
     <span class="material-symbols-outlined text-[14px]">chevron_right</span>
-    <span class="text-on-surface font-semibold">{{ project?.code || 'AX' }}-{{ task.controlNo }}</span>
+    <span class="text-on-surface font-semibold"
+      >{{ project?.code || 'AX' }}-{{ task.controlNo }}</span
+    >
   </nav>
 
   <!-- Issue Title -->
-  <h1 class="font-headline-xl text-headline-xl text-on-surface font-black tracking-tight mb-lg leading-tight">
+  <h1
+    class="font-headline-xl text-headline-xl text-on-surface font-black tracking-tight mb-lg leading-tight"
+  >
     {{ task.description }}
   </h1>
 
   <!-- Top Action Bar -->
-  <div class="flex flex-wrap items-center gap-sm mb-xl pb-md border-b border-outline-variant select-none">
-    <app-button variant="secondary" icon="edit" (onClick)="editingNotes = true" customClass="py-xs text-xs font-bold">Edit Description</app-button>
-    <app-button variant="secondary" icon="comment" customClass="py-xs text-xs font-bold">Comment</app-button>
-    <app-button variant="secondary" icon="person_add" customClass="py-xs text-xs font-bold">Assign</app-button>
-    <div class="h-6 w-px bg-outline-variant mx-xs"></div>
-    <app-button variant="secondary" icon="link" customClass="py-xs text-xs font-bold">Link Issue</app-button>
-    <app-button variant="secondary" icon="more_horiz" customClass="py-xs text-xs font-bold"></app-button>
+  <div
+    class="flex flex-wrap items-center gap-sm mb-xl pb-md border-b border-outline-variant select-none"
+  >
+    @if (canEditTask()) {
+      <app-button
+        variant="secondary"
+        icon="edit"
+        (onClick)="openEditDialog()"
+        customClass="py-xs text-xs font-bold"
+        >Edit Task</app-button
+      >
+      <app-button
+        variant="secondary"
+        icon="delete"
+        (onClick)="openDeleteDialog()"
+        customClass="py-xs text-xs font-bold"
+        >Delete</app-button
+      >
+      <div class="h-6 w-px bg-outline-variant mx-xs"></div>
+    }
+    <app-button variant="secondary" icon="link" customClass="py-xs text-xs font-bold"
+      >Link Issue</app-button
+    >
   </div>
 
   <div class="grid grid-cols-12 gap-xl flex-1">
@@ -34,16 +63,36 @@
       <!-- Description Section -->
       <section class="space-y-md">
         <div class="flex items-center justify-between">
-          <h3 class="text-xs font-black text-on-surface-variant uppercase tracking-widest select-none">Description</h3>
-          @if (!editingNotes) {
-            <button (click)="editingNotes = true" class="text-xs font-semibold text-primary hover:underline flex items-center gap-xs">
+          <h3
+            class="text-xs font-black text-on-surface-variant uppercase tracking-widest select-none"
+          >
+            Description
+          </h3>
+          @if (canEditTask() && !editingNotes) {
+            <button
+              (click)="editingNotes = true"
+              class="text-xs font-semibold text-primary hover:underline flex items-center gap-xs"
+            >
               <span class="material-symbols-outlined text-[14px]">edit</span> Edit
             </button>
           }
         </div>
-        
-        @if (!editingNotes) {
-          <div (click)="editingNotes = true" class="text-xs text-on-surface leading-relaxed p-md rounded-xl border border-outline-variant/60 bg-surface-container-lowest hover:bg-surface-container-low transition-all cursor-pointer min-h-[80px]" [class.italic]="!notesText" [class.text-on-surface-variant]="!notesText">
+
+        @if (!canEditTask()) {
+          <div
+            class="text-xs text-on-surface leading-relaxed p-md rounded-xl border border-outline-variant/60 bg-surface-container-lowest min-h-[80px]"
+            [class.italic]="!notesText"
+            [class.text-on-surface-variant]="!notesText"
+          >
+            {{ notesText || 'Add a more detailed description to this task...' }}
+          </div>
+        } @else if (!editingNotes) {
+          <div
+            (click)="editingNotes = true"
+            class="text-xs text-on-surface leading-relaxed p-md rounded-xl border border-outline-variant/60 bg-surface-container-lowest hover:bg-surface-container-low transition-all cursor-pointer min-h-[80px]"
+            [class.italic]="!notesText"
+            [class.text-on-surface-variant]="!notesText"
+          >
             {{ notesText || 'Add a more detailed description to this task...' }}
           </div>
         } @else {
@@ -55,8 +104,18 @@
               placeholder="Add a more detailed description to this task..."
             ></textarea>
             <div class="flex items-center gap-sm justify-end">
-              <button (click)="editingNotes = false" class="px-md py-xs text-xs font-bold text-on-surface hover:bg-surface-container-low rounded-lg transition-colors">Cancel</button>
-              <button (click)="saveNotes()" class="px-md py-xs text-xs font-bold text-white bg-primary hover:bg-[#0747a6] rounded-lg transition-colors shadow-sm">Save</button>
+              <button
+                (click)="editingNotes = false"
+                class="px-md py-xs text-xs font-bold text-on-surface hover:bg-surface-container-low rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                (click)="saveNotes()"
+                class="px-md py-xs text-xs font-bold text-white bg-primary hover:bg-[#0747a6] rounded-lg transition-colors shadow-sm"
+              >
+                Save
+              </button>
             </div>
           </div>
         }
@@ -65,22 +124,34 @@
       <!-- Attachments Section -->
       <section class="space-y-md pt-md" *ngIf="attachments && attachments.length > 0">
         <div class="flex items-center gap-xs select-none">
-          <span class="material-symbols-outlined text-[16px] text-on-surface-variant">attachment</span>
-          <h3 class="text-xs font-black text-on-surface-variant uppercase tracking-widest">Attachments ({{ attachments.length }})</h3>
+          <span class="material-symbols-outlined text-[16px] text-on-surface-variant"
+            >attachment</span
+          >
+          <h3 class="text-xs font-black text-on-surface-variant uppercase tracking-widest">
+            Attachments ({{ attachments.length }})
+          </h3>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-md select-none">
           @for (file of attachments; track file.id) {
-            <div class="flex items-center gap-md bg-surface-container-low border border-outline-variant rounded-xl p-sm hover:bg-surface-container-medium transition-colors cursor-pointer">
-              <div class="w-10 h-10 rounded flex items-center justify-center shrink-0" 
-                   [class.bg-[#e8f0fe]]="file.fileType === 'image'" [class.text-primary]="file.fileType === 'image'"
-                   [class.bg-red-500/10]="file.fileType === 'pdf'" [class.text-red-500]="file.fileType === 'pdf'">
+            <div
+              class="flex items-center gap-md bg-surface-container-low border border-outline-variant rounded-xl p-sm hover:bg-surface-container-medium transition-colors cursor-pointer"
+            >
+              <div
+                class="w-10 h-10 rounded flex items-center justify-center shrink-0"
+                [class.bg-[#e8f0fe]]="file.fileType === 'image'"
+                [class.text-primary]="file.fileType === 'image'"
+                [class.bg-red-500/10]="file.fileType === 'pdf'"
+                [class.text-red-500]="file.fileType === 'pdf'"
+              >
                 <span class="material-symbols-outlined text-[24px]">
                   {{ file.fileType === 'image' ? 'image' : 'picture_as_pdf' }}
                 </span>
               </div>
               <div class="min-w-0 flex-1">
                 <div class="text-xs font-bold text-on-surface truncate">{{ file.fileName }}</div>
-                <div class="text-[10px] text-on-surface-variant mt-[2px]">{{ file.fileSize }} • {{ formatDate(file.uploadedOn) }}</div>
+                <div class="text-[10px] text-on-surface-variant mt-[2px]">
+                  {{ file.fileSize }} • {{ formatDate(file.uploadedOn) }}
+                </div>
               </div>
             </div>
           }
@@ -89,27 +160,51 @@
 
       <!-- Activity Feed & Comments Section -->
       <section class="pt-lg space-y-lg">
-        <h3 class="text-xs font-black text-on-surface-variant uppercase tracking-widest select-none">Activity</h3>
-        
+        <h3
+          class="text-xs font-black text-on-surface-variant uppercase tracking-widest select-none"
+        >
+          Activity
+        </h3>
+
         <!-- Add Comment Textarea -->
         <div class="flex gap-md">
-          <div class="w-8 h-8 rounded-full bg-primary/10 text-primary border border-primary/20 flex items-center justify-center font-bold shrink-0 select-none">
-            {{ userEmail ? userEmail.substring(0,2).toUpperCase() : 'GU' }}
+          <div
+            class="w-8 h-8 rounded-full bg-primary/10 text-primary border border-primary/20 flex items-center justify-center font-bold shrink-0 select-none"
+          >
+            {{ project?.code?.substring(0, 2)?.toUpperCase() || 'TA' }}
           </div>
           <div class="flex-1">
-            <div class="border border-outline-variant rounded-xl focus-within:border-primary transition-all overflow-hidden bg-surface-container-lowest shadow-sm">
+            <div
+              class="border border-outline-variant rounded-xl focus-within:border-primary transition-all overflow-hidden bg-surface-container-lowest shadow-sm"
+            >
               <textarea
                 [(ngModel)]="newCommentText"
                 class="w-full p-md font-body-md border-none focus:ring-0 placeholder-on-surface-variant focus:outline-none bg-transparent text-on-surface min-h-[80px] resize-y"
                 placeholder="Add a comment..."
               ></textarea>
-              <div class="bg-surface-container-low px-md py-sm flex justify-between items-center select-none border-t border-outline-variant/60">
+              <div
+                class="bg-surface-container-low px-md py-sm flex justify-between items-center select-none border-t border-outline-variant/60"
+              >
                 <div class="flex gap-sm">
-                  <span class="material-symbols-outlined text-[18px] text-on-surface-variant cursor-pointer hover:text-on-surface p-unit rounded hover:bg-surface-container-high transition-colors">format_bold</span>
-                  <span class="material-symbols-outlined text-[18px] text-on-surface-variant cursor-pointer hover:text-on-surface p-unit rounded hover:bg-surface-container-high transition-colors">format_italic</span>
-                  <span class="material-symbols-outlined text-[18px] text-on-surface-variant cursor-pointer hover:text-on-surface p-unit rounded hover:bg-surface-container-high transition-colors">link</span>
+                  <span
+                    class="material-symbols-outlined text-[18px] text-on-surface-variant cursor-pointer hover:text-on-surface p-unit rounded hover:bg-surface-container-high transition-colors"
+                    >format_bold</span
+                  >
+                  <span
+                    class="material-symbols-outlined text-[18px] text-on-surface-variant cursor-pointer hover:text-on-surface p-unit rounded hover:bg-surface-container-high transition-colors"
+                    >format_italic</span
+                  >
+                  <span
+                    class="material-symbols-outlined text-[18px] text-on-surface-variant cursor-pointer hover:text-on-surface p-unit rounded hover:bg-surface-container-high transition-colors"
+                    >link</span
+                  >
                 </div>
-                <app-button variant="primary" (onClick)="addComment()" customClass="py-unit px-md text-xs font-bold">Save</app-button>
+                <app-button
+                  variant="primary"
+                  (onClick)="addComment()"
+                  customClass="py-unit px-md text-xs font-bold"
+                  >Save</app-button
+                >
               </div>
             </div>
           </div>
@@ -120,7 +215,9 @@
           @for (c of comments; track c.id) {
             <div class="flex gap-md group">
               <!-- Author Avatar -->
-              <div class="w-8 h-8 rounded-full bg-surface-container-high border border-outline-variant text-on-surface-variant flex items-center justify-center font-bold shrink-0 select-none">
+              <div
+                class="w-8 h-8 rounded-full bg-surface-container-high border border-outline-variant text-on-surface-variant flex items-center justify-center font-bold shrink-0 select-none"
+              >
                 {{ c.author.substring(0, 2).toUpperCase() }}
               </div>
 
@@ -128,14 +225,20 @@
               <div class="flex-1 space-y-xs">
                 <div class="flex items-baseline gap-sm select-none">
                   <span class="text-xs font-bold text-on-surface">{{ c.author }}</span>
-                  <span class="text-[10px] text-on-surface-variant">{{ formatDate(c.createdOn) }}</span>
+                  <span class="text-[10px] text-on-surface-variant">{{
+                    formatDate(c.createdOn)
+                  }}</span>
                 </div>
                 <p class="font-body-md text-body-md text-on-surface leading-relaxed">
                   {{ c.text }}
                 </p>
                 <!-- Actions -->
-                <div class="flex items-center gap-md text-[10px] text-on-surface-variant font-bold select-none pt-unit">
-                  <button (click)="deleteComment(c.id)" class="hover:underline hover:text-red-500">Delete</button>
+                <div
+                  class="flex items-center gap-md text-[10px] text-on-surface-variant font-bold select-none pt-unit"
+                >
+                  <button (click)="deleteComment(c.id)" class="hover:underline hover:text-red-500">
+                    Delete
+                  </button>
                 </div>
               </div>
             </div>
@@ -149,7 +252,10 @@
       <div class="sticky top-20 space-y-xl">
         <!-- Status & Transitions dropdown -->
         <div class="space-y-sm select-none">
-          <label class="text-[10px] font-black text-on-surface-variant uppercase tracking-widest block">Status</label>
+          <label
+            class="text-[10px] font-black text-on-surface-variant uppercase tracking-widest block"
+            >Status</label
+          >
           <div class="relative w-full">
             <select
               [(ngModel)]="status"
@@ -157,22 +263,39 @@
               class="w-full bg-[#0052cc] text-white font-extrabold text-xs rounded-lg pl-4 pr-10 py-3 border-none focus:outline-none focus:ring-2 focus:ring-primary appearance-none cursor-pointer hover:bg-[#0747a6] transition-colors"
             >
               @for (opt of statusOptions; track opt.value) {
-                <option [value]="opt.value" class="bg-surface text-on-surface font-semibold text-xs py-2">{{ opt.label }}</option>
+                <option
+                  [value]="opt.value"
+                  class="bg-surface text-on-surface font-semibold text-xs py-2"
+                >
+                  {{ opt.label }}
+                </option>
               }
             </select>
-            <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-white text-[20px]">expand_more</span>
+            <span
+              class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-white text-[20px]"
+              >expand_more</span
+            >
           </div>
         </div>
 
         <!-- Attributes Table Card -->
-        <div class="rounded-xl border border-outline-variant bg-surface-container-lowest p-md space-y-md shadow-sm">
-          
+        <div
+          class="rounded-xl border border-outline-variant bg-surface-container-lowest p-md space-y-md shadow-sm"
+        >
           <!-- Assignee -->
-          <div class="grid grid-cols-12 gap-xs items-center py-xs border-b border-outline-variant/40">
-            <span class="col-span-4 text-xs font-bold text-on-surface-variant select-none">Assignee</span>
-            <div class="col-span-8 flex items-center gap-sm p-unit rounded-lg hover:bg-surface-container-low transition-colors relative">
-              <div class="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-[9px] shrink-0 select-none">
-                {{ assigneeName ? assigneeName.substring(0,2).toUpperCase() : '?' }}
+          <div
+            class="grid grid-cols-12 gap-xs items-center py-xs border-b border-outline-variant/40"
+          >
+            <span class="col-span-4 text-xs font-bold text-on-surface-variant select-none"
+              >Assignee</span
+            >
+            <div
+              class="col-span-8 flex items-center gap-sm p-unit rounded-lg hover:bg-surface-container-low transition-colors relative"
+            >
+              <div
+                class="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-[9px] shrink-0 select-none"
+              >
+                {{ assigneeName ? assigneeName.substring(0, 2).toUpperCase() : '?' }}
               </div>
               <select
                 [(ngModel)]="assigneeId"
@@ -180,19 +303,27 @@
                 class="bg-transparent border-none text-xs font-bold text-on-surface focus:outline-none focus:ring-0 cursor-pointer p-0 w-full hover:underline appearance-none"
               >
                 <option value="" class="bg-surface text-on-surface">Unassigned</option>
-                @for (u of usersList; track u.id) {
-                  <option [value]="u.id" class="bg-surface text-on-surface font-semibold">{{ u.userName }}</option>
+                @for (u of projectUsers; track u.id) {
+                    <option [value]="u.id" class="bg-surface text-on-surface font-semibold">
+                      {{ u.fullName }}
+                    </option>
                 }
               </select>
             </div>
           </div>
 
           <!-- Reporter -->
-          <div class="grid grid-cols-12 gap-xs items-center py-xs border-b border-outline-variant/40">
-            <span class="col-span-4 text-xs font-bold text-on-surface-variant select-none">Reporter</span>
+          <div
+            class="grid grid-cols-12 gap-xs items-center py-xs border-b border-outline-variant/40"
+          >
+            <span class="col-span-4 text-xs font-bold text-on-surface-variant select-none"
+              >Reporter</span
+            >
             <div class="col-span-8 flex items-center gap-sm p-unit select-none">
-              <div class="w-6 h-6 rounded-full bg-surface-variant text-on-surface-variant flex items-center justify-center font-bold text-[9px] shrink-0">
-                {{ reporterName ? reporterName.substring(0,2).toUpperCase() : '?' }}
+              <div
+                class="w-6 h-6 rounded-full bg-surface-variant text-on-surface-variant flex items-center justify-center font-bold text-[9px] shrink-0"
+              >
+                {{ reporterName ? reporterName.substring(0, 2).toUpperCase() : '?' }}
               </div>
               <span class="text-xs text-on-surface font-bold truncate">
                 {{ reporterName }}
@@ -201,10 +332,15 @@
           </div>
 
           <!-- Priority -->
-          <div class="grid grid-cols-12 gap-xs items-center py-xs border-b border-outline-variant/40">
-            <span class="col-span-4 text-xs font-bold text-on-surface-variant select-none">Priority</span>
+          <div
+            class="grid grid-cols-12 gap-xs items-center py-xs border-b border-outline-variant/40"
+          >
+            <span class="col-span-4 text-xs font-bold text-on-surface-variant select-none"
+              >Priority</span
+            >
             <div class="col-span-8 flex items-center gap-sm select-none p-unit">
-              <span class="material-symbols-outlined text-[16px] font-bold align-middle shrink-0"
+              <span
+                class="material-symbols-outlined text-[16px] font-bold align-middle shrink-0"
                 [ngClass]="getPriorityColorClass(task.priority)"
               >
                 {{ getPriorityIcon(task.priority) }}
@@ -216,29 +352,48 @@
           </div>
 
           <!-- Labels -->
-          <div class="grid grid-cols-12 gap-xs items-center py-xs border-b border-outline-variant/40">
-            <span class="col-span-4 text-xs font-bold text-on-surface-variant select-none">Labels</span>
+          <div
+            class="grid grid-cols-12 gap-xs items-center py-xs border-b border-outline-variant/40"
+          >
+            <span class="col-span-4 text-xs font-bold text-on-surface-variant select-none"
+              >Labels</span
+            >
             <div class="col-span-8 flex flex-wrap gap-xs items-center p-unit">
-              <span class="bg-[#0052cc]/10 text-primary border border-primary/20 px-sm py-[2px] rounded text-[9px] font-bold select-none">UI/UX</span>
-              <span class="bg-[#0052cc]/10 text-primary border border-primary/20 px-sm py-[2px] rounded text-[9px] font-bold select-none">Frontend</span>
-              <button class="material-symbols-outlined text-[14px] text-on-surface-variant hover:text-primary transition-colors p-unit rounded hover:bg-surface-container-high">add</button>
+              <span
+                class="bg-[#0052cc]/10 text-primary border border-primary/20 px-sm py-[2px] rounded text-[9px] font-bold select-none"
+                >UI/UX</span
+              >
+              <span
+                class="bg-[#0052cc]/10 text-primary border border-primary/20 px-sm py-[2px] rounded text-[9px] font-bold select-none"
+                >Frontend</span
+              >
+              <button
+                class="material-symbols-outlined text-[14px] text-on-surface-variant hover:text-primary transition-colors p-unit rounded hover:bg-surface-container-high"
+              >
+                add
+              </button>
             </div>
           </div>
 
           <!-- Story Points -->
           <div class="grid grid-cols-12 gap-xs items-center py-xs">
-            <span class="col-span-4 text-xs font-bold text-on-surface-variant select-none">Story Points</span>
+            <span class="col-span-4 text-xs font-bold text-on-surface-variant select-none"
+              >Story Points</span
+            >
             <div class="col-span-8 p-unit select-none">
-              <span class="bg-surface-container text-on-surface-variant font-bold text-xs px-2.5 py-1 rounded-full border border-outline-variant font-mono">
-                {{ task.estimatedEffort || (task.priority * 2 - 1) }}
+              <span
+                class="bg-surface-container text-on-surface-variant font-bold text-xs px-2.5 py-1 rounded-full border border-outline-variant font-mono"
+              >
+                {{ task.estimatedEffort || task.priority * 2 - 1 }}
               </span>
             </div>
           </div>
-          
         </div>
 
         <!-- Timestamps info -->
-        <div class="text-[10px] text-on-surface-variant space-y-[2px] font-bold uppercase tracking-wider select-none px-sm">
+        <div
+          class="text-[10px] text-on-surface-variant space-y-[2px] font-bold uppercase tracking-wider select-none px-sm"
+        >
           <div>Created 2 days ago</div>
           <div>Updated 45 minutes ago</div>
         </div>
@@ -247,3 +402,112 @@
   </div>
 </div>
 
+<!-- Edit Task Dialog -->
+<app-dialog [(visible)]="showEditDialog" title="Edit issue">
+  <div class="space-y-md">
+    <label class="text-[11px] font-black uppercase tracking-widest text-on-surface-variant"
+      >Description</label
+    >
+    <textarea
+      [(ngModel)]="editTask.description"
+      rows="4"
+      class="w-full rounded-lg border border-outline-variant p-md text-sm"
+    ></textarea>
+
+    <div class="grid grid-cols-2 gap-md">
+      <div>
+        <label class="text-[11px] font-black uppercase tracking-widest text-on-surface-variant"
+          >Status</label
+        >
+        <select
+          [(ngModel)]="editTask.status"
+          class="w-full rounded-lg border border-outline-variant bg-surface px-3 py-2 text-sm text-on-surface focus:outline-none focus:border-primary"
+        >
+          @for (opt of statusOptions; track opt.value) {
+            <option [value]="opt.value">{{ opt.label }}</option>
+          }
+        </select>
+      </div>
+      <div>
+        <label class="text-[11px] font-black uppercase tracking-widest text-on-surface-variant"
+          >Type</label
+        >
+        <select
+          [(ngModel)]="editTask.type"
+          class="w-full rounded-lg border border-outline-variant bg-surface px-3 py-2 text-sm text-on-surface focus:outline-none focus:border-primary"
+        >
+          <option value="Task">Task</option>
+          <option value="Bug">Bug</option>
+          <option value="Feature">Feature</option>
+          <option value="Epic">Epic</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-md">
+      <div>
+        <label class="text-[11px] font-black uppercase tracking-widest text-on-surface-variant"
+          >Priority</label
+        >
+        <input
+          type="number"
+          [(ngModel)]="editTask.priority"
+          class="w-full rounded-lg border border-outline-variant bg-surface px-3 py-2 text-sm text-on-surface"
+        />
+      </div>
+      <div>
+        <label class="text-[11px] font-black uppercase tracking-widest text-on-surface-variant"
+          >Assignee</label
+        >
+        <select
+          [(ngModel)]="editTask.assigneeId"
+          class="w-full rounded-lg border border-outline-variant bg-surface px-3 py-2 text-sm text-on-surface focus:outline-none focus:border-primary"
+        >
+          <option value="">Unassigned</option>
+          @for (u of projectUsers; track u.id) {
+            <option [value]="u.id">{{ u.fullName }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <div>
+      <label class="text-[11px] font-black uppercase tracking-widest text-on-surface-variant"
+        >Notes</label
+      >
+      <textarea
+        [(ngModel)]="editTask.notes"
+        rows="3"
+        class="w-full rounded-lg border border-outline-variant p-md text-sm"
+      ></textarea>
+    </div>
+  </div>
+
+  <div footer class="flex items-center justify-between gap-md">
+    <app-button variant="outlined" (onClick)="cancelEditDialog()">Cancel</app-button>
+    <app-button variant="primary" (onClick)="confirmEditTask()">Save</app-button>
+  </div>
+</app-dialog>
+
+<!-- Delete Task Dialog -->
+<app-dialog
+  [(visible)]="showDeleteDialog"
+  title="Confirm delete"
+  size="sm"
+  position="top-lg"
+  footerStyle="plain"
+>
+  <p class="text-base leading-relaxed text-on-surface">
+    Are you sure you want to delete this issue? This operation can not be undone and will
+    permanently remove the issue.
+  </p>
+  <div footer class="flex items-center justify-between gap-md">
+    <app-button variant="outlined" (onClick)="cancelDeleteDialog()">Cancel</app-button>
+    <app-button
+      variant="primary"
+      (onClick)="confirmDeleteTask()"
+      customClass="bg-red-600 hover:bg-red-700 text-white"
+      >Confirm</app-button
+    >
+  </div>
+</app-dialog>

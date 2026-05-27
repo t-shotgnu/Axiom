@@ -8,7 +8,14 @@ import { CardComponent } from './card';
   imports: [CommonModule, CardComponent],
   template: `
     @if (visible) {
-      <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" (click)="onBackdropClick($event)">
+      <div
+        class="fixed inset-0 z-50 flex justify-center bg-black/50 backdrop-blur-sm p-4"
+        [class.items-center]="position === 'center'"
+        [class.items-start]="position === 'top'"
+        [class.pt-4]="position === 'top'"
+        [class.pt-24]="position === 'top-lg'"
+        (click)="onBackdropClick($event)"
+      >
         <app-card
           variant="flat"
           [customClass]="'w-full flex flex-col max-h-full overflow-hidden p-0 shadow-xl bg-surface-container-lowest ' + sizeClass"
@@ -31,7 +38,11 @@ import { CardComponent } from './card';
           </div>
 
           <!-- Footer -->
-          <div class="flex justify-end gap-sm p-md border-t border-outline-variant bg-surface-container-low">
+          <div
+            class="flex justify-end gap-sm p-md border-t border-outline-variant"
+            [class.bg-surface-container-low]="footerStyle === 'default'"
+            [class.bg-transparent]="footerStyle === 'plain'"
+          >
             <ng-content select="[footer]"></ng-content>
           </div>
         </app-card>
@@ -43,6 +54,8 @@ export class DialogComponent {
   @Input() visible = false;
   @Input() title = '';
   @Input() size: 'sm' | 'md' | 'lg' = 'md';
+  @Input() position: 'center' | 'top' | 'top-lg' = 'center';
+  @Input() footerStyle: 'default' | 'plain' = 'default';
 
   @Output() visibleChange = new EventEmitter<boolean>();
   @Output() onClose = new EventEmitter<void>();

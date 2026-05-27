@@ -1,7 +1,11 @@
 package com.studproj.axiom.application.handlers;
 
 import com.studproj.axiom.domain.model.Project;
+import com.studproj.axiom.domain.model.User;
 import com.studproj.axiom.domain.repository.ProjectRepository;
+import com.studproj.axiom.domain.repository.ProjectMembershipRepository;
+import com.studproj.axiom.domain.repository.UserRepository;
+import com.studproj.axiom.domain.service.AuthenticatedUserProvider;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
@@ -16,14 +20,29 @@ import static org.mockito.Mockito.when;
 class ProjectQueryHandlerTest {
 
     private final ProjectRepository projectRepository = mock(ProjectRepository.class);
-    private final ProjectQueryHandler handler = new ProjectQueryHandler(projectRepository);
+    private final ProjectMembershipRepository projectMembershipRepository = mock(ProjectMembershipRepository.class);
+    private final UserRepository userRepository = mock(UserRepository.class);
+    private final AuthenticatedUserProvider authenticatedUserProvider = mock(AuthenticatedUserProvider.class);
+    private final ProjectQueryHandler handler = new ProjectQueryHandler(
+            projectRepository,
+            projectMembershipRepository,
+            userRepository,
+            authenticatedUserProvider);
 
     @Test
     void getAllProjectsMapsDomainModelsToDtos() {
         UUID projectId = UUID.randomUUID();
         UUID ownerId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
         LocalDateTime createdOn = LocalDateTime.now();
-        when(projectRepository.findAll()).thenReturn(List.of(Project.builder()
+        when(authenticatedUserProvider.getAuthenticatedUserId()).thenReturn(userId);
+        when(projectMembershipRepository.findByUserId(userId)).thenReturn(List.of(com.studproj.axiom.domain.model.ProjectMembership.builder()
+            .id(UUID.randomUUID())
+            .projectId(projectId)
+            .userId(userId)
+            .roleId(UUID.randomUUID())
+            .build()));
+        when(projectRepository.findByIds(List.of(projectId))).thenReturn(List.of(Project.builder()
                 .id(projectId)
                 .name("Axiom")
                 .code("AX")
@@ -31,6 +50,12 @@ class ProjectQueryHandlerTest {
                 .createdOn(createdOn)
                 .ownerId(ownerId)
                 .build()));
+        when(userRepository.findById(ownerId)).thenReturn(Optional.of(User.builder()
+            .id(ownerId)
+            .userName("jane.doe")
+            .firstName("Jane")
+            .lastName("Doe")
+            .build()));
 
         var projects = handler.getAllProjects();
 
@@ -41,12 +66,16 @@ class ProjectQueryHandlerTest {
         assertThat(projects.getFirst().description()).isEqualTo("Main project");
         assertThat(projects.getFirst().createdOn()).isEqualTo(createdOn);
         assertThat(projects.getFirst().ownerId()).isEqualTo(ownerId);
+        assertThat(projects.getFirst().ownerName()).isEqualTo("Jane Doe");
     }
 
     @Test
     void getProjectByIdReturnsMappedDtoWhenFound() {
         UUID projectId = UUID.randomUUID();
         UUID ownerId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        when(authenticatedUserProvider.getAuthenticatedUserId()).thenReturn(userId);
+        when(projectMembershipRepository.existsByProjectIdAndUserId(projectId, userId)).thenReturn(true);
         when(projectRepository.findById(projectId)).thenReturn(Optional.of(Project.builder()
                 .id(projectId)
                 .name("Axiom")
@@ -55,18 +84,27 @@ class ProjectQueryHandlerTest {
                 .createdOn(LocalDateTime.now())
                 .ownerId(ownerId)
                 .build()));
+        when(userRepository.findById(ownerId)).thenReturn(Optional.of(User.builder()
+            .id(ownerId)
+            .userName("jane.doe")
+            .firstName("Jane")
+            .lastName("Doe")
+            .build()));
 
         var project = handler.getProjectById(projectId);
 
         assertThat(project).isPresent();
         assertThat(project.orElseThrow().id()).isEqualTo(projectId);
         assertThat(project.orElseThrow().ownerId()).isEqualTo(ownerId);
+        assertThat(project.orElseThrow().ownerName()).isEqualTo("Jane Doe");
     }
 
     @Test
     void getProjectByIdReturnsEmptyWhenMissing() {
         UUID projectId = UUID.randomUUID();
-        when(projectRepository.findById(projectId)).thenReturn(Optional.empty());
+        UUID userId = UUID.randomUUID();
+        when(authenticatedUserProvider.getAuthenticatedUserId()).thenReturn(userId);
+        when(projectMembershipRepository.existsByProjectIdAndUserId(projectId, userId)).thenReturn(false);
 
         assertThat(handler.getProjectById(projectId)).isEmpty();
     }

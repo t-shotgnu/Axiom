@@ -3,29 +3,32 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 
-import { WorkItemService, WorkItem } from '../../core/services/work-item.service';
+import { WorkItemService, WorkItem, CreateWorkItemCommand } from '../../core/services/work-item.service';
 import { ProjectService, Project } from '../../core/services/project.service';
-import { AuthService } from '../../core/services/auth.service';
+import { Router } from '@angular/router';
+import { ProjectMemberService } from '../../core/services/project-member.service';
 import { UserService, User } from '../../core/services/user.service';
 import { CommentService, Comment } from '../../core/services/comment.service';
 import { AttachmentService, Attachment } from '../../core/services/attachment.service';
 import { ButtonComponent } from '../../shared/components/ui/button';
+import { DialogComponent } from '../../shared/components/ui/dialog';
 
 @Component({
   selector: 'app-task-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, ButtonComponent],
+  imports: [CommonModule, FormsModule, RouterModule, ButtonComponent, DialogComponent],
   templateUrl: './task-detail.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TaskDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly workItemService = inject(WorkItemService);
+  private readonly router = inject(Router);
   private readonly projectService = inject(ProjectService);
+  private readonly memberService = inject(ProjectMemberService);
   private readonly userService = inject(UserService);
   private readonly commentService = inject(CommentService);
   private readonly attachmentService = inject(AttachmentService);
-  private readonly authService = inject(AuthService);
   private readonly cdr = inject(ChangeDetectorRef);
 
   id: string | null = null;
@@ -33,16 +36,24 @@ export class TaskDetailComponent implements OnInit {
   project: Project | null = null;
   status: string = '';
   assigneeId: string = '';
-  userEmail: string = '';
+  currentUserId = '';
 
   // Real User Metadata
   assigneeName: string = 'Unassigned';
-  reporterName: string = 'Sarah Adams';
-  usersList: User[] = [];
+  reporterName: string = 'Unknown';
+  // projectMembers: list of users who belong to the current project (for assignment)
+  projectUsers: { id: string; userName?: string; fullName: string; email?: string; role: 'MEMBER' | 'ADMIN' }[] = [];
 
   // Description / Notes Editor
   editingNotes: boolean = false;
   notesText: string = '';
+
+  // Edit dialog
+  showEditDialog = false;
+  editTask: Partial<CreateWorkItemCommand & { notes?: string; estimatedEffort?: number }> = {};
+
+  // Delete dialog
+  showDeleteDialog = false;
 
   // Comments & Attachments from DB
   comments: Comment[] = [];
@@ -72,15 +83,80 @@ export class TaskDetailComponent implements OnInit {
       }
     });
 
-    const token = this.authService.getToken();
-    this.userEmail = token ? this.decodeEmailFromJwt(token) : '';
+    this.loadCurrentUser();
 
-    this.userService.getAllUsers().subscribe({
-      next: (list) => {
-        this.usersList = list;
+  }
+
+  private loadCurrentUser(): void {
+    this.userService.getCurrentUserProfile().subscribe({
+      next: (user) => {
+        this.currentUserId = user.id;
         this.cdr.markForCheck();
       },
-      error: (err) => console.error('Error loading users list', err)
+      error: (err) => {
+        console.error('Error loading current user profile', err);
+      },
+    });
+  }
+
+  // Show edit dialog and prefill values
+  openEditDialog(): void {
+    if (!this.task || !this.canEditTask()) return;
+    this.editTask = {
+      description: this.task.description,
+      priority: this.task.priority,
+      type: this.task.type,
+      status: this.task.status,
+      dueDate: this.task.dueDate,
+      estimatedEffort: this.task.estimatedEffort,
+      projectId: this.task.projectId,
+      assigneeId: this.task.assigneeId,
+      notes: this.notesText,
+    };
+    this.showEditDialog = true;
+  }
+
+  cancelEditDialog(): void {
+    this.showEditDialog = false;
+  }
+
+  confirmEditTask(): void {
+    if (!this.id || !this.showEditDialog || !this.canEditTask()) return;
+    const normalizedAssigneeId = this.editTask.assigneeId?.trim() || null;
+    const workItemPayload = {
+      ...this.editTask,
+      assigneeId: normalizedAssigneeId,
+    } as Partial<CreateWorkItemCommand & { notes?: string; estimatedEffort?: number; assigneeId?: string | null }>;
+
+    this.workItemService.updateWorkItem(this.id, workItemPayload).subscribe({
+      next: () => {
+        this.showEditDialog = false;
+        this.loadTask();
+      },
+      error: (err) => {
+        console.error('Error updating task', err);
+      }
+    });
+  }
+
+  openDeleteDialog(): void {
+    this.showDeleteDialog = true;
+  }
+
+  cancelDeleteDialog(): void {
+    this.showDeleteDialog = false;
+  }
+
+  confirmDeleteTask(): void {
+    if (!this.id || !this.task || !this.canEditTask()) return;
+    this.workItemService.deleteWorkItem(this.id).subscribe({
+      next: () => {
+        // Navigate back to project details
+        if (this.task && this.task.projectId) {
+          this.router.navigate(['/projects', this.task.projectId]);
+        }
+      },
+      error: (err) => console.error('Error deleting task', err),
     });
   }
 
@@ -92,15 +168,6 @@ export class TaskDetailComponent implements OnInit {
     }
     if (workItemService) {
       (this as any).workItemService = workItemService as WorkItemService;
-    }
-  }
-
-  private decodeEmailFromJwt(token: string): string {
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1] as string));
-      return (payload.sub as string) ?? '';
-    } catch {
-      return '';
     }
   }
 
@@ -121,42 +188,22 @@ export class TaskDetailComponent implements OnInit {
         if (data.projectId) {
           this.projectService.getProjectById(data.projectId).subscribe({
             next: (proj) => {
-              this.project = proj;
-              this.cdr.markForCheck();
-            },
+                  if (!proj) {
+                    return;
+                  }
+                  this.project = proj;
+                  // set reporter to project owner (lead) when available
+                  this.reporterName = proj.ownerName || this.reporterName;
+                  this.loadProjectMembers(proj.id);
+                  this.cdr.markForCheck();
+                },
             error: (err) => console.error('Error loading project details', err)
           });
         }
 
-        if (data.assigneeId) {
-          this.userService.getUserById(data.assigneeId).subscribe({
-            next: (u) => {
-              this.assigneeName = u.userName;
-              this.cdr.markForCheck();
-            },
-            error: () => {
-              this.assigneeName = 'Unassigned';
-              this.cdr.markForCheck();
-            }
-          });
-        } else {
-          this.assigneeName = 'Unassigned';
-        }
+        this.syncAssigneeName();
 
-        if (data.authorId) {
-          this.userService.getUserById(data.authorId).subscribe({
-            next: (u) => {
-              this.reporterName = u.userName;
-              this.cdr.markForCheck();
-            },
-            error: () => {
-              this.reporterName = 'Sarah Adams';
-              this.cdr.markForCheck();
-            }
-          });
-        } else {
-          this.reporterName = 'Sarah Adams';
-        }
+        // reporterName is driven by project owner (lead). If unavailable, keep 'Unknown'.
 
         this.cdr.markForCheck();
       },
@@ -165,6 +212,47 @@ export class TaskDetailComponent implements OnInit {
         this.cdr.markForCheck();
       },
     });
+  }
+
+  private loadProjectMembers(projectId: string) {
+    this.memberService.getProjectMembers(projectId).subscribe({
+      next: (members) => {
+        this.projectUsers = members.map((m) => ({
+          id: m.userId,
+          userName: m.userName,
+          fullName: `${(m.firstName || '').trim()} ${(m.lastName || '').trim()}`.trim() || m.userName || m.emailAddress || 'Unknown',
+          email: m.emailAddress,
+          role: m.role,
+        }));
+        this.syncAssigneeName();
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        console.error('Error loading project members', err);
+      },
+    });
+  }
+
+  private syncAssigneeName(): void {
+    if (!this.assigneeId) {
+      this.assigneeName = 'Unassigned';
+      return;
+    }
+
+    const member = this.projectUsers.find((user) => user.id === this.assigneeId);
+    this.assigneeName = member?.fullName || member?.userName || 'Unassigned';
+  }
+
+  canEditTask(): boolean {
+    if (!this.task || !this.currentUserId) {
+      return false;
+    }
+
+    if (this.task.authorId === this.currentUserId) {
+      return true;
+    }
+
+    return this.projectUsers.some((member) => member.id === this.currentUserId && member.role === 'ADMIN');
   }
 
   updateStatus() {
@@ -178,16 +266,19 @@ export class TaskDetailComponent implements OnInit {
 
   assignUser() {
     if (this.id) {
-      this.workItemService.assignWorkItem(this.id, { assigneeId: this.assigneeId }).subscribe({
+      const normalizedAssigneeId = this.assigneeId.trim();
+      this.workItemService.assignWorkItem(this.id, { assigneeId: normalizedAssigneeId ? normalizedAssigneeId : null }).subscribe({
         next: () => this.loadTask(),
-        error: (err) => console.error(err),
+        error: (err) => {
+          console.error('Failed to update assignee', err);
+        },
       });
     }
   }
 
   // Editable Notes
   saveNotes(): void {
-    if (!this.id) return;
+    if (!this.id || !this.canEditTask()) return;
     this.workItemService.updateWorkItemNotes(this.id, this.notesText.trim()).subscribe({
       next: () => {
         this.editingNotes = false;

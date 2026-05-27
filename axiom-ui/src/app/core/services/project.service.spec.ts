@@ -75,4 +75,14 @@ describe('ProjectService', () => {
     expect(request.request.body).toEqual(command);
     request.flush('project-1');
   });
+
+  it('deletes a project', () => {
+    service.deleteProject('project-1').subscribe((result) => {
+      expect(result).toBeNull();
+    });
+
+    const request = httpMock.expectOne('/api/projects/project-1');
+    expect(request.request.method).toBe('DELETE');
+    request.flush(null);
+  });
 });

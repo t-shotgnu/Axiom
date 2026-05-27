@@ -5,9 +5,9 @@ import { TaskDetailComponent } from './task-detail';
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { ProjectService } from '../../core/services/project.service';
 import { UserService } from '../../core/services/user.service';
+import { ProjectMemberService } from '../../core/services/project-member.service';
 import { CommentService } from '../../core/services/comment.service';
 import { AttachmentService } from '../../core/services/attachment.service';
-import { AuthService } from '../../core/services/auth.service';
 
 describe('TaskDetailComponent', () => {
   let workItemService: {
@@ -60,10 +60,15 @@ describe('TaskDetailComponent', () => {
         { provide: WorkItemService, useValue: workItemService },
         // shallow stubs for other injected services
         { provide: ProjectService, useValue: { getProjectById: vi.fn(() => of(null)) } },
-        { provide: UserService, useValue: { getAllUsers: vi.fn(() => of([])), getUserById: vi.fn(() => of({ userName: 'u' })) } },
+        {
+          provide: UserService,
+          useValue: {
+            getCurrentUserProfile: vi.fn(() => of({ id: 'user-1', userName: 'current', emailAddress: 'current@example.com' })),
+          },
+        },
+        { provide: ProjectMemberService, useValue: { getProjectMembers: vi.fn(() => of([])) } },
         { provide: CommentService, useValue: { getComments: vi.fn(() => of([])) } },
         { provide: AttachmentService, useValue: { getAttachments: vi.fn(() => of([])) } },
-        { provide: AuthService, useValue: { getToken: vi.fn(() => null) } },
       ],
     }).compileComponents();
 
@@ -89,10 +94,15 @@ describe('TaskDetailComponent', () => {
         { provide: ActivatedRoute, useValue: createRoute(null) },
         { provide: WorkItemService, useValue: workItemService },
         { provide: ProjectService, useValue: { getProjectById: vi.fn(() => of(null)) } },
-        { provide: UserService, useValue: { getAllUsers: vi.fn(() => of([])), getUserById: vi.fn(() => of({ userName: 'u' })) } },
+        {
+          provide: UserService,
+          useValue: {
+            getCurrentUserProfile: vi.fn(() => of({ id: 'user-1', userName: 'current', emailAddress: 'current@example.com' })),
+          },
+        },
+        { provide: ProjectMemberService, useValue: { getProjectMembers: vi.fn(() => of([])) } },
         { provide: CommentService, useValue: { getComments: vi.fn(() => of([])) } },
         { provide: AttachmentService, useValue: { getAttachments: vi.fn(() => of([])) } },
-        { provide: AuthService, useValue: { getToken: vi.fn(() => null) } },
       ],
     }).compileComponents();
 
@@ -131,5 +141,28 @@ describe('TaskDetailComponent', () => {
     expect(component.getSeverity('Resolved')).toBe('success');
     expect(component.getSeverity('Closed')).toBe('secondary');
     expect(component.getSeverity('Unexpected')).toBe('info');
+  });
+
+  it('allows editing for task author', () => {
+    component.task = { ...task, authorId: 'user-1' };
+    component.currentUserId = 'user-1';
+
+    expect(component.canEditTask()).toBe(true);
+  });
+
+  it('allows editing for project admin', () => {
+    component.task = { ...task, authorId: 'author-1' };
+    component.currentUserId = 'admin-1';
+    component.projectUsers = [{ id: 'admin-1', fullName: 'Admin User', role: 'ADMIN' }];
+
+    expect(component.canEditTask()).toBe(true);
+  });
+
+  it('blocks editing for regular project member', () => {
+    component.task = { ...task, authorId: 'author-1' };
+    component.currentUserId = 'member-1';
+    component.projectUsers = [{ id: 'member-1', fullName: 'Member User', role: 'MEMBER' }];
+
+    expect(component.canEditTask()).toBe(false);
   });
 });

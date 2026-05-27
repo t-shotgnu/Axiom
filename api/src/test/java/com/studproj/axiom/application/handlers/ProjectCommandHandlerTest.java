@@ -3,7 +3,12 @@ package com.studproj.axiom.application.handlers;
 import com.studproj.axiom.application.dto.command.CreateProjectCommand;
 import com.studproj.axiom.domain.model.Project;
 import com.studproj.axiom.domain.model.User;
+import com.studproj.axiom.domain.model.ProjectMembership;
+import com.studproj.axiom.domain.model.ProjectRole;
+import com.studproj.axiom.domain.model.ProjectRoleType;
 import com.studproj.axiom.domain.repository.ProjectRepository;
+import com.studproj.axiom.domain.repository.ProjectMembershipRepository;
+import com.studproj.axiom.domain.repository.ProjectRoleRepository;
 import com.studproj.axiom.domain.repository.UserRepository;
 import com.studproj.axiom.domain.service.AuthenticatedUserProvider;
 import org.junit.jupiter.api.AfterEach;
@@ -34,6 +39,12 @@ class ProjectCommandHandlerTest {
     private UserRepository userRepository;
 
     @Mock
+    private ProjectMembershipRepository projectMembershipRepository;
+
+    @Mock
+    private ProjectRoleRepository projectRoleRepository;
+
+    @Mock
     private AuthenticatedUserProvider authenticatedUserProvider;
 
 
@@ -41,7 +52,12 @@ class ProjectCommandHandlerTest {
 
     @BeforeEach
     void setUp() {
-        handler = new ProjectCommandHandler(projectRepository, userRepository, authenticatedUserProvider);
+        handler = new ProjectCommandHandler(
+            projectRepository,
+            userRepository,
+            projectMembershipRepository,
+            projectRoleRepository,
+            authenticatedUserProvider);
         SecurityContextHolder.getContext()
                 .setAuthentication(new UsernamePasswordAuthenticationToken("owner@example.com", "password"));
         org.mockito.Mockito.lenient().when(authenticatedUserProvider.getAuthenticatedUserEmail()).thenReturn("owner@example.com");
@@ -57,6 +73,8 @@ class ProjectCommandHandlerTest {
         UUID ownerId = UUID.randomUUID();
         when(userRepository.findByEmail("owner@example.com"))
                 .thenReturn(Optional.of(User.builder().id(ownerId).emailAddress("owner@example.com").build()));
+        when(projectRoleRepository.findByType(ProjectRoleType.ADMIN))
+            .thenReturn(Optional.of(ProjectRole.builder().id(UUID.randomUUID()).type(ProjectRoleType.ADMIN).build()));
 
         UUID projectId = handler.createProject(new CreateProjectCommand("Axiom", "AX", "Main project"));
 
@@ -70,6 +88,7 @@ class ProjectCommandHandlerTest {
         assertThat(savedProject.getDescription()).isEqualTo("Main project");
         assertThat(savedProject.getOwnerId()).isEqualTo(ownerId);
         assertThat(savedProject.getCreatedOn()).isNotNull();
+        verify(projectMembershipRepository).save(org.mockito.ArgumentMatchers.any(ProjectMembership.class));
     }
 
     @Test
@@ -84,9 +103,25 @@ class ProjectCommandHandlerTest {
     @Test
     void deleteProjectDelegatesToRepository() {
         UUID projectId = UUID.randomUUID();
+        UUID ownerId = UUID.randomUUID();
+        UUID roleId = UUID.randomUUID();
+
+        when(projectRepository.findById(projectId)).thenReturn(Optional.of(Project.builder().id(projectId).build()));
+
+        when(authenticatedUserProvider.getAuthenticatedUserId()).thenReturn(ownerId);
+        when(projectMembershipRepository.findByProjectIdAndUserId(projectId, ownerId))
+            .thenReturn(Optional.of(ProjectMembership.builder()
+                .id(UUID.randomUUID())
+                .projectId(projectId)
+                .userId(ownerId)
+                .roleId(roleId)
+                .build()));
+        when(projectRoleRepository.findById(roleId))
+            .thenReturn(Optional.of(ProjectRole.builder().id(roleId).type(ProjectRoleType.ADMIN).build()));
 
         handler.deleteProject(projectId);
 
+        verify(projectMembershipRepository).deleteByProjectId(projectId);
         verify(projectRepository).delete(projectId);
     }
 }

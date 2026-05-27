@@ -9,5 +9,6 @@ public record ProjectDto(
     String code,
     String description,
     LocalDateTime createdOn,
-    UUID ownerId
+    UUID ownerId,
+    String ownerName
 ) {}

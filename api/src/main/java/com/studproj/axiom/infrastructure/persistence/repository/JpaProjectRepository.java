@@ -6,6 +6,7 @@ import com.studproj.axiom.infrastructure.persistence.mapper.ProjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -24,6 +25,17 @@ public class JpaProjectRepository implements ProjectRepository {
     @Override
     public Optional<Project> findById(UUID id) {
         return jpaRepository.findById(id).map(ProjectMapper::toDomain);
+    }
+
+    @Override
+    public List<Project> findByIds(Collection<UUID> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+
+        return jpaRepository.findByIdIn(ids).stream()
+                .map(ProjectMapper::toDomain)
+                .collect(Collectors.toList());
     }
 
     @Override

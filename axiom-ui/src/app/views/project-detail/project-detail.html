@@ -4,126 +4,134 @@
   </div>
 } @else if (project()) {
   <div class="max-w-container-max mx-auto px-lg py-lg">
-    <!-- Breadcrumbs -->
     <nav class="flex items-center gap-xs text-on-surface-variant mb-sm">
       <a routerLink="/projects" class="font-label-sm hover:underline">Projects</a>
       <span class="material-symbols-outlined text-[16px]">chevron_right</span>
       <span class="font-label-sm">{{ project()!.name }}</span>
     </nav>
 
-    <app-text tag="h1" variant="headline-xl" customClass="mb-xl">Backlog</app-text>
-
-    <!-- Backlog Section -->
-    <app-card variant="flat" customClass="p-0 overflow-hidden">
+    <app-card variant="flat" customClass="mb-lg p-lg overflow-hidden relative">
       <div
-        class="flex justify-between items-center p-md bg-surface-container-low border-b border-outline-variant"
-      >
-        <div class="flex items-center gap-sm">
-          <span class="material-symbols-outlined text-on-surface-variant">expand_more</span>
-          <app-text tag="span" variant="headline-sm">Backlog</app-text>
-          <span class="text-on-surface-variant text-body-sm">({{ tasks().length }} issues)</span>
-        </div>
-        <div class="flex items-center gap-sm">
-          <app-button variant="outlined" customClass="py-xs">Create sprint</app-button>
-        </div>
-      </div>
+        class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary via-sky-400 to-indigo-500"
+      ></div>
 
-      <div class="divide-y divide-outline-variant">
-        @if (loadingTasks()) {
-          <div class="flex justify-center items-center py-16 bg-surface-container-lowest text-primary">
-            <span class="material-symbols-outlined animate-spin text-[40px]"
-              >progress_activity</span
+      <div class="min-w-0">
+        <div class="flex flex-wrap items-center gap-sm mb-sm">
+          <span class="text-[11px] font-black uppercase tracking-[0.28em] text-on-surface-variant"
+            >Project overview</span
+          >
+          <span class="rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary">{{
+            project()!.code | uppercase
+          }}</span>
+        </div>
+
+        <div class="flex flex-wrap items-start justify-between gap-lg">
+          <div class="min-w-0 max-w-4xl">
+            <h1
+              class="text-[44px] font-black tracking-[-0.04em] text-on-surface leading-[0.92] break-words sm:text-[58px] lg:text-[72px]"
             >
+              {{ project()!.name }}
+            </h1>
+
+            <p class="mt-md text-body-md text-on-surface-variant leading-relaxed max-w-3xl">
+              {{ project()!.description || 'No project description provided.' }}
+            </p>
           </div>
-        } @else if (tasks().length === 0) {
-          <div class="text-center py-20 text-on-surface-variant bg-surface-container-lowest">
-            <span class="material-symbols-outlined text-[48px] mb-4 opacity-50 block"
-              >assignment</span
+
+          @if (canManageProject()) {
+            <button
+              type="button"
+              (click)="openDeleteProjectDialog()"
+              class="inline-flex items-center gap-2 rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-2 text-sm font-bold text-red-700 transition-colors hover:bg-red-500/20"
             >
-            <p class="font-body-md font-bold">No tasks yet</p>
-            <p class="text-sm mt-1">Create an issue to add to the backlog.</p>
-          </div>
-        } @else {
-          @for (task of tasks(); track task.id) {
-            <a
-              [routerLink]="['/tasks', task.id]"
-              class="issue-row flex items-center justify-between p-sm cursor-pointer transition-colors bg-surface-container-lowest hover:bg-surface-container-low block"
-            >
-              <div class="flex items-center gap-md min-w-0 flex-1 pr-4">
-                <span class="material-symbols-outlined text-primary text-[18px]">drag_handle</span>
-                <span class="text-on-surface-variant font-body-sm w-20 shrink-0"
-                  >{{ project()!.code }}-{{ task.controlNo }}</span
-                >
-                <span class="font-body-md text-on-surface truncate">{{ task.description }}</span>
-              </div>
-              <div class="flex items-center gap-lg shrink-0">
-                <span
-                  class="bg-surface-variant text-on-surface-variant text-label-sm px-sm py-unit rounded uppercase"
-                  >{{ task.status }}</span
-                >
-                <span class="material-symbols-outlined text-outline-variant">{{
-                  task.assigneeId ? 'account_circle' : 'person_off'
-                }}</span>
-                <span
-                  class="bg-surface-container-highest text-on-surface-variant text-label-sm min-w-[24px] text-center rounded-full px-xs"
-                  [title]="'Priority P' + task.priority"
-                  >{{ task.priority }}</span
-                >
-              </div>
-            </a>
+              <span class="material-symbols-outlined text-[18px]">delete</span>
+              Delete project
+            </button>
           }
-        }
-      </div>
-      <div
-        (click)="openCreateDialog()"
-        class="p-sm bg-surface-container-lowest border-t border-outline-variant hover:bg-surface-container-low cursor-pointer flex items-center gap-xs"
-      >
-        <span class="material-symbols-outlined text-primary">add</span>
-        <span class="text-primary font-bold font-body-md">Create issue</span>
+        </div>
+
+        <div class="mt-lg grid gap-sm sm:grid-cols-3">
+          <div class="rounded-2xl border border-outline-variant bg-surface-container-lowest p-md">
+            <p class="text-[10px] font-black uppercase tracking-[0.22em] text-on-surface-variant">
+              Lead
+            </p>
+            <p class="mt-2 text-sm font-bold text-on-surface truncate">
+              {{ project()!.ownerName || 'Unknown lead' }}
+            </p>
+          </div>
+          <div class="rounded-2xl border border-outline-variant bg-surface-container-lowest p-md">
+            <p class="text-[10px] font-black uppercase tracking-[0.22em] text-on-surface-variant">
+              Key
+            </p>
+            <p class="mt-2 text-sm font-bold text-on-surface">{{ project()!.code | uppercase }}</p>
+          </div>
+          <div class="rounded-2xl border border-outline-variant bg-surface-container-lowest p-md">
+            <p class="text-[10px] font-black uppercase tracking-[0.22em] text-on-surface-variant">
+              Created
+            </p>
+            <p class="mt-2 text-sm font-bold text-on-surface">
+              {{ project()!.createdOn | date: 'mediumDate' }}
+            </p>
+          </div>
+        </div>
       </div>
     </app-card>
+
+    <div class="mt-lg grid gap-lg lg:grid-cols-2 items-start">
+      <app-project-members-panel
+        [projectId]="project()!.id"
+        [leadName]="project()!.ownerName || 'Unknown lead'"
+        [leadUserId]="project()!.ownerId"
+        (canManageProjectChange)="canManageProject.set($event)"
+      ></app-project-members-panel>
+
+      <app-project-backlog-panel
+        [projectId]="project()!.id"
+        [projectCode]="project()!.code"
+      ></app-project-backlog-panel>
+    </div>
   </div>
 }
 
-<!-- Create Task Dialog -->
-<app-dialog [(visible)]="showCreateDialogVisible" title="New Task">
-  <app-input
-    label="Description"
-    [(ngModel)]="newTask.description"
-    placeholder="e.g. Implement login feature"
-  ></app-input>
+<app-dialog
+  [(visible)]="showDeleteProjectDialogVisible"
+  title="Delete project"
+  size="sm"
+  position="top-lg"
+  footerStyle="plain"
+>
+  <div class="space-y-md">
+    <p class="text-base leading-relaxed text-on-surface">
+      Are you sure you want to delete this project? This operation can not be undone and will
+      permanently remove all associated data.
+    </p>
 
-  <div class="flex flex-col gap-xs">
-    <label class="font-label-md text-on-surface font-semibold">Type</label>
-    <select
-      [(ngModel)]="newTask.type"
-      class="w-full px-md py-sm border border-outline-variant rounded focus:outline-none focus:border-primary bg-surface text-on-surface appearance-none"
-    >
-      @for (opt of typeOptions; track opt.value) {
-        <option [value]="opt.value">{{ opt.label }}</option>
-      }
-    </select>
-  </div>
-
-  <div class="grid grid-cols-2 gap-md">
-    <div class="flex flex-col gap-xs">
-      <label class="font-label-md text-on-surface font-semibold">Status</label>
-      <select
-        [(ngModel)]="newTask.status"
-        class="w-full px-md py-sm border border-outline-variant rounded focus:outline-none focus:border-primary bg-surface text-on-surface appearance-none"
+    @if (projectDeleteErrorMessage()) {
+      <div
+        class="rounded border border-red-200 bg-red-50 px-md py-sm text-sm font-medium text-red-800"
+        role="alert"
       >
-        @for (opt of statusOptions; track opt.value) {
-          <option [value]="opt.value">{{ opt.label }}</option>
-        }
-      </select>
-    </div>
-    <app-input type="number" label="Priority (1–10)" [(ngModel)]="newTask.priority"></app-input>
+        {{ projectDeleteErrorMessage() }}
+      </div>
+    }
   </div>
 
-  <div footer>
-    <app-button variant="outlined" (onClick)="showCreateDialog.set(false)">Cancel</app-button>
-    <app-button variant="primary" (onClick)="createTask()" [loading]="creating()"
-      >Create</app-button
-    >
+  <div footer class="w-full">
+    <div class="flex w-full items-center justify-between gap-sm">
+      <app-button
+        variant="outlined"
+        (onClick)="cancelDeleteProjectDialog()"
+        [disabled]="deletingProject()"
+        >Cancel</app-button
+      >
+      <app-button
+        variant="primary"
+        (onClick)="confirmDeleteProject()"
+        [loading]="deletingProject()"
+        customClass="bg-red-600 hover:bg-red-700 text-white"
+      >
+        Confirm
+      </app-button>
+    </div>
   </div>
 </app-dialog>

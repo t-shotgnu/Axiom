@@ -6,13 +6,13 @@ import { RouterModule } from '@angular/router';
 import { finalize } from 'rxjs';
 import { Project, ProjectService } from '../../core/services/project.service';
 import { CreateProjectComponent } from './create-project';
+import { DialogComponent } from '../../shared/components/ui/dialog';
 import { ButtonComponent } from '../../shared/components/ui/button';
-import { CardComponent } from '../../shared/components/ui/card';
 
 @Component({
   selector: 'app-projects',
   standalone: true,
-  imports: [CommonModule, RouterModule, CreateProjectComponent],
+  imports: [CommonModule, RouterModule, CreateProjectComponent, DialogComponent, ButtonComponent],
   templateUrl: './projects.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -20,6 +20,10 @@ export class ProjectsComponent {
   projects: Project[] = [];
   loading = false;
   errorMessage = '';
+  deleteDialogVisible = false;
+  deleteDialogProject: Project | null = null;
+  deleting = false;
+  deleteErrorMessage = '';
 
   listState: 'loading' | 'error' | 'empty' | 'list' = 'loading';
 
@@ -66,6 +70,48 @@ export class ProjectsComponent {
       });
   }
 
+  openDeleteDialog(project: Project): void {
+    this.deleteDialogProject = project;
+    this.deleteErrorMessage = '';
+    this.deleteDialogVisible = true;
+    this.cdr.markForCheck();
+  }
+
+  cancelDeleteDialog(): void {
+    this.deleteDialogVisible = false;
+    this.deleteDialogProject = null;
+    this.deleteErrorMessage = '';
+    this.cdr.markForCheck();
+  }
+
+  confirmDeleteProject(): void {
+    if (!this.deleteDialogProject || this.deleting) {
+      return;
+    }
+
+    this.deleting = true;
+    this.deleteErrorMessage = '';
+
+    this.projectService
+      .deleteProject(this.deleteDialogProject.id)
+      .pipe(
+        finalize(() => {
+          this.deleting = false;
+          this.cdr.markForCheck();
+        }),
+      )
+      .subscribe({
+        next: () => {
+          this.cancelDeleteDialog();
+          this.loadProjects();
+        },
+        error: (err: unknown) => {
+          this.deleteErrorMessage = this.mapProjectDeleteError(err);
+          this.cdr.markForCheck();
+        },
+      });
+  }
+
   private mapProjectLoadError(err: unknown): string {
     if (err instanceof HttpErrorResponse) {
       if (err.status === 401 || err.status === 403) {
@@ -80,6 +126,25 @@ export class ProjectsComponent {
       }
     }
     return 'Could not load projects. Check if the API is running.';
+  }
+
+  private mapProjectDeleteError(err: unknown): string {
+    if (err instanceof HttpErrorResponse) {
+      if (err.status === 401) {
+        return 'Your session expired. Sign in again, then retry deleting the project.';
+      }
+      if (err.status === 403) {
+        return 'You are not allowed to delete this project.';
+      }
+      if (err.status === 0) {
+        return 'Could not reach the API. Check your network connection.';
+      }
+      const apiMessage = this.extractApiMessage(err);
+      if (apiMessage) {
+        return apiMessage;
+      }
+    }
+    return 'Could not delete the project. Please try again.';
   }
 
   private extractApiMessage(err: HttpErrorResponse): string | null {
