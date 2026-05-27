@@ -1,7 +1,8 @@
 package com.studproj.axiom.presentation.controller;
 
-import com.studproj.axiom.application.dto.query.DashboardSummaryDto;
-import com.studproj.axiom.application.handlers.DashboardQueryHandler;
+import com.studproj.axiom.application.features.dashboard.getdashboardsummary.DashboardSummaryDto;
+import com.studproj.axiom.application.features.dashboard.getdashboardsummary.GetDashboardSummaryQuery;
+import com.studproj.axiom.application.features.dashboard.getdashboardsummary.GetDashboardSummaryQueryHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,10 +13,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/dashboard")
 @RequiredArgsConstructor
 public class DashboardController {
-    private final DashboardQueryHandler queryHandler;
+    private final GetDashboardSummaryQueryHandler queryHandler;
 
     @GetMapping("/summary")
     public ResponseEntity<DashboardSummaryDto> getSummary() {
-        return ResponseEntity.ok(queryHandler.getSummary());
+        return ResponseEntity.ok(queryHandler.handle(new GetDashboardSummaryQuery()));
     }
 }

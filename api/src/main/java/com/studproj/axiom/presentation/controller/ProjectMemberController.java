@@ -1,10 +1,14 @@
 package com.studproj.axiom.presentation.controller;
 
-import com.studproj.axiom.application.dto.command.AddProjectMemberCommand;
-import com.studproj.axiom.application.dto.command.ChangeProjectMemberRoleCommand;
-import com.studproj.axiom.application.dto.query.ProjectMemberDto;
-import com.studproj.axiom.application.handlers.ProjectMemberCommandHandler;
-import com.studproj.axiom.application.handlers.ProjectMemberQueryHandler;
+import com.studproj.axiom.application.features.projectmembers.addprojectmember.AddProjectMemberCommand;
+import com.studproj.axiom.application.features.projectmembers.addprojectmember.AddProjectMemberCommandHandler;
+import com.studproj.axiom.application.features.projectmembers.changeprojectmemberrole.ChangeProjectMemberRoleCommand;
+import com.studproj.axiom.application.features.projectmembers.changeprojectmemberrole.ChangeProjectMemberRoleCommandHandler;
+import com.studproj.axiom.application.features.projectmembers.removeprojectmember.RemoveProjectMemberCommand;
+import com.studproj.axiom.application.features.projectmembers.removeprojectmember.RemoveProjectMemberCommandHandler;
+import com.studproj.axiom.application.features.projectmembers.getprojectmembers.GetProjectMembersQuery;
+import com.studproj.axiom.application.features.projectmembers.getprojectmembers.GetProjectMembersQueryHandler;
+import com.studproj.axiom.application.features.projectmembers.getprojectmembers.ProjectMemberDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -25,12 +29,14 @@ import java.util.UUID;
 @RequestMapping("/api/projects/{projectId}/members")
 @RequiredArgsConstructor
 public class ProjectMemberController {
-    private final ProjectMemberQueryHandler queryHandler;
-    private final ProjectMemberCommandHandler commandHandler;
+    private final GetProjectMembersQueryHandler getProjectMembersQueryHandler;
+    private final AddProjectMemberCommandHandler addProjectMemberCommandHandler;
+    private final ChangeProjectMemberRoleCommandHandler changeProjectMemberRoleCommandHandler;
+    private final RemoveProjectMemberCommandHandler removeProjectMemberCommandHandler;
 
     @GetMapping
     public ResponseEntity<List<ProjectMemberDto>> getProjectMembers(@PathVariable UUID projectId) {
-        return ResponseEntity.ok(queryHandler.getProjectMembers(projectId));
+        return ResponseEntity.ok(getProjectMembersQueryHandler.handle(new GetProjectMembersQuery(projectId)));
     }
 
     @PostMapping
@@ -38,7 +44,7 @@ public class ProjectMemberController {
             @PathVariable UUID projectId,
             @Valid @RequestBody AddProjectMemberCommand command
     ) {
-        commandHandler.addMember(projectId, command);
+        addProjectMemberCommandHandler.handle(projectId, command);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
@@ -48,13 +54,13 @@ public class ProjectMemberController {
             @PathVariable UUID userId,
             @Valid @RequestBody ChangeProjectMemberRoleCommand command
     ) {
-        commandHandler.changeRole(projectId, userId, command);
+        changeProjectMemberRoleCommandHandler.handle(projectId, userId, command);
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{userId}")
     public ResponseEntity<Void> removeProjectMember(@PathVariable UUID projectId, @PathVariable UUID userId) {
-        commandHandler.removeMember(projectId, userId);
+        removeProjectMemberCommandHandler.handle(new RemoveProjectMemberCommand(projectId, userId));
         return ResponseEntity.noContent().build();
     }
 }

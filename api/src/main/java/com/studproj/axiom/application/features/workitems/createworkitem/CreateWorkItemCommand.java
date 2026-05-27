@@ -1,0 +1,19 @@
+package com.studproj.axiom.application.features.workitems.createworkitem;
+
+import com.studproj.axiom.domain.model.WorkItemStatus;
+import com.studproj.axiom.domain.model.WorkItemType;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+public record CreateWorkItemCommand(
+    @NotBlank String description,
+    Integer priority,
+    @NotNull WorkItemType type,
+    @NotNull WorkItemStatus status,
+    LocalDateTime dueDate,
+    Integer estimatedEffort,
+    @NotNull UUID projectId,
+    UUID assigneeId
+) {}

@@ -1,9 +1,13 @@
 package com.studproj.axiom.presentation.controller;
 
-import com.studproj.axiom.application.dto.command.CreateProjectCommand;
-import com.studproj.axiom.application.dto.query.ProjectDto;
-import com.studproj.axiom.application.handlers.ProjectCommandHandler;
-import com.studproj.axiom.application.handlers.ProjectQueryHandler;
+import com.studproj.axiom.application.features.projects.createproject.CreateProjectCommand;
+import com.studproj.axiom.application.features.projects.createproject.CreateProjectCommandHandler;
+import com.studproj.axiom.application.features.projects.deleteproject.DeleteProjectCommand;
+import com.studproj.axiom.application.features.projects.deleteproject.DeleteProjectCommandHandler;
+import com.studproj.axiom.application.features.projects.getallprojects.GetAllProjectsQuery;
+import com.studproj.axiom.application.features.projects.getallprojects.GetAllProjectsQueryHandler;
+import com.studproj.axiom.application.features.projects.getprojectdetails.GetProjectDetailsQuery;
+import com.studproj.axiom.application.features.projects.getprojectdetails.GetProjectDetailsQueryHandler;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -23,30 +27,32 @@ import java.util.UUID;
 @RequestMapping("/api/projects")
 @RequiredArgsConstructor
 public class ProjectController {
-    private final ProjectCommandHandler commandService;
-    private final ProjectQueryHandler queryService;
+    private final CreateProjectCommandHandler createProjectCommandHandler;
+    private final DeleteProjectCommandHandler deleteProjectCommandHandler;
+    private final GetAllProjectsQueryHandler getAllProjectsQueryHandler;
+    private final GetProjectDetailsQueryHandler getProjectDetailsQueryHandler;
 
     @PostMapping
     public ResponseEntity<UUID> createProject(@Valid @RequestBody CreateProjectCommand command) {
-        UUID projectId = commandService.createProject(command);
+        UUID projectId = createProjectCommandHandler.handle(command);
         return new ResponseEntity<>(projectId, HttpStatus.CREATED);
     }
 
     @GetMapping
-    public ResponseEntity<List<ProjectDto>> getAllProjects() {
-        return ResponseEntity.ok(queryService.getAllProjects());
+    public ResponseEntity<List<com.studproj.axiom.application.features.projects.getallprojects.ProjectDto>> getAllProjects() {
+        return ResponseEntity.ok(getAllProjectsQueryHandler.handle(new GetAllProjectsQuery()));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ProjectDto> getProject(@PathVariable UUID id) {
-        return queryService.getProjectById(id)
+    public ResponseEntity<com.studproj.axiom.application.features.projects.getprojectdetails.ProjectDto> getProject(@PathVariable UUID id) {
+        return getProjectDetailsQueryHandler.handle(new GetProjectDetailsQuery(id))
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteProject(@PathVariable UUID id) {
-        commandService.deleteProject(id);
+        deleteProjectCommandHandler.handle(new DeleteProjectCommand(id));
         return ResponseEntity.noContent().build();
     }
 }
