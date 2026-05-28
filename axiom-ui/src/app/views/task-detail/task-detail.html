@@ -16,7 +16,7 @@
     <a routerLink="/projects" class="hover:underline">Projects</a>
     <span class="material-symbols-outlined text-[14px]">chevron_right</span>
     <a [routerLink]="['/projects', task.projectId]" class="hover:underline">{{
-      project?.name || 'Project Alpha'
+      project?.name || 'Project'
     }}</a>
     <span class="material-symbols-outlined text-[14px]">chevron_right</span>
     <span class="text-on-surface font-semibold"
@@ -52,9 +52,6 @@
       >
       <div class="h-6 w-px bg-outline-variant mx-xs"></div>
     }
-    <app-button variant="secondary" icon="link" customClass="py-xs text-xs font-bold"
-      >Link Issue</app-button
-    >
   </div>
 
   <div class="grid grid-cols-12 gap-xl flex-1">
@@ -351,30 +348,6 @@
             </div>
           </div>
 
-          <!-- Labels -->
-          <div
-            class="grid grid-cols-12 gap-xs items-center py-xs border-b border-outline-variant/40"
-          >
-            <span class="col-span-4 text-xs font-bold text-on-surface-variant select-none"
-              >Labels</span
-            >
-            <div class="col-span-8 flex flex-wrap gap-xs items-center p-unit">
-              <span
-                class="bg-[#0052cc]/10 text-primary border border-primary/20 px-sm py-[2px] rounded text-[9px] font-bold select-none"
-                >UI/UX</span
-              >
-              <span
-                class="bg-[#0052cc]/10 text-primary border border-primary/20 px-sm py-[2px] rounded text-[9px] font-bold select-none"
-                >Frontend</span
-              >
-              <button
-                class="material-symbols-outlined text-[14px] text-on-surface-variant hover:text-primary transition-colors p-unit rounded hover:bg-surface-container-high"
-              >
-                add
-              </button>
-            </div>
-          </div>
-
           <!-- Story Points -->
           <div class="grid grid-cols-12 gap-xs items-center py-xs">
             <span class="col-span-4 text-xs font-bold text-on-surface-variant select-none"
@@ -390,13 +363,6 @@
           </div>
         </div>
 
-        <!-- Timestamps info -->
-        <div
-          class="text-[10px] text-on-surface-variant space-y-[2px] font-bold uppercase tracking-wider select-none px-sm"
-        >
-          <div>Created 2 days ago</div>
-          <div>Updated 45 minutes ago</div>
-        </div>
       </div>
     </div>
   </div>
@@ -440,6 +406,8 @@
           <option value="Bug">Bug</option>
           <option value="Feature">Feature</option>
           <option value="Epic">Epic</option>
+          <option value="UserStory">User Story</option>
+          <option value="Subtask">Subtask</option>
         </select>
       </div>
     </div>

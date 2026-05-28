@@ -50,7 +50,7 @@ export class TaskDetailComponent implements OnInit {
 
   // Edit dialog
   showEditDialog = false;
-  editTask: Partial<CreateWorkItemCommand & { notes?: string; estimatedEffort?: number }> = {};
+  editTask: Partial<CreateWorkItemCommand & { notes?: string }> = {};
 
   // Delete dialog
   showDeleteDialog = false;
@@ -63,6 +63,8 @@ export class TaskDetailComponent implements OnInit {
   statusOptions = [
     { label: 'TO DO', value: 'New' },
     { label: 'IN PROGRESS', value: 'Active' },
+    { label: 'IN DEVELOPMENT', value: 'InDevelopment' },
+    { label: 'IN TESTING', value: 'InTesting' },
     { label: 'REVIEW', value: 'Resolved' },
     { label: 'DONE', value: 'Closed' }
   ];
@@ -126,7 +128,7 @@ export class TaskDetailComponent implements OnInit {
     const workItemPayload = {
       ...this.editTask,
       assigneeId: normalizedAssigneeId,
-    } as Partial<CreateWorkItemCommand & { notes?: string; estimatedEffort?: number; assigneeId?: string | null }>;
+    } as Partial<CreateWorkItemCommand & { notes?: string; assigneeId?: string | null }>;
 
     this.workItemService.updateWorkItem(this.id, workItemPayload).subscribe({
       next: () => {
@@ -161,7 +163,7 @@ export class TaskDetailComponent implements OnInit {
   }
 
   // Test-friendly constructor: when tests instantiate the component directly
-  // they pass mocks; allow optional overrides to support that pattern.
+  // they pass doubles; allow optional overrides to support that pattern.
   constructor(route?: ActivatedRoute, workItemService?: WorkItemService) {
     if (route) {
       (this as any).route = route as ActivatedRoute;
@@ -184,6 +186,7 @@ export class TaskDetailComponent implements OnInit {
         // Load live Comments and Attachments
         this.loadComments();
         this.loadAttachments();
+        this.loadReporter(data.authorId);
 
         if (data.projectId) {
           this.projectService.getProjectById(data.projectId).subscribe({
@@ -192,8 +195,6 @@ export class TaskDetailComponent implements OnInit {
                     return;
                   }
                   this.project = proj;
-                  // set reporter to project owner (lead) when available
-                  this.reporterName = proj.ownerName || this.reporterName;
                   this.loadProjectMembers(proj.id);
                   this.cdr.markForCheck();
                 },
@@ -212,6 +213,29 @@ export class TaskDetailComponent implements OnInit {
         this.cdr.markForCheck();
       },
     });
+  }
+
+  private loadReporter(authorId: string): void {
+    if (!authorId) {
+      this.reporterName = 'Unknown';
+      return;
+    }
+
+    this.userService.getUserById(authorId).subscribe({
+      next: (user) => {
+        this.reporterName = this.getUserDisplayName(user);
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        console.error('Error loading task reporter', err);
+        this.reporterName = authorId;
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  private getUserDisplayName(user: User): string {
+    return `${(user.firstName || '').trim()} ${(user.lastName || '').trim()}`.trim() || user.userName || user.emailAddress || user.id;
   }
 
   private loadProjectMembers(projectId: string) {
@@ -240,7 +264,7 @@ export class TaskDetailComponent implements OnInit {
     }
 
     const member = this.projectUsers.find((user) => user.id === this.assigneeId);
-    this.assigneeName = member?.fullName || member?.userName || 'Unassigned';
+    this.assigneeName = member?.fullName || member?.userName || this.assigneeId;
   }
 
   canEditTask(): boolean {
@@ -357,6 +381,9 @@ export class TaskDetailComponent implements OnInit {
       case 'New':
         return 'info';
       case 'Active':
+        return 'warn';
+      case 'InDevelopment':
+      case 'InTesting':
         return 'warn';
       case 'Resolved':
         return 'success';

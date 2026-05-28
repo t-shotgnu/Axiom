@@ -12,15 +12,15 @@
       </h1>
     </div>
     <div class="flex gap-sm items-center">
-      <!-- Contributor Avatars -->
-      <div class="flex -space-x-1.5 items-center mr-xs">
-        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" class="w-7 h-7 rounded-full border-2 border-surface-container-lowest object-cover" title="Sarah Miller" />
-        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" class="w-7 h-7 rounded-full border-2 border-surface-container-lowest object-cover" title="Alex Kim" />
-        <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" class="w-7 h-7 rounded-full border-2 border-surface-container-lowest object-cover" title="John Doe" />
-        <div class="w-7 h-7 rounded-full border-2 border-surface-container-lowest bg-surface-container-high text-on-surface-variant flex items-center justify-center font-bold text-[10px] shrink-0">+4</div>
-      </div>
-      <app-button variant="primary" customClass="py-xs font-bold text-xs">Complete Sprint</app-button>
-      <button class="material-symbols-outlined text-on-surface-variant hover:bg-surface-container-high p-xs rounded-lg transition-colors">more_horiz</button>
+      @if (currentProject) {
+        <app-button
+          variant="primary"
+          icon="add"
+          (onClick)="openCreateDialog()"
+          customClass="py-xs font-bold text-xs"
+          >Create issue</app-button
+        >
+      }
     </div>
   </div>
 
@@ -64,16 +64,8 @@
       [class.hover:bg-surface-container-low]="!recentlyUpdated"
       class="px-md py-[7px] border border-outline-variant rounded text-xs font-bold transition-all"
     >
-      Recently Updated
+      Newest First
     </button>
-
-    <!-- More Dropdown (Static aesthetic) -->
-    <div class="relative">
-      <button class="px-md py-[7px] bg-surface-container-lowest border border-outline-variant rounded text-xs font-bold text-on-surface-variant hover:bg-surface-container-low transition-all flex items-center gap-xs">
-        <span>More</span>
-        <span class="material-symbols-outlined text-[16px]">expand_more</span>
-      </button>
-    </div>
   </div>
 
   <!-- Loading State -->
@@ -124,10 +116,10 @@
               <td class="py-sm pl-md pr-xs text-center">
                 <span class="material-symbols-outlined text-[18px] align-middle select-none"
                   [class.text-red-500]="task.type === 'Bug'"
-                  [class.text-green-500]="task.type === 'Story'"
+                  [class.text-green-500]="task.type === 'UserStory'"
                   [class.text-blue-500]="task.type === 'Task'"
                 >
-                  {{ task.type === 'Bug' ? 'bug_report' : task.type === 'Story' ? 'menu_book' : 'assignment' }}
+                  {{ task.type === 'Bug' ? 'bug_report' : task.type === 'UserStory' ? 'menu_book' : 'assignment' }}
                 </span>
               </td>
 
@@ -161,10 +153,10 @@
               <td class="py-sm px-md">
                 <div class="flex items-center gap-xs">
                   <div class="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-[9px] shrink-0 select-none">
-                    {{ task.assigneeId ? task.assigneeId.substring(0, 2).toUpperCase() : '?' }}
+                    {{ getAssigneeInitials(task) }}
                   </div>
                   <span class="text-xs text-on-surface font-medium truncate" [class.italic]="!task.assigneeId" [class.text-on-surface-variant]="!task.assigneeId">
-                    {{ task.assigneeId || 'Unassigned' }}
+                    {{ getAssigneeName(task) }}
                   </span>
                 </div>
               </td>
@@ -244,3 +236,79 @@
   }
 </div>
 
+<app-dialog [(visible)]="showCreateDialog" title="Create issue">
+  <div class="space-y-md">
+    <div class="flex flex-col gap-xs">
+      <label class="font-label-md text-on-surface font-semibold">Summary</label>
+      <input
+        type="text"
+        [(ngModel)]="newTask.description"
+        placeholder="What needs to be done?"
+        class="w-full px-md py-sm border border-outline-variant rounded focus:outline-none focus:border-primary bg-surface text-on-surface"
+      />
+    </div>
+
+    <div class="grid grid-cols-2 gap-md">
+      <div class="flex flex-col gap-xs">
+        <label class="font-label-md text-on-surface font-semibold">Type</label>
+        <select
+          [(ngModel)]="newTask.type"
+          class="w-full px-md py-sm border border-outline-variant rounded focus:outline-none focus:border-primary bg-surface text-on-surface appearance-none"
+        >
+          <option value="Task">Task</option>
+          <option value="Bug">Bug</option>
+          <option value="Feature">Feature</option>
+          <option value="Epic">Epic</option>
+          <option value="UserStory">User Story</option>
+          <option value="Subtask">Subtask</option>
+        </select>
+      </div>
+
+      <div class="flex flex-col gap-xs">
+        <label class="font-label-md text-on-surface font-semibold">Status</label>
+        <select
+          [(ngModel)]="newTask.status"
+          class="w-full px-md py-sm border border-outline-variant rounded focus:outline-none focus:border-primary bg-surface text-on-surface appearance-none"
+        >
+          <option value="New">New</option>
+          <option value="Active">Active</option>
+          <option value="InDevelopment">In Development</option>
+          <option value="InTesting">In Testing</option>
+          <option value="Resolved">Resolved</option>
+          <option value="Closed">Closed</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-md">
+      <div class="flex flex-col gap-xs">
+        <label class="font-label-md text-on-surface font-semibold">Assignee</label>
+        <select
+          [(ngModel)]="newTask.assigneeId"
+          class="w-full px-md py-sm border border-outline-variant rounded focus:outline-none focus:border-primary bg-surface text-on-surface appearance-none"
+        >
+          <option value="">Unassigned</option>
+          @for (user of projectUsers; track user.id) {
+            <option [value]="user.id">{{ user.fullName }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="flex flex-col gap-xs">
+        <label class="font-label-md text-on-surface font-semibold">Priority</label>
+        <input
+          type="number"
+          min="1"
+          max="10"
+          [(ngModel)]="newTask.priority"
+          class="w-full px-md py-sm border border-outline-variant rounded focus:outline-none focus:border-primary bg-surface text-on-surface"
+        />
+      </div>
+    </div>
+  </div>
+
+  <div footer>
+    <app-button variant="outlined" (onClick)="cancelCreateDialog()">Cancel</app-button>
+    <app-button variant="primary" (onClick)="createTask()" [loading]="creating">Create</app-button>
+  </div>
+</app-dialog>

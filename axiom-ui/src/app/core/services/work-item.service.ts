@@ -9,11 +9,11 @@ export interface WorkItem {
   priority: number;
   type: string;
   status: string;
-  dueDate: string;
-  estimatedEffort: number;
+  dueDate?: string | null;
+  estimatedEffort?: number | null;
   projectId: string;
   authorId: string;
-  assigneeId: string;
+  assigneeId?: string | null;
   notes?: string;
 }
 
@@ -22,10 +22,10 @@ export interface CreateWorkItemCommand {
   priority: number;
   type: string;
   status: string;
-  dueDate?: string;
-  estimatedEffort?: number;
+  dueDate?: string | null;
+  estimatedEffort?: number | null;
   projectId: string;
-  assigneeId?: string;
+  assigneeId?: string | null;
 }
 
 export interface AssignWorkItemCommand {
@@ -68,7 +68,7 @@ export class WorkItemService {
     return this.http.patch<void>(`${this.apiUrl}/${id}/notes`, { notes });
   }
 
-  updateWorkItem(id: string, command: Partial<CreateWorkItemCommand & { notes?: string; estimatedEffort?: number; assigneeId?: string | null }>): Observable<void> {
+  updateWorkItem(id: string, command: Partial<CreateWorkItemCommand & { notes?: string; assigneeId?: string | null }>): Observable<void> {
     return this.http.put<void>(`${this.apiUrl}/${id}`, command);
   }
 

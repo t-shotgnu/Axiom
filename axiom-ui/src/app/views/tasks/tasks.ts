@@ -3,11 +3,22 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { finalize } from 'rxjs';
 
 import { ProjectService, Project } from '../../core/services/project.service';
-import { AuthService } from '../../core/services/auth.service';
 import { WorkItemService, WorkItem, CreateWorkItemCommand } from '../../core/services/work-item.service';
+import { ProjectMemberService } from '../../core/services/project-member.service';
+import { UserService } from '../../core/services/user.service';
 import { ButtonComponent } from '../../shared/components/ui/button';
+import { DialogComponent } from '../../shared/components/ui/dialog';
+
+type ProjectUser = {
+  id: string;
+  userName?: string;
+  fullName: string;
+  email?: string;
+  role: 'MEMBER' | 'ADMIN';
+};
 
 @Component({
   selector: 'app-tasks',
@@ -17,6 +28,7 @@ import { ButtonComponent } from '../../shared/components/ui/button';
     RouterModule,
     FormsModule,
     ButtonComponent,
+    DialogComponent,
   ],
   templateUrl: './tasks.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -25,8 +37,9 @@ export class TasksComponent implements OnInit {
   protected readonly Math = Math;
 
   private readonly projectService = inject(ProjectService);
-  private readonly authService = inject(AuthService);
   private readonly workItemService = inject(WorkItemService);
+  private readonly memberService = inject(ProjectMemberService);
+  private readonly userService = inject(UserService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -34,7 +47,11 @@ export class TasksComponent implements OnInit {
   tasks: WorkItem[] = [];
   filteredTasks: WorkItem[] = [];
   visibleTasks: WorkItem[] = [];
+  projectUsers: ProjectUser[] = [];
+  currentUserId = '';
   loading = false;
+  creating = false;
+  showCreateDialog = false;
 
   // Filters
   searchText = '';
@@ -57,12 +74,16 @@ export class TasksComponent implements OnInit {
   };
 
   ngOnInit(): void {
+    this.loadCurrentUser();
+
     this.projectService.currentProject$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (project) => {
           this.currentProject = project;
+          this.projectId = project?.id || '';
           this.currentPage = 1;
+          this.loadProjectMembers(project?.id || '');
           this.loadTasks();
         },
       });
@@ -78,18 +99,31 @@ export class TasksComponent implements OnInit {
     const pid = this.projectId || this.fetchProjectId || this.currentProject?.id;
     if (!pid) return;
 
+    const description = (this.newTask.description || '').trim();
+    if (!description) return;
+
+    const assigneeId = this.newTask.assigneeId?.trim();
     const payload: CreateWorkItemCommand = {
-      description: (this.newTask.description || '').trim(),
+      description,
       priority: (this.newTask.priority as number) || 1,
       type: (this.newTask.type as string) || 'Task',
       status: (this.newTask.status as string) || 'New',
       projectId: pid,
+      ...(assigneeId ? { assigneeId } : {}),
     };
 
-    this.workItemService.createWorkItem(payload).subscribe({
+    this.creating = true;
+    this.workItemService.createWorkItem(payload).pipe(
+      finalize(() => {
+        this.creating = false;
+        this.cdr.markForCheck();
+      }),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe({
       next: () => {
-        this.newTask.description = '';
+        this.newTask = this.emptyTask();
         this.fetchProjectId = pid;
+        this.showCreateDialog = false;
         this.loadTasks();
       },
       error: (err) => console.error('Error creating task', err),
@@ -126,24 +160,8 @@ export class TasksComponent implements OnInit {
       });
   }
 
-  getCurrentUserEmail(): string {
-    const token = this.authService.getToken();
-    if (!token) return '';
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]!));
-      return payload.sub || '';
-    } catch {
-      return '';
-    }
-  }
-
   isMyTask(task: WorkItem): boolean {
-    if (!task.assigneeId) return false;
-    const email = this.getCurrentUserEmail();
-    if (!email) return false;
-    const namePart = email.split('@')[0] || ''; // e.g. "john.doe"
-    const normalizedName = namePart.replace('.', ' ').toLowerCase(); // "john doe"
-    return task.assigneeId.toLowerCase().includes(normalizedName) || normalizedName.includes(task.assigneeId.toLowerCase());
+    return !!task.assigneeId && task.assigneeId === this.currentUserId;
   }
 
   applyFiltersAndPagination(): void {
@@ -182,7 +200,6 @@ export class TasksComponent implements OnInit {
 
   toggleRecentlyUpdated(): void {
     this.recentlyUpdated = !this.recentlyUpdated;
-    // Mock effect or sorting by control number descending
     if (this.recentlyUpdated) {
       this.tasks.sort((a, b) => b.controlNo - a.controlNo);
     } else {
@@ -203,6 +220,87 @@ export class TasksComponent implements OnInit {
       pages.push(i);
     }
     return pages;
+  }
+
+  openCreateDialog(): void {
+    if (!this.currentProject) return;
+    this.newTask = this.emptyTask();
+    this.showCreateDialog = true;
+  }
+
+  cancelCreateDialog(): void {
+    this.showCreateDialog = false;
+    this.newTask = this.emptyTask();
+  }
+
+  private emptyTask(): Partial<CreateWorkItemCommand & { description?: string }> {
+    return {
+      description: '',
+      priority: 1,
+      type: 'Task',
+      status: 'New',
+      assigneeId: '',
+    };
+  }
+
+  private loadCurrentUser(): void {
+    this.userService.getCurrentUserProfile()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (user) => {
+          this.currentUserId = user.id;
+          this.applyFiltersAndPagination();
+          this.cdr.markForCheck();
+        },
+        error: (err) => console.error('Error loading current user profile', err),
+      });
+  }
+
+  private loadProjectMembers(projectId: string): void {
+    if (!projectId) {
+      this.projectUsers = [];
+      this.cdr.markForCheck();
+      return;
+    }
+
+    this.memberService.getProjectMembers(projectId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (members) => {
+          this.projectUsers = members.map((member) => ({
+            id: member.userId,
+            userName: member.userName,
+            fullName: `${(member.firstName || '').trim()} ${(member.lastName || '').trim()}`.trim() || member.userName || member.emailAddress || 'Unknown',
+            email: member.emailAddress,
+            role: member.role,
+          }));
+          this.cdr.markForCheck();
+        },
+        error: (err) => console.error('Error loading project members', err),
+      });
+  }
+
+  getAssigneeName(task: WorkItem): string {
+    if (!task.assigneeId) {
+      return 'Unassigned';
+    }
+
+    const member = this.projectUsers.find((user) => user.id === task.assigneeId);
+    return member?.fullName || member?.userName || task.assigneeId;
+  }
+
+  getAssigneeInitials(task: WorkItem): string {
+    const name = this.getAssigneeName(task);
+    if (!task.assigneeId) {
+      return '?';
+    }
+
+    return name
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase())
+      .join('') || '?';
   }
 
   // Formatting helpers
@@ -233,7 +331,7 @@ export class TasksComponent implements OnInit {
     if (s === 'resolved' || s === 'closed' || s === 'done') {
       return 'bg-green-500/10 text-green-600 border-green-500/20';
     }
-    if (s === 'active' || s === 'in progress' || s === 'in_progress') {
+    if (s === 'active' || s === 'in progress' || s === 'in_progress' || s === 'indevelopment' || s === 'intesting') {
       return 'bg-primary/10 text-primary border-primary/20';
     }
     if (s === 'review') {
@@ -245,6 +343,8 @@ export class TasksComponent implements OnInit {
   getStatusLabel(status: string): string {
     const s = status.toLowerCase();
     if (s === 'in_progress' || s === 'in progress') return 'IN PROGRESS';
+    if (s === 'indevelopment') return 'IN DEVELOPMENT';
+    if (s === 'intesting') return 'IN TESTING';
     if (s === 'todo' || s === 'new') return 'TO DO';
     if (s === 'resolved') return 'REVIEW';
     if (s === 'closed') return 'DONE';
