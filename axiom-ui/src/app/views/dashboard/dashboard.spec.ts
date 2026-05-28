@@ -23,20 +23,40 @@ describe('DashboardComponent', () => {
     );
   });
 
+  function summary(overrides: Partial<DashboardSummary> = {}): DashboardSummary {
+    return {
+      activeProjectsCount: 2,
+      totalTasksCount: 8,
+      openTasksCount: 5,
+      inProgressTasksCount: 2,
+      resolvedTasksCount: 3,
+      unassignedTasksCount: 1,
+      overdueTasksCount: 0,
+      completionPercent: 38,
+      statusBreakdown: [],
+      typeBreakdown: [],
+      priorityBreakdown: [],
+      projectProgress: [],
+      assigneeWorkload: [],
+      recentTasks: [],
+      ...overrides,
+    };
+  }
+
   it('loads summary counts and recent tasks on init', () => {
     component.ngOnInit();
 
-    summary$.next({
-      activeProjectsCount: 2,
-      openTasksCount: 5,
-      resolvedTasksCount: 3,
-      recentTasks: [],
-    });
+    summary$.next(summary());
     summary$.complete();
 
     expect(component.activeProjectsCount).toBe(2);
+    expect(component.totalTasksCount).toBe(8);
     expect(component.openTasksCount).toBe(5);
+    expect(component.inProgressTasksCount).toBe(2);
     expect(component.resolvedTasksCount).toBe(3);
+    expect(component.unassignedTasksCount).toBe(1);
+    expect(component.overdueTasksCount).toBe(0);
+    expect(component.completionPercent).toBe(38);
     expect(component.recentTasks).toEqual([]);
     expect(component.loading).toBe(false);
     expect(cdr.markForCheck).toHaveBeenCalled();
@@ -45,12 +65,9 @@ describe('DashboardComponent', () => {
   it('uses an empty recent task list when the API omits it', () => {
     component.ngOnInit();
 
-    summary$.next({
-      activeProjectsCount: 0,
-      openTasksCount: 0,
-      resolvedTasksCount: 0,
+    summary$.next(summary({
       recentTasks: undefined as unknown as [],
-    });
+    }));
     summary$.complete();
 
     expect(component.recentTasks).toEqual([]);

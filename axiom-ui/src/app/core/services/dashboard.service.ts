@@ -5,9 +5,58 @@ import { WorkItem } from './work-item.service';
 
 export interface DashboardSummary {
   activeProjectsCount: number;
+  totalTasksCount: number;
   openTasksCount: number;
+  inProgressTasksCount: number;
   resolvedTasksCount: number;
+  unassignedTasksCount: number;
+  overdueTasksCount: number;
+  completionPercent: number;
+  statusBreakdown: DashboardStatusBreakdown[];
+  typeBreakdown: DashboardTypeBreakdown[];
+  priorityBreakdown: DashboardPriorityBreakdown[];
+  projectProgress: DashboardProjectProgress[];
+  assigneeWorkload: DashboardAssigneeWorkload[];
   recentTasks: WorkItem[];
+}
+
+export interface DashboardStatusBreakdown {
+  status: string;
+  label: string;
+  count: number;
+  percent: number;
+}
+
+export interface DashboardTypeBreakdown {
+  type: string;
+  label: string;
+  count: number;
+  percent: number;
+}
+
+export interface DashboardPriorityBreakdown {
+  label: string;
+  count: number;
+  percent: number;
+}
+
+export interface DashboardProjectProgress {
+  projectId: string;
+  projectName: string;
+  projectCode: string;
+  totalTasks: number;
+  openTasks: number;
+  completedTasks: number;
+  unassignedTasks: number;
+  completionPercent: number;
+}
+
+export interface DashboardAssigneeWorkload {
+  userId: string;
+  displayName: string;
+  assignedTasks: number;
+  openTasks: number;
+  completedTasks: number;
 }
 
 @Injectable({
