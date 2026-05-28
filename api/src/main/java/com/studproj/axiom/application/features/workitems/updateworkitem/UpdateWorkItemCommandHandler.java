@@ -41,6 +41,9 @@ public class UpdateWorkItemCommandHandler {
                 command.type(),
                 command.dueDate(),
                 command.estimatedEffort());
+        if (command.status() != null) {
+            workItem.updateStatus(command.status());
+        }
         if (command.notes() != null) {
             workItem.updateNotes(command.notes());
         }
