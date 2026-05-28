@@ -8,7 +8,7 @@
         <span class="text-on-surface">{{ currentProject?.name || 'No Project' }}</span>
       </nav>
       <h1 class="font-headline-lg text-headline-lg text-on-surface font-black tracking-tight">
-        Active Sprint: {{ currentProject?.code || 'AX' }}-04
+        {{ currentProject ? (currentProject.code + ' Issues') : 'Issues' }}
       </h1>
     </div>
     <div class="flex gap-sm items-center">
