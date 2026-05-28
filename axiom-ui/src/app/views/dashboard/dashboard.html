@@ -3,7 +3,7 @@
     <div class="flex items-center gap-xs text-on-surface-variant text-body-sm mb-xs font-semibold">
       <span class="hover:underline cursor-pointer">Projects</span>
       <span class="material-symbols-outlined text-[14px]">chevron_right</span>
-      <span class="hover:underline cursor-pointer">Project Alpha</span>
+      <span class="hover:underline cursor-pointer">All Projects</span>
       <span class="material-symbols-outlined text-[14px]">chevron_right</span>
       <span>Reports</span>
     </div>
@@ -170,7 +170,7 @@
                 <div class="flex items-center gap-md min-w-0 flex-1 pr-4">
                   <div class="w-8 h-8 rounded bg-primary/10 text-primary flex items-center justify-center shrink-0">
                     <span class="material-symbols-outlined text-[18px]">
-                      {{ task.type === 'Bug' ? 'bug_report' : task.type === 'Story' ? 'menu_book' : 'assignment' }}
+                      {{ task.type === 'Bug' ? 'bug_report' : task.type === 'UserStory' ? 'menu_book' : 'assignment' }}
                     </span>
                   </div>
                   <div class="min-w-0">

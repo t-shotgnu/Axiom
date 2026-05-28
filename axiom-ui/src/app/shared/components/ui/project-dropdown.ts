@@ -27,43 +27,14 @@ export interface DropdownProject {
 })
 export class ProjectDropdownComponent implements OnInit {
   @Input() activeProject: DropdownProject = {
-    id: 'pa',
-    name: 'Project Alpha',
-    code: 'PA',
-    type: 'Software Project',
-    colorClass: 'bg-[#0052cc]',
+    id: '',
+    name: 'No projects',
+    code: 'AX',
+    type: 'Organization',
+    colorClass: 'bg-primary',
   };
 
-  @Input() projects: DropdownProject[] = [
-    {
-      id: 'pa',
-      name: 'Project Alpha',
-      code: 'PA',
-      type: 'Software Project',
-      colorClass: 'bg-[#0052cc]',
-    },
-    {
-      id: 'pb',
-      name: 'Project Beta',
-      code: 'PB',
-      type: 'Software Project',
-      colorClass: 'bg-[#0747a6]',
-    },
-    {
-      id: 'mc',
-      name: 'Marketing Campaign',
-      code: 'MC',
-      type: 'Business',
-      colorClass: 'bg-[#8b5cf6]',
-    },
-    {
-      id: 'ma',
-      name: 'Mobile App Redesign',
-      code: 'MA',
-      type: 'Software Project',
-      colorClass: 'bg-[#0ea5e9]',
-    },
-  ];
+  @Input() projects: DropdownProject[] = [];
 
   @Output() projectSelected = new EventEmitter<DropdownProject>();
   @Output() createProject = new EventEmitter<void>();
