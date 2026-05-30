@@ -1,13 +1,27 @@
 <div class="max-w-container-max mx-auto px-lg py-lg w-full">
   <header class="mb-xl">
     <div class="flex items-center gap-xs text-on-surface-variant text-body-sm mb-xs font-semibold">
-      <span class="hover:underline cursor-pointer">Projects</span>
-      <span class="material-symbols-outlined text-[14px]">chevron_right</span>
-      <span class="hover:underline cursor-pointer">Project Alpha</span>
+      <a routerLink="/projects" class="hover:underline">Projects</a>
       <span class="material-symbols-outlined text-[14px]">chevron_right</span>
       <span>Reports</span>
     </div>
-    <h1 class="font-headline-xl text-headline-xl text-on-surface font-extrabold tracking-tight">Dashboard Overview</h1>
+    <div class="flex flex-wrap items-end justify-between gap-md">
+      <div>
+        <h1 class="font-headline-xl text-headline-xl text-on-surface font-extrabold tracking-tight">
+          Dashboard Overview
+        </h1>
+        <p class="mt-xs text-sm font-medium text-on-surface-variant">
+          {{ activeProjectsCount }} projects • {{ totalTasksCount }} issues
+        </p>
+      </div>
+      <a
+        routerLink="/tasks"
+        class="inline-flex items-center gap-2 rounded bg-primary px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-[#0747a6]"
+      >
+        <span class="material-symbols-outlined text-[18px]">add</span>
+        Create issue
+      </a>
+    </div>
   </header>
 
   @if (loading) {
@@ -19,144 +33,206 @@
 
   @if (!loading) {
     <div class="grid grid-cols-12 gap-lg">
-      <!-- Stats Row -->
-      <div class="col-span-12 md:col-span-4 bg-surface-container-lowest border border-outline-variant rounded p-lg flex flex-col gap-xs">
+      <div class="col-span-12 md:col-span-3 bg-surface-container-lowest border border-outline-variant rounded p-lg">
         <p class="text-on-surface-variant font-label-md font-bold tracking-wider text-[11px] uppercase">Open Issues</p>
-        <div class="flex items-center gap-sm justify-between">
-          <span class="text-[32px] font-black text-primary leading-none">{{ openTasksCount }}</span>
-          <span class="text-xs font-bold text-[#de350b] flex items-center bg-red-500/10 px-2 py-0.5 rounded gap-0.5 border border-red-500/20">
-            <span class="material-symbols-outlined text-[14px] font-bold">trending_up</span>
-            Active
-          </span>
-        </div>
-      </div>
-      
-      <div class="col-span-12 md:col-span-4 bg-surface-container-lowest border border-outline-variant rounded p-lg flex flex-col gap-xs">
-        <p class="text-on-surface-variant font-label-md font-bold tracking-wider text-[11px] uppercase">Completed Issues</p>
-        <div class="flex items-center gap-sm justify-between">
-          <span class="text-[32px] font-black text-on-surface leading-none">{{ resolvedTasksCount }}</span>
-          <span class="text-xs font-bold text-primary flex items-center bg-primary/15 px-2 py-0.5 rounded gap-0.5 border border-primary/20">
-            <span class="material-symbols-outlined text-[14px] font-bold">check_circle</span>
-            Done
-          </span>
+        <div class="mt-sm flex items-end justify-between gap-sm">
+          <span class="text-[34px] font-black text-primary leading-none">{{ openTasksCount }}</span>
+          <span class="text-xs font-bold text-on-surface-variant">{{ inProgressTasksCount }} active</span>
         </div>
       </div>
 
-      <div class="col-span-12 md:col-span-4 bg-surface-container-lowest border border-outline-variant rounded p-lg flex flex-col gap-xs">
-        <p class="text-on-surface-variant font-label-md font-bold tracking-wider text-[11px] uppercase">Active Projects</p>
-        <div class="flex items-center gap-sm justify-between">
-          <span class="text-[32px] font-black text-on-surface leading-none">{{ activeProjectsCount }}</span>
-          <span class="text-xs font-bold text-on-surface-variant flex items-center bg-surface-container-low px-2 py-0.5 rounded font-semibold border border-outline-variant/40">
-            In system
-          </span>
+      <div class="col-span-12 md:col-span-3 bg-surface-container-lowest border border-outline-variant rounded p-lg">
+        <p class="text-on-surface-variant font-label-md font-bold tracking-wider text-[11px] uppercase">Completed</p>
+        <div class="mt-sm flex items-end justify-between gap-sm">
+          <span class="text-[34px] font-black text-on-surface leading-none">{{ resolvedTasksCount }}</span>
+          <span class="text-xs font-bold text-primary">{{ completionPercent }}%</span>
         </div>
       </div>
 
-      <!-- Main Chart Section (Bento Large) -->
-      <div class="col-span-12 lg:col-span-8 bg-surface-container-lowest border border-outline-variant rounded p-lg flex flex-col justify-between">
-        <div class="flex justify-between items-center mb-lg">
+      <div class="col-span-12 md:col-span-3 bg-surface-container-lowest border border-outline-variant rounded p-lg">
+        <p class="text-on-surface-variant font-label-md font-bold tracking-wider text-[11px] uppercase">Unassigned</p>
+        <div class="mt-sm flex items-end justify-between gap-sm">
+          <span class="text-[34px] font-black text-on-surface leading-none">{{ unassignedTasksCount }}</span>
+          <span class="text-xs font-bold text-on-surface-variant">needs owner</span>
+        </div>
+      </div>
+
+      <div class="col-span-12 md:col-span-3 bg-surface-container-lowest border border-outline-variant rounded p-lg">
+        <p class="text-on-surface-variant font-label-md font-bold tracking-wider text-[11px] uppercase">Overdue</p>
+        <div class="mt-sm flex items-end justify-between gap-sm">
+          <span
+            class="text-[34px] font-black leading-none"
+            [class.text-red-600]="overdueTasksCount > 0"
+            [class.text-on-surface]="overdueTasksCount === 0"
+          >
+            {{ overdueTasksCount }}
+          </span>
+          <span class="text-xs font-bold text-on-surface-variant">past due</span>
+        </div>
+      </div>
+
+      <div class="col-span-12 lg:col-span-8 bg-surface-container-lowest border border-outline-variant rounded p-lg">
+        <div class="flex flex-wrap items-start justify-between gap-md mb-lg">
           <div>
-            <h2 class="font-headline-sm text-headline-sm font-black tracking-tight">Velocity & Burndown</h2>
-            <p class="text-body-sm text-on-surface-variant mt-[2px] font-medium">Sprint 14 tracking (July 1 - July 14)</p>
+            <h2 class="font-headline-sm text-headline-sm font-black tracking-tight">Issue Health</h2>
+            <p class="text-body-sm text-on-surface-variant mt-[2px] font-medium">
+              {{ resolvedTasksCount }} of {{ totalTasksCount }} issues completed
+            </p>
           </div>
-          <button class="bg-[#f4f5f9] border border-outline-variant rounded px-md py-[6px] text-xs font-bold text-on-surface hover:bg-surface-container-low transition-all">
-            Last 14 days
-          </button>
+          <span class="rounded-full bg-primary/10 px-3 py-1 text-xs font-black text-primary">
+            {{ completionPercent }}%
+          </span>
         </div>
-        <div class="relative h-60 w-full bg-surface-container border border-outline-variant/40 rounded-lg overflow-hidden flex items-end px-lg pb-md">
-          <!-- Horizontal Grid Lines -->
-          <div class="absolute inset-0 flex flex-col justify-between pointer-events-none py-lg px-md">
-            <div class="w-full border-b border-dashed border-outline-variant/30"></div>
-            <div class="w-full border-b border-dashed border-outline-variant/30"></div>
-            <div class="w-full border-b border-dashed border-outline-variant/30"></div>
-            <div class="w-full border-b border-dashed border-outline-variant/30"></div>
-          </div>
 
-          <div class="flex-1 h-[85%] flex items-end gap-md z-10">
-            <!-- Bar 1 -->
-            <div class="flex-1 bg-[#c3daff] border-t-2 border-[#4c84ff] h-[80%] rounded-t relative group transition-all hover:opacity-90">
-              <div class="absolute -top-6 left-1/2 -translate-x-1/2 bg-on-surface text-white text-[10px] px-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">42 pts</div>
+        <div class="h-3 w-full overflow-hidden rounded-full bg-surface-container-high border border-outline-variant/60">
+          <div class="h-full rounded-full bg-primary transition-all" [style]="progressStyle"></div>
+        </div>
+
+        <div class="mt-xl grid gap-lg md:grid-cols-[minmax(0,1.2fr)_minmax(240px,0.8fr)]">
+          <div class="relative h-64 rounded border border-outline-variant/60 bg-surface-container-low p-md flex items-end gap-sm">
+            <div class="absolute inset-x-md top-md bottom-md flex flex-col justify-between pointer-events-none">
+              <div class="border-b border-dashed border-outline-variant/40"></div>
+              <div class="border-b border-dashed border-outline-variant/40"></div>
+              <div class="border-b border-dashed border-outline-variant/40"></div>
+              <div class="border-b border-dashed border-outline-variant/40"></div>
             </div>
-            <!-- Bar 2 -->
-            <div class="flex-1 bg-[#c3daff] border-t-2 border-[#4c84ff] h-[65%] rounded-t relative group transition-all hover:opacity-90"></div>
-            <!-- Bar 3 -->
-            <div class="flex-1 bg-[#c3daff] border-t-2 border-[#4c84ff] h-[52%] rounded-t relative group transition-all hover:opacity-90"></div>
-            <!-- Bar 4 -->
-            <div class="flex-1 bg-[#c3daff] border-t-2 border-[#4c84ff] h-[42%] rounded-t relative group transition-all hover:opacity-90"></div>
-            <!-- Bar 5 -->
-            <div class="flex-1 bg-[#c3daff] border-t-2 border-[#4c84ff] h-[48%] rounded-t relative group transition-all hover:opacity-90"></div>
-            <!-- Bar 6 -->
-            <div class="flex-1 bg-[#0052cc] border-t-2 border-[#003cb3] h-[32%] rounded-t relative group transition-all hover:opacity-90 shadow-sm"></div>
-            <!-- Bar 7 -->
-            <div class="flex-1 bg-[#0052cc] border-t-2 border-[#003cb3] h-[22%] rounded-t relative group transition-all hover:opacity-90 shadow-sm"></div>
-          </div>
-        </div>
-      </div>
 
-      <!-- Team Section -->
-      <div class="col-span-12 lg:col-span-4 bg-surface-container-lowest border border-outline-variant rounded p-lg flex flex-col justify-between">
-        <div>
-          <div class="flex justify-between items-center mb-lg">
-            <h2 class="font-headline-sm text-headline-sm font-black tracking-tight">Active Contributors</h2>
-            <button class="text-primary font-label-md hover:underline font-bold text-sm">Manage</button>
+            @for (item of statusBreakdown; track item.status) {
+              <div class="relative z-10 flex flex-1 flex-col items-center justify-end gap-xs h-full min-w-0">
+                <div
+                  class="w-full max-w-12 rounded-t bg-primary/80 border-t-2 border-primary transition-all"
+                  [style]="getBarHeightStyle(item)"
+                  [title]="item.label + ': ' + item.count"
+                ></div>
+                <span class="w-full truncate text-center text-[10px] font-bold text-on-surface-variant">
+                  {{ item.label }}
+                </span>
+              </div>
+            }
           </div>
+
           <div class="space-y-md">
-            <!-- User 1 -->
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-md">
-                <img
-                  src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-                  class="w-10 h-10 rounded-full border border-outline-variant object-cover"
-                />
-                <div>
-                  <p class="font-label-md text-on-surface font-extrabold text-sm">Alex Murphy</p>
-                  <p class="text-body-sm text-on-surface-variant font-medium mt-[1px]">Lead Developer</p>
+            @for (item of statusBreakdown; track item.status) {
+              <div>
+                <div class="mb-xs flex items-center justify-between gap-sm">
+                  <span class="text-xs font-bold text-on-surface">{{ item.label }}</span>
+                  <span class="text-xs font-bold text-on-surface-variant">{{ item.count }}</span>
+                </div>
+                <div class="h-2 overflow-hidden rounded-full bg-surface-container-high">
+                  <div class="h-full rounded-full bg-primary" [style]="getBreakdownStyle(item)"></div>
                 </div>
               </div>
-              <span class="w-2.5 h-2.5 rounded-full bg-green-500 border border-white"></span>
-            </div>
-            
-            <!-- User 2 -->
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-md">
-                <img
-                  src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-                  class="w-10 h-10 rounded-full border border-outline-variant object-cover"
-                />
-                <div>
-                  <p class="font-label-md text-on-surface font-extrabold text-sm">Sarah Kimmich</p>
-                  <p class="text-body-sm text-on-surface-variant font-medium mt-[1px]">Product Designer</p>
-                </div>
-              </div>
-              <span class="w-2.5 h-2.5 rounded-full bg-green-500 border border-white"></span>
-            </div>
-
-            <!-- User 3 -->
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-md">
-                <img
-                  src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-                  class="w-10 h-10 rounded-full border border-outline-variant object-cover"
-                />
-                <div>
-                  <p class="font-label-md text-on-surface font-extrabold text-sm">James Dalton</p>
-                  <p class="text-body-sm text-on-surface-variant font-medium mt-[1px]">Backend Engineer</p>
-                </div>
-              </div>
-              <span class="w-2.5 h-2.5 rounded-full bg-outline-variant border border-white"></span>
-            </div>
+            }
           </div>
         </div>
-        
-        <button class="w-full mt-lg border border-outline-variant py-2 rounded font-label-md text-on-surface font-bold hover:bg-surface-container-low transition-colors text-sm">
-          Invite Team
-        </button>
       </div>
 
-      <!-- Recent Activity Feed (Full Width) -->
+      <div class="col-span-12 lg:col-span-4 bg-surface-container-lowest border border-outline-variant rounded p-lg">
+        <h2 class="font-headline-sm text-headline-sm font-black tracking-tight mb-lg">Workload</h2>
+
+        @if (assigneeWorkload.length === 0) {
+          <div class="rounded border border-dashed border-outline-variant px-md py-lg text-center text-sm font-medium text-on-surface-variant">
+            No assigned issues yet.
+          </div>
+        } @else {
+          <div class="space-y-md">
+            @for (assignee of assigneeWorkload; track assignee.userId) {
+              <div class="flex items-center justify-between gap-md">
+                <div class="flex min-w-0 items-center gap-sm">
+                  <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-black text-primary">
+                    {{ getAssigneeInitials(assignee) }}
+                  </div>
+                  <div class="min-w-0">
+                    <p class="truncate text-sm font-extrabold text-on-surface">{{ assignee.displayName }}</p>
+                    <p class="text-[11px] font-semibold text-on-surface-variant">
+                      {{ assignee.openTasks }} open • {{ assignee.completedTasks }} done
+                    </p>
+                  </div>
+                </div>
+                <span class="rounded-full bg-surface-container-high px-2.5 py-1 text-xs font-black text-on-surface-variant">
+                  {{ assignee.assignedTasks }}
+                </span>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="col-span-12 lg:col-span-4 bg-surface-container-lowest border border-outline-variant rounded p-lg">
+        <h2 class="font-headline-sm text-headline-sm font-black tracking-tight mb-lg">Issue Types</h2>
+        <div class="space-y-md">
+          @for (item of typeBreakdown; track item.type) {
+            <div>
+              <div class="mb-xs flex items-center justify-between gap-sm">
+                <span class="flex items-center gap-xs text-xs font-bold text-on-surface">
+                  <span class="material-symbols-outlined text-[16px] text-primary">{{ getIssueIcon(item.type) }}</span>
+                  {{ item.label }}
+                </span>
+                <span class="text-xs font-bold text-on-surface-variant">{{ item.count }}</span>
+              </div>
+              <div class="h-2 overflow-hidden rounded-full bg-surface-container-high">
+                <div class="h-full rounded-full bg-primary" [style]="getBreakdownStyle(item)"></div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="col-span-12 lg:col-span-4 bg-surface-container-lowest border border-outline-variant rounded p-lg">
+        <h2 class="font-headline-sm text-headline-sm font-black tracking-tight mb-lg">Priority Mix</h2>
+        <div class="space-y-md">
+          @for (item of priorityBreakdown; track item.label) {
+            <div>
+              <div class="mb-xs flex items-center justify-between gap-sm">
+                <span class="text-xs font-bold text-on-surface">{{ item.label }}</span>
+                <span class="text-xs font-bold text-on-surface-variant">{{ item.count }}</span>
+              </div>
+              <div class="h-2 overflow-hidden rounded-full bg-surface-container-high">
+                <div class="h-full rounded-full bg-primary" [style]="getBreakdownStyle(item)"></div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="col-span-12 lg:col-span-4 bg-surface-container-lowest border border-outline-variant rounded p-lg">
+        <h2 class="font-headline-sm text-headline-sm font-black tracking-tight mb-lg">Project Progress</h2>
+
+        @if (projectProgress.length === 0) {
+          <div class="rounded border border-dashed border-outline-variant px-md py-lg text-center text-sm font-medium text-on-surface-variant">
+            No projects yet.
+          </div>
+        } @else {
+          <div class="space-y-md">
+            @for (project of projectProgress; track project.projectId) {
+              <a [routerLink]="['/projects', project.projectId]" class="block rounded border border-outline-variant/50 p-sm hover:bg-surface-container-low">
+                <div class="mb-xs flex items-center justify-between gap-sm">
+                  <span class="truncate text-sm font-extrabold text-on-surface">
+                    {{ project.projectCode }} • {{ project.projectName }}
+                  </span>
+                  <span class="text-xs font-black text-primary">{{ project.completionPercent }}%</span>
+                </div>
+                <div class="mb-xs h-2 overflow-hidden rounded-full bg-surface-container-high">
+                  <div class="h-full rounded-full bg-primary" [style]="getProjectProgressStyle(project)"></div>
+                </div>
+                <p class="text-[11px] font-semibold text-on-surface-variant">
+                  {{ project.openTasks }} open • {{ project.completedTasks }} done • {{ project.unassignedTasks }} unassigned
+                </p>
+              </a>
+            }
+          </div>
+        }
+      </div>
+
       <div class="col-span-12 bg-surface-container-lowest border border-outline-variant rounded p-lg">
-        <h2 class="font-headline-sm text-headline-sm font-black tracking-tight mb-lg">Recent Issues</h2>
-        
+        <div class="mb-lg flex items-center justify-between gap-md">
+          <h2 class="font-headline-sm text-headline-sm font-black tracking-tight">Recent Issues</h2>
+          <a routerLink="/tasks" class="text-primary font-bold hover:underline flex items-center gap-xs cursor-pointer text-xs">
+            <span>Show all issues</span>
+            <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+          </a>
+        </div>
+
         @if (recentTasks.length === 0) {
           <div class="text-center py-8 text-on-surface-variant">
             <span class="material-symbols-outlined text-[36px] opacity-40 mb-2">assignment</span>
@@ -164,73 +240,43 @@
             <p class="text-xs">Create tasks to see them in this feed.</p>
           </div>
         } @else {
-          <div class="space-y-md">
-            @for (task of recentTasks; track task.id) {
-              <div class="flex items-center justify-between py-xs border-b border-outline-variant/40 last:border-b-0">
-                <div class="flex items-center gap-md min-w-0 flex-1 pr-4">
-                  <div class="w-8 h-8 rounded bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                    <span class="material-symbols-outlined text-[18px]">
-                      {{ task.type === 'Bug' ? 'bug_report' : task.type === 'Story' ? 'menu_book' : 'assignment' }}
-                    </span>
-                  </div>
-                  <div class="min-w-0">
-                    <a [routerLink]="['/tasks', task.id]" class="font-bold text-on-surface hover:text-primary transition-colors cursor-pointer text-sm truncate block">
-                      {{ task.description }}
-                    </a>
-                    <span class="text-[10px] bg-surface-container-low text-on-surface-variant font-code px-1.5 py-[2px] rounded font-semibold mt-1 inline-block">
+          <div class="overflow-x-auto">
+            <table class="w-full min-w-[760px] border-collapse text-left">
+              <thead>
+                <tr class="border-b border-outline-variant text-[11px] font-black uppercase tracking-wider text-on-surface-variant">
+                  <th class="pb-sm pr-md">Issue</th>
+                  <th class="pb-sm px-md">Type</th>
+                  <th class="pb-sm px-md">Priority</th>
+                  <th class="pb-sm px-md">Status</th>
+                  <th class="pb-sm pl-md text-right">Key</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-outline-variant/60">
+                @for (task of recentTasks; track task.id) {
+                  <tr class="hover:bg-surface-container-low">
+                    <td class="py-sm pr-md">
+                      <a [routerLink]="['/tasks', task.id]" class="flex min-w-0 items-center gap-sm">
+                        <span class="material-symbols-outlined text-[18px] text-primary">{{ getIssueIcon(task.type) }}</span>
+                        <span class="truncate text-sm font-bold text-on-surface hover:text-primary">{{ task.description }}</span>
+                      </a>
+                    </td>
+                    <td class="py-sm px-md text-xs font-bold text-on-surface-variant">{{ task.type }}</td>
+                    <td class="py-sm px-md text-xs font-bold text-on-surface-variant">P{{ task.priority }}</td>
+                    <td class="py-sm px-md">
+                      <span class="inline-flex rounded border px-2 py-0.5 text-[9px] font-black uppercase" [ngClass]="getStatusBadgeClass(task.status)">
+                        {{ getStatusLabel(task.status) }}
+                      </span>
+                    </td>
+                    <td class="py-sm pl-md text-right font-mono text-xs font-bold text-on-surface-variant">
                       #{{ task.controlNo }}
-                    </span>
-                  </div>
-                </div>
-                
-                <div class="flex items-center gap-md shrink-0">
-                  <!-- Type Badge -->
-                  <span class="bg-primary/15 text-primary font-bold text-[9px] px-2 py-0.5 rounded uppercase">
-                    {{ task.type }}
-                  </span>
-                  
-                  <!-- Priority Badge -->
-                  <span class="bg-surface-container-highest text-on-surface-variant text-[9px] font-bold px-2 py-0.5 rounded-full">
-                    P{{ task.priority }}
-                  </span>
-
-                  <!-- Status Badge -->
-                  <span 
-                    class="font-bold text-[9px] px-2 py-0.5 rounded border uppercase"
-                    [class.bg-green-500/10]="task.status === 'Resolved' || task.status === 'Closed'"
-                    [class.text-green-600]="task.status === 'Resolved' || task.status === 'Closed'"
-                    [class.border-green-500/20]="task.status === 'Resolved' || task.status === 'Closed'"
-                    [class.bg-primary/10]="task.status === 'Active' || task.status === 'In Progress'"
-                    [class.text-primary]="task.status === 'Active' || task.status === 'In Progress'"
-                    [class.border-primary/20]="task.status === 'Active' || task.status === 'In Progress'"
-                    [class.bg-surface-container-high]="task.status === 'New'"
-                    [class.text-on-surface-variant]="task.status === 'New'"
-                    [class.border-outline-variant]="task.status === 'New'"
-                  >
-                    {{ task.status }}
-                  </span>
-                </div>
-              </div>
-            }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
           </div>
         }
-        
-        <div class="mt-lg pt-md border-t border-outline-variant/50">
-          <a routerLink="/tasks" class="text-primary font-bold hover:underline flex items-center gap-xs cursor-pointer text-xs">
-            <span>Show all issues</span>
-            <span class="material-symbols-outlined text-[16px]">chevron_right</span>
-          </a>
-        </div>
       </div>
     </div>
   }
 </div>
-
-<!-- Floating Action Button (FAB) -->
-<a
-  routerLink="/tasks"
-  class="fixed bottom-6 right-6 z-50 w-14 h-14 bg-primary hover:bg-primary-container text-white rounded-full flex items-center justify-center shadow-xl hover:scale-105 transition-all select-none cursor-pointer"
-  title="Create Issue"
->
-  <span class="material-symbols-outlined text-[28px] font-bold">add</span>
-</a>

@@ -7,9 +7,16 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize } from 'rxjs';
 
 import { WorkItem, WorkItemService, CreateWorkItemCommand } from '../../../core/services/work-item.service';
+import { ProjectMemberService } from '../../../core/services/project-member.service';
 import { DialogComponent } from '../../../shared/components/ui/dialog';
 import { ButtonComponent } from '../../../shared/components/ui/button';
 import { InputComponent } from '../../../shared/components/ui/input';
+
+type ProjectUser = {
+    id: string;
+    userName?: string;
+    fullName: string;
+};
 
 @Component({
     selector: 'app-project-backlog-panel',
@@ -19,6 +26,7 @@ import { InputComponent } from '../../../shared/components/ui/input';
 })
 export class ProjectBacklogPanelComponent implements OnInit {
     private readonly workItemService = inject(WorkItemService);
+    private readonly memberService = inject(ProjectMemberService);
     private readonly destroyRef = inject(DestroyRef);
 
     private _projectId = '';
@@ -28,6 +36,7 @@ export class ProjectBacklogPanelComponent implements OnInit {
         this._projectId = value;
         if (this.initialized && value) {
             this.loadTasks();
+            this.loadMembers();
         }
     }
 
@@ -38,6 +47,7 @@ export class ProjectBacklogPanelComponent implements OnInit {
     @Input() projectCode = '';
 
     tasks = signal<WorkItem[]>([]);
+    projectUsers = signal<ProjectUser[]>([]);
     loadingTasks = signal(false);
     showCreateDialog = signal(false);
     showDeleteTaskDialog = signal(false);
@@ -60,6 +70,8 @@ export class ProjectBacklogPanelComponent implements OnInit {
     statusOptions = [
         { label: 'New', value: 'New' },
         { label: 'Active', value: 'Active' },
+        { label: 'In Development', value: 'InDevelopment' },
+        { label: 'In Testing', value: 'InTesting' },
         { label: 'Resolved', value: 'Resolved' },
         { label: 'Closed', value: 'Closed' },
     ];
@@ -70,6 +82,7 @@ export class ProjectBacklogPanelComponent implements OnInit {
         this.initialized = true;
         if (this.projectId) {
             this.loadTasks();
+            this.loadMembers();
         }
     }
 
@@ -80,7 +93,7 @@ export class ProjectBacklogPanelComponent implements OnInit {
     set showDeleteTaskDialogVisible(v: boolean) { this.showDeleteTaskDialog.set(v); }
 
     private emptyTask(): Partial<CreateWorkItemCommand> {
-        return { description: '', priority: 1, type: 'Task', status: 'New' };
+        return { description: '', priority: 1, type: 'Task', status: 'New', assigneeId: '' };
     }
 
     loadTasks(): void {
@@ -102,6 +115,29 @@ export class ProjectBacklogPanelComponent implements OnInit {
             });
     }
 
+    loadMembers(): void {
+        if (!this.projectId) {
+            this.projectUsers.set([]);
+            return;
+        }
+
+        this.memberService
+            .getProjectMembers(this.projectId)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+                next: (members) => {
+                    this.projectUsers.set(members.map((member) => ({
+                        id: member.userId,
+                        userName: member.userName,
+                        fullName: `${(member.firstName || '').trim()} ${(member.lastName || '').trim()}`.trim() || member.userName || member.emailAddress || 'Unknown',
+                    })));
+                },
+                error: (err) => {
+                    console.error(err);
+                },
+            });
+    }
+
     openCreateDialog(): void {
         this.newTask = this.emptyTask();
         this.showCreateDialog.set(true);
@@ -112,9 +148,17 @@ export class ProjectBacklogPanelComponent implements OnInit {
             return;
         }
 
+        const description = this.newTask.description?.trim();
+        if (!description) {
+            return;
+        }
+
+        const assigneeId = this.newTask.assigneeId?.trim();
         const command: CreateWorkItemCommand = {
             ...(this.newTask as CreateWorkItemCommand),
+            description,
             projectId: this.projectId,
+            assigneeId: assigneeId || null,
         };
 
         this.creating.set(true);
@@ -224,9 +268,20 @@ export class ProjectBacklogPanelComponent implements OnInit {
     getStatusLabel(status: string): string {
         const s = status.toLowerCase();
         if (s === 'in_progress' || s === 'in progress') return 'IN PROGRESS';
+        if (s === 'indevelopment') return 'IN DEVELOPMENT';
+        if (s === 'intesting') return 'IN TESTING';
         if (s === 'todo' || s === 'new') return 'TO DO';
         if (s === 'resolved') return 'REVIEW';
         if (s === 'closed') return 'DONE';
         return status.toUpperCase();
+    }
+
+    getAssigneeName(task: WorkItem): string {
+        if (!task.assigneeId) {
+            return 'Unassigned';
+        }
+
+        const user = this.projectUsers().find((member) => member.id === task.assigneeId);
+        return user?.fullName || user?.userName || task.assigneeId;
     }
 }

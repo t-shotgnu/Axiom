@@ -21,22 +21,29 @@ describe('DashboardService', () => {
   });
 
   it('loads the dashboard summary', () => {
+    const expectedSummary = {
+      activeProjectsCount: 2,
+      totalTasksCount: 8,
+      openTasksCount: 5,
+      inProgressTasksCount: 2,
+      resolvedTasksCount: 3,
+      unassignedTasksCount: 1,
+      overdueTasksCount: 0,
+      completionPercent: 38,
+      statusBreakdown: [],
+      typeBreakdown: [],
+      priorityBreakdown: [],
+      projectProgress: [],
+      assigneeWorkload: [],
+      recentTasks: [],
+    };
+
     service.getSummary().subscribe((summary) => {
-      expect(summary).toEqual({
-        activeProjectsCount: 2,
-        openTasksCount: 5,
-        resolvedTasksCount: 3,
-        recentTasks: [],
-      });
+      expect(summary).toEqual(expectedSummary);
     });
 
     const request = httpMock.expectOne('/api/dashboard/summary');
     expect(request.request.method).toBe('GET');
-    request.flush({
-      activeProjectsCount: 2,
-      openTasksCount: 5,
-      resolvedTasksCount: 3,
-      recentTasks: [],
-    });
+    request.flush(expectedSummary);
   });
 });

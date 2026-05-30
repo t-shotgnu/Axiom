@@ -85,6 +85,7 @@ public class WorkItemController {
                 request.description(),
                 request.priority(),
                 request.type(),
+                request.status(),
                 request.dueDate(),
                 request.estimatedEffort(),
                 request.assigneeId(),

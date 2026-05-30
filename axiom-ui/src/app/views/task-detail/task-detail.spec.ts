@@ -63,6 +63,7 @@ describe('TaskDetailComponent', () => {
         {
           provide: UserService,
           useValue: {
+            getUserById: vi.fn(() => of({ id: 'user-1', userName: 'current', emailAddress: 'current@example.com' })),
             getCurrentUserProfile: vi.fn(() => of({ id: 'user-1', userName: 'current', emailAddress: 'current@example.com' })),
           },
         },
@@ -97,6 +98,7 @@ describe('TaskDetailComponent', () => {
         {
           provide: UserService,
           useValue: {
+            getUserById: vi.fn(() => of({ id: 'user-1', userName: 'current', emailAddress: 'current@example.com' })),
             getCurrentUserProfile: vi.fn(() => of({ id: 'user-1', userName: 'current', emailAddress: 'current@example.com' })),
           },
         },
