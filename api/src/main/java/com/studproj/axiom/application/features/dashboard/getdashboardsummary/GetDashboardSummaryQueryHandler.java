@@ -2,13 +2,16 @@ package com.studproj.axiom.application.features.dashboard.getdashboardsummary;
 
 import com.studproj.axiom.application.features.workitems.WorkItemDto;
 import com.studproj.axiom.domain.model.Project;
+import com.studproj.axiom.domain.model.ProjectMembership;
 import com.studproj.axiom.domain.model.User;
 import com.studproj.axiom.domain.model.WorkItem;
 import com.studproj.axiom.domain.model.WorkItemStatus;
 import com.studproj.axiom.domain.model.WorkItemType;
+import com.studproj.axiom.domain.repository.ProjectMembershipRepository;
 import com.studproj.axiom.domain.repository.ProjectRepository;
 import com.studproj.axiom.domain.repository.UserRepository;
 import com.studproj.axiom.domain.repository.WorkItemRepository;
+import com.studproj.axiom.domain.service.AuthenticatedUserProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,9 +32,22 @@ public class GetDashboardSummaryQueryHandler {
     private final ProjectRepository projectRepository;
     private final WorkItemRepository workItemRepository;
     private final UserRepository userRepository;
+    private final ProjectMembershipRepository projectMembershipRepository;
+    private final AuthenticatedUserProvider authenticatedUserProvider;
 
     public DashboardSummaryDto handle(GetDashboardSummaryQuery query) {
-        List<Project> projects = projectRepository.findAll();
+        UUID userId = authenticatedUserProvider.getAuthenticatedUserId();
+        List<UUID> userProjectIds = projectMembershipRepository.findByUserId(userId).stream()
+                .map(ProjectMembership::getProjectId)
+                .toList();
+
+        List<Project> projects = projectRepository.findByIds(userProjectIds);
+        if (query.projectId() != null) {
+            projects = projects.stream()
+                    .filter(project -> project.getId().equals(query.projectId()))
+                    .toList();
+        }
+
         Map<UUID, List<WorkItem>> tasksByProject = projects.stream()
                 .collect(Collectors.toMap(Project::getId, project -> workItemRepository.findByProjectId(project.getId())));
         List<WorkItem> allTasks = tasksByProject.values().stream()
@@ -73,7 +89,9 @@ public class GetDashboardSummaryQueryHandler {
         List<DashboardSummaryDto.ProjectProgressDto> projectProgress = buildProjectProgress(projects, tasksByProject);
         List<DashboardSummaryDto.AssigneeWorkloadDto> assigneeWorkload = buildAssigneeWorkload(allTasks);
 
-        List<WorkItemDto> recentTasks = workItemRepository.findRecent(5).stream()
+        List<WorkItemDto> recentTasks = allTasks.stream()
+                .sorted(Comparator.comparing(WorkItem::getId, Comparator.nullsLast(Comparator.reverseOrder())))
+                .limit(5)
                 .map(this::toDto)
                 .toList();
 

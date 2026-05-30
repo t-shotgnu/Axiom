@@ -6,11 +6,12 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { finalize } from 'rxjs';
 import { CreateProjectCommand, ProjectService } from '../../core/services/project.service';
 import { ButtonComponent } from '../../shared/components/ui/button';
+import { InputComponent } from '../../shared/components/ui/input';
 
 @Component({
   selector: 'app-create-project',
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonComponent],
+  imports: [CommonModule, FormsModule, ButtonComponent, InputComponent],
   templateUrl: './create-project.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

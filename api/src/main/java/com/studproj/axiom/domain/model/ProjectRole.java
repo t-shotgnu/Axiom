@@ -1,19 +1,21 @@
 package com.studproj.axiom.domain.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
 import java.util.UUID;
 
-@Getter
-@Setter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class ProjectRole {
-    private UUID id;
-    private ProjectRoleType type;
+    private final UUID id;
+    private final ProjectRoleType type;
+
+    public ProjectRole(UUID id, ProjectRoleType type) {
+        this.id = id;
+        this.type = type;
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public ProjectRoleType getType() {
+        return type;
+    }
 }

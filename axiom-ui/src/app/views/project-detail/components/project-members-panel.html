@@ -17,35 +17,19 @@
 
     @if (canManageProject()) {
       <div class="grid gap-md sm:grid-cols-[minmax(0,1.4fr)_140px_auto]">
-        <div class="flex flex-col gap-xs">
-          <label class="text-[11px] font-black uppercase tracking-widest text-on-surface-variant">
-            Add user
-          </label>
-          <select
-            [ngModel]="selectedMemberUserId()"
-            (ngModelChange)="selectedMemberUserId.set($event)"
-            class="w-full rounded-lg border border-outline-variant bg-surface px-3 py-2 text-sm text-on-surface focus:outline-none focus:border-primary"
-          >
-            <option value="">Select a user</option>
-            @for (user of availableUsers; track user.id) {
-              <option [value]="user.id">{{ getUserLabel(user) }}</option>
-            }
-          </select>
-        </div>
+        <app-select
+          [ngModel]="selectedMemberUserId()"
+          (ngModelChange)="selectedMemberUserId.set($event)"
+          label="Add user"
+          [options]="availableUserOptions"
+        ></app-select>
 
-        <div class="flex flex-col gap-xs">
-          <label class="text-[11px] font-black uppercase tracking-widest text-on-surface-variant">
-            Role
-          </label>
-          <select
-            [ngModel]="selectedMemberRole()"
-            (ngModelChange)="selectedMemberRole.set($event)"
-            class="w-full rounded-lg border border-outline-variant bg-surface px-3 py-2 text-sm text-on-surface focus:outline-none focus:border-primary"
-          >
-            <option value="MEMBER">Member</option>
-            <option value="ADMIN">Admin</option>
-          </select>
-        </div>
+        <app-select
+          [ngModel]="selectedMemberRole()"
+          (ngModelChange)="selectedMemberRole.set($event)"
+          label="Role"
+          [options]="roleOptions"
+        ></app-select>
 
         <div class="flex items-end">
           <button
@@ -104,14 +88,12 @@
                 </span>
                 <span class="inline-flex items-center rounded-full bg-surface-variant text-on-surface-variant text-[11px] px-sm py-1 ml-2">{{ member.role === 'ADMIN' ? 'Admin' : 'Member' }}</span>
               } @else if (canManageProject() && !isProjectLead(member)) {
-                <select
+                <app-select
                   [ngModel]="member.role"
                   (ngModelChange)="changeMemberRole(member, $event)"
-                  class="rounded-lg border border-outline-variant bg-surface px-3 py-2 text-xs font-bold text-on-surface focus:outline-none focus:border-primary"
-                >
-                  <option value="MEMBER">Member</option>
-                  <option value="ADMIN">Admin</option>
-                </select>
+                  [options]="roleOptions"
+                  customClass="w-28"
+                ></app-select>
               } @else {
                 <span class="inline-flex items-center rounded-full bg-surface-variant text-on-surface-variant text-[11px] px-sm py-1">{{ member.role === 'ADMIN' ? 'Admin' : 'Member' }}</span>
               }

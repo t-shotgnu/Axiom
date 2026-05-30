@@ -1,3 +1,5 @@
 package com.studproj.axiom.application.features.dashboard.getdashboardsummary;
 
-public record GetDashboardSummaryQuery() {}
+import java.util.UUID;
+
+public record GetDashboardSummaryQuery(UUID projectId) {}

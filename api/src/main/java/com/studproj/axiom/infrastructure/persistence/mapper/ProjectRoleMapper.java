@@ -7,10 +7,7 @@ import com.studproj.axiom.infrastructure.persistence.entity.ProjectRoleEntity;
 public class ProjectRoleMapper {
     public static ProjectRole toDomain(ProjectRoleEntity entity) {
         if (entity == null) return null;
-        return ProjectRole.builder()
-                .id(entity.getId())
-                .type(ProjectRoleType.valueOf(entity.getCode()))
-                .build();
+        return new ProjectRole(entity.getId(), ProjectRoleType.valueOf(entity.getCode()));
     }
 
     public static ProjectRoleEntity toEntity(ProjectRole domain) {

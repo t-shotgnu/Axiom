@@ -6,13 +6,13 @@ import com.studproj.axiom.infrastructure.persistence.entity.ProjectMembershipEnt
 public class ProjectMembershipMapper {
     public static ProjectMembership toDomain(ProjectMembershipEntity entity) {
         if (entity == null) return null;
-        return ProjectMembership.builder()
-                .id(entity.getId())
-                .projectId(entity.getProjectId())
-                .userId(entity.getUserId())
-                .roleId(entity.getRoleId())
-                .createdOn(entity.getCreatedOn())
-                .build();
+        return new ProjectMembership(
+                entity.getId(),
+                entity.getProjectId(),
+                entity.getUserId(),
+                entity.getRoleId(),
+                entity.getCreatedOn()
+        );
     }
 
     public static ProjectMembershipEntity toEntity(ProjectMembership domain) {

@@ -90,45 +90,26 @@
     placeholder="e.g. Implement login feature"
   ></app-input>
 
-  <div class="flex flex-col gap-xs">
-    <label class="font-label-md text-on-surface font-semibold">Type</label>
-    <select
-      [(ngModel)]="newTask.type"
-      class="w-full px-md py-sm border border-outline-variant rounded focus:outline-none focus:border-primary bg-surface text-on-surface appearance-none"
-    >
-      @for (opt of typeOptions; track opt.value) {
-        <option [value]="opt.value">{{ opt.label }}</option>
-      }
-    </select>
-  </div>
+  <app-select
+    [(ngModel)]="newTask.type"
+    label="Type"
+    [options]="typeOptions"
+  ></app-select>
 
   <div class="grid grid-cols-2 gap-md">
-    <div class="flex flex-col gap-xs">
-      <label class="font-label-md text-on-surface font-semibold">Status</label>
-      <select
-        [(ngModel)]="newTask.status"
-        class="w-full px-md py-sm border border-outline-variant rounded focus:outline-none focus:border-primary bg-surface text-on-surface appearance-none"
-      >
-        @for (opt of statusOptions; track opt.value) {
-          <option [value]="opt.value">{{ opt.label }}</option>
-        }
-      </select>
-    </div>
+    <app-select
+      [(ngModel)]="newTask.status"
+      label="Status"
+      [options]="statusOptions"
+    ></app-select>
     <app-input type="number" label="Priority (1–10)" [(ngModel)]="newTask.priority"></app-input>
   </div>
 
-  <div class="flex flex-col gap-xs">
-    <label class="font-label-md text-on-surface font-semibold">Assignee</label>
-    <select
-      [(ngModel)]="newTask.assigneeId"
-      class="w-full px-md py-sm border border-outline-variant rounded focus:outline-none focus:border-primary bg-surface text-on-surface appearance-none"
-    >
-      <option value="">Unassigned</option>
-      @for (user of projectUsers(); track user.id) {
-        <option [value]="user.id">{{ user.fullName }}</option>
-      }
-    </select>
-  </div>
+  <app-select
+    [(ngModel)]="newTask.assigneeId"
+    label="Assignee"
+    [options]="assigneeOptions"
+  ></app-select>
 
   <div footer>
     <app-button variant="outlined" (onClick)="showCreateDialog.set(false)">Cancel</app-button>

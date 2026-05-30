@@ -2,12 +2,16 @@ import { ChangeDetectorRef } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Subject, of, throwError } from 'rxjs';
 import { Project, ProjectService } from '../../core/services/project.service';
+import { WorkItemService } from '../../core/services/work-item.service';
 import { ProjectsComponent } from './projects';
 
 describe('ProjectsComponent', () => {
   let projectService: {
     getAllProjects: ReturnType<typeof vi.fn>;
     createProject: ReturnType<typeof vi.fn>;
+  };
+  let workItemService: {
+    getWorkItems: ReturnType<typeof vi.fn>;
   };
   let cdr: { markForCheck: ReturnType<typeof vi.fn> };
 
@@ -16,12 +20,16 @@ describe('ProjectsComponent', () => {
       getAllProjects: vi.fn(() => loadProjects$.asObservable()),
       createProject: vi.fn(),
     };
+    workItemService = {
+      getWorkItems: vi.fn(() => of([])),
+    };
     cdr = {
       markForCheck: vi.fn(),
     };
 
     const component = new ProjectsComponent(
       projectService as unknown as ProjectService,
+      workItemService as unknown as WorkItemService,
       cdr as unknown as ChangeDetectorRef,
     );
 

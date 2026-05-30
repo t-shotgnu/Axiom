@@ -27,15 +27,14 @@
   <!-- Search & Filter Bar -->
   <div class="flex flex-wrap items-center gap-md pb-md border-b border-outline-variant mb-lg">
     <!-- Search Field -->
-    <div class="relative flex items-center min-w-[240px]">
-      <span class="material-symbols-outlined absolute left-3 text-on-surface-variant text-[18px] pointer-events-none">search</span>
-      <input
-        type="text"
+    <div class="min-w-[240px]">
+      <app-input
         [(ngModel)]="searchText"
         (ngModelChange)="onSearchChange()"
         placeholder="Search tasks..."
-        class="pl-9 pr-4 py-[7px] border border-outline-variant rounded text-sm bg-surface-container-lowest text-on-surface w-full focus:outline-none focus:border-primary transition-all duration-200"
-      />
+        icon="search"
+        customClass="bg-surface-container-lowest text-sm py-[7px]"
+      ></app-input>
     </div>
 
     <!-- Quick Filters -->
@@ -238,72 +237,41 @@
 
 <app-dialog [(visible)]="showCreateDialog" title="Create issue">
   <div class="space-y-md">
-    <div class="flex flex-col gap-xs">
-      <label class="font-label-md text-on-surface font-semibold">Summary</label>
-      <input
-        type="text"
-        [(ngModel)]="newTask.description"
-        placeholder="What needs to be done?"
-        class="w-full px-md py-sm border border-outline-variant rounded focus:outline-none focus:border-primary bg-surface text-on-surface"
-      />
+    <app-input
+      [(ngModel)]="newTask.description"
+      placeholder="What needs to be done?"
+      label="Summary"
+    ></app-input>
+
+    <div class="grid grid-cols-2 gap-md">
+      <app-select
+        name="type"
+        [(ngModel)]="newTask.type"
+        label="Type"
+        [options]="typeOptions"
+      ></app-select>
+
+      <app-select
+        name="status"
+        [(ngModel)]="newTask.status"
+        label="Status"
+        [options]="statusOptions"
+      ></app-select>
     </div>
 
     <div class="grid grid-cols-2 gap-md">
-      <div class="flex flex-col gap-xs">
-        <label class="font-label-md text-on-surface font-semibold">Type</label>
-        <select
-          [(ngModel)]="newTask.type"
-          class="w-full px-md py-sm border border-outline-variant rounded focus:outline-none focus:border-primary bg-surface text-on-surface appearance-none"
-        >
-          <option value="Task">Task</option>
-          <option value="Bug">Bug</option>
-          <option value="Feature">Feature</option>
-          <option value="Epic">Epic</option>
-          <option value="UserStory">User Story</option>
-          <option value="Subtask">Subtask</option>
-        </select>
-      </div>
+      <app-select
+        name="assigneeId"
+        [(ngModel)]="newTask.assigneeId"
+        label="Assignee"
+        [options]="assigneeOptions"
+      ></app-select>
 
-      <div class="flex flex-col gap-xs">
-        <label class="font-label-md text-on-surface font-semibold">Status</label>
-        <select
-          [(ngModel)]="newTask.status"
-          class="w-full px-md py-sm border border-outline-variant rounded focus:outline-none focus:border-primary bg-surface text-on-surface appearance-none"
-        >
-          <option value="New">New</option>
-          <option value="Active">Active</option>
-          <option value="InDevelopment">In Development</option>
-          <option value="InTesting">In Testing</option>
-          <option value="Resolved">Resolved</option>
-          <option value="Closed">Closed</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="grid grid-cols-2 gap-md">
-      <div class="flex flex-col gap-xs">
-        <label class="font-label-md text-on-surface font-semibold">Assignee</label>
-        <select
-          [(ngModel)]="newTask.assigneeId"
-          class="w-full px-md py-sm border border-outline-variant rounded focus:outline-none focus:border-primary bg-surface text-on-surface appearance-none"
-        >
-          <option value="">Unassigned</option>
-          @for (user of projectUsers; track user.id) {
-            <option [value]="user.id">{{ user.fullName }}</option>
-          }
-        </select>
-      </div>
-
-      <div class="flex flex-col gap-xs">
-        <label class="font-label-md text-on-surface font-semibold">Priority</label>
-        <input
-          type="number"
-          min="1"
-          max="10"
-          [(ngModel)]="newTask.priority"
-          class="w-full px-md py-sm border border-outline-variant rounded focus:outline-none focus:border-primary bg-surface text-on-surface"
-        />
-      </div>
+      <app-input
+        type="number"
+        [(ngModel)]="newTask.priority"
+        label="Priority"
+      ></app-input>
     </div>
   </div>
 
