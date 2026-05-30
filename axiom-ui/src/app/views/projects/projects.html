@@ -14,13 +14,14 @@
       </h1>
     </div>
     <div class="flex items-center gap-3">
-      <button
-        (click)="createProjectDialog.show()"
-        class="bg-primary text-white font-label-md px-md py-[10px] rounded hover:opacity-90 transition-opacity flex items-center gap-sm justify-center font-bold text-sm"
+      <app-button
+        variant="primary"
+        icon="add"
+        (onClick)="createProjectDialog.show()"
+        customClass="py-[10px] text-sm font-bold"
       >
-        <span class="material-symbols-outlined text-[18px]">add</span>
-        <span>Create Project</span>
-      </button>
+        Create Project
+      </app-button>
     </div>
   </header>
 

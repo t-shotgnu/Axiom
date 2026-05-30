@@ -11,6 +11,8 @@ import { ProjectMemberService } from '../../core/services/project-member.service
 import { UserService } from '../../core/services/user.service';
 import { ButtonComponent } from '../../shared/components/ui/button';
 import { DialogComponent } from '../../shared/components/ui/dialog';
+import { InputComponent } from '../../shared/components/ui/input';
+import { SelectComponent } from '../../shared/components/ui/select';
 
 type ProjectUser = {
   id: string;
@@ -29,12 +31,40 @@ type ProjectUser = {
     FormsModule,
     ButtonComponent,
     DialogComponent,
+    InputComponent,
+    SelectComponent,
   ],
   templateUrl: './tasks.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TasksComponent implements OnInit {
   protected readonly Math = Math;
+
+  protected readonly typeOptions = [
+    { value: 'Task', label: 'Task' },
+    { value: 'Bug', label: 'Bug' },
+    { value: 'Feature', label: 'Feature' },
+    { value: 'Epic', label: 'Epic' },
+    { value: 'UserStory', label: 'User Story' },
+    { value: 'Subtask', label: 'Subtask' }
+  ];
+
+  protected readonly statusOptions = [
+    { value: 'New', label: 'New' },
+    { value: 'Active', label: 'Active' },
+    { value: 'InDevelopment', label: 'In Development' },
+    { value: 'InTesting', label: 'In Testing' },
+    { value: 'Resolved', label: 'Resolved' },
+    { value: 'Closed', label: 'Closed' }
+  ];
+
+  get assigneeOptions() {
+    const opts = [{ value: '', label: 'Unassigned' }];
+    for (const u of this.projectUsers) {
+      opts.push({ value: u.id, label: u.fullName });
+    }
+    return opts;
+  }
 
   private readonly projectService = inject(ProjectService);
   private readonly workItemService = inject(WorkItemService);

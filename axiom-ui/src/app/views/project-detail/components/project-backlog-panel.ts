@@ -11,6 +11,7 @@ import { ProjectMemberService } from '../../../core/services/project-member.serv
 import { DialogComponent } from '../../../shared/components/ui/dialog';
 import { ButtonComponent } from '../../../shared/components/ui/button';
 import { InputComponent } from '../../../shared/components/ui/input';
+import { SelectComponent } from '../../../shared/components/ui/select';
 
 type ProjectUser = {
     id: string;
@@ -21,7 +22,7 @@ type ProjectUser = {
 @Component({
     selector: 'app-project-backlog-panel',
     standalone: true,
-    imports: [CommonModule, FormsModule, RouterModule, DialogComponent, ButtonComponent, InputComponent],
+    imports: [CommonModule, FormsModule, RouterModule, DialogComponent, ButtonComponent, InputComponent, SelectComponent],
     templateUrl: './project-backlog-panel.html',
 })
 export class ProjectBacklogPanelComponent implements OnInit {
@@ -30,6 +31,14 @@ export class ProjectBacklogPanelComponent implements OnInit {
     private readonly destroyRef = inject(DestroyRef);
 
     private _projectId = '';
+
+    get assigneeOptions() {
+        const opts = [{ label: 'Unassigned', value: '' }];
+        for (const u of this.projectUsers()) {
+            opts.push({ label: u.fullName, value: u.id });
+        }
+        return opts;
+    }
 
     @Input()
     set projectId(value: string) {

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import {
@@ -9,8 +9,9 @@ import {
   DashboardStatusBreakdown,
   DashboardTypeBreakdown,
 } from '../../core/services/dashboard.service';
+import { ProjectService } from '../../core/services/project.service';
 import { WorkItem } from '../../core/services/work-item.service';
-import { finalize } from 'rxjs';
+import { Subscription, finalize } from 'rxjs';
 import { RouterModule } from '@angular/router';
 
 @Component({
@@ -21,7 +22,7 @@ import { RouterModule } from '@angular/router';
   styles: [],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
   loading = true;
   activeProjectsCount = 0;
   totalTasksCount = 0;
@@ -38,18 +39,31 @@ export class DashboardComponent implements OnInit {
   assigneeWorkload: DashboardAssigneeWorkload[] = [];
   recentTasks: WorkItem[] = [];
 
+  private projectSub?: Subscription;
+
   constructor(
     private readonly dashboardService: DashboardService,
+    private readonly projectService: ProjectService,
     private readonly cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit() {
-    this.fetchDashboardData();
+    this.projectSub = this.projectService.currentProject$.subscribe({
+      next: (project) => {
+        this.loading = true;
+        this.cdr.markForCheck();
+        this.fetchDashboardData(project?.id);
+      },
+    });
   }
 
-  fetchDashboardData() {
+  ngOnDestroy() {
+    this.projectSub?.unsubscribe();
+  }
+
+  fetchDashboardData(projectId?: string) {
     this.dashboardService
-      .getSummary()
+      .getSummary(projectId)
       .pipe(
         finalize(() => {
           this.loading = false;
@@ -108,6 +122,22 @@ export class DashboardComponent implements OnInit {
     if (type === 'Epic') return 'bolt';
     if (type === 'Feature') return 'widgets';
     return 'assignment';
+  }
+
+  getIssueTypeColorClass(type: string): string {
+    if (type === 'Bug') return 'text-red-600 bg-red-500/10 border-red-500/20';
+    if (type === 'UserStory') return 'text-amber-600 bg-amber-500/10 border-amber-500/20';
+    if (type === 'Epic') return 'text-purple-600 bg-purple-500/10 border-purple-500/20';
+    if (type === 'Feature') return 'text-emerald-600 bg-emerald-500/10 border-emerald-500/20';
+    return 'text-blue-600 bg-blue-500/10 border-blue-500/20';
+  }
+
+  getIssueTypeIconColor(type: string): string {
+    if (type === 'Bug') return 'text-red-500';
+    if (type === 'UserStory') return 'text-amber-500';
+    if (type === 'Epic') return 'text-purple-600';
+    if (type === 'Feature') return 'text-emerald-500';
+    return 'text-blue-500';
   }
 
   getStatusLabel(status: string): string {

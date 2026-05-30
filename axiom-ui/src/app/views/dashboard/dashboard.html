@@ -165,7 +165,7 @@
             <div>
               <div class="mb-xs flex items-center justify-between gap-sm">
                 <span class="flex items-center gap-xs text-xs font-bold text-on-surface">
-                  <span class="material-symbols-outlined text-[16px] text-primary">{{ getIssueIcon(item.type) }}</span>
+                  <span class="material-symbols-outlined text-[16px]" [ngClass]="getIssueTypeIconColor(item.type)">{{ getIssueIcon(item.type) }}</span>
                   {{ item.label }}
                 </span>
                 <span class="text-xs font-bold text-on-surface-variant">{{ item.count }}</span>
@@ -195,34 +195,6 @@
         </div>
       </div>
 
-      <div class="col-span-12 lg:col-span-4 bg-surface-container-lowest border border-outline-variant rounded p-lg">
-        <h2 class="font-headline-sm text-headline-sm font-black tracking-tight mb-lg">Project Progress</h2>
-
-        @if (projectProgress.length === 0) {
-          <div class="rounded border border-dashed border-outline-variant px-md py-lg text-center text-sm font-medium text-on-surface-variant">
-            No projects yet.
-          </div>
-        } @else {
-          <div class="space-y-md">
-            @for (project of projectProgress; track project.projectId) {
-              <a [routerLink]="['/projects', project.projectId]" class="block rounded border border-outline-variant/50 p-sm hover:bg-surface-container-low">
-                <div class="mb-xs flex items-center justify-between gap-sm">
-                  <span class="truncate text-sm font-extrabold text-on-surface">
-                    {{ project.projectCode }} • {{ project.projectName }}
-                  </span>
-                  <span class="text-xs font-black text-primary">{{ project.completionPercent }}%</span>
-                </div>
-                <div class="mb-xs h-2 overflow-hidden rounded-full bg-surface-container-high">
-                  <div class="h-full rounded-full bg-primary" [style]="getProjectProgressStyle(project)"></div>
-                </div>
-                <p class="text-[11px] font-semibold text-on-surface-variant">
-                  {{ project.openTasks }} open • {{ project.completedTasks }} done • {{ project.unassignedTasks }} unassigned
-                </p>
-              </a>
-            }
-          </div>
-        }
-      </div>
 
       <div class="col-span-12 bg-surface-container-lowest border border-outline-variant rounded p-lg">
         <div class="mb-lg flex items-center justify-between gap-md">
@@ -244,31 +216,36 @@
             <table class="w-full min-w-[760px] border-collapse text-left">
               <thead>
                 <tr class="border-b border-outline-variant text-[11px] font-black uppercase tracking-wider text-on-surface-variant">
-                  <th class="pb-sm pr-md">Issue</th>
-                  <th class="pb-sm px-md">Type</th>
-                  <th class="pb-sm px-md">Priority</th>
+                  <th class="pb-sm pr-md w-20">Key</th>
+                  <th class="pb-sm px-md">Issue</th>
                   <th class="pb-sm px-md">Status</th>
-                  <th class="pb-sm pl-md text-right">Key</th>
+                  <th class="pb-sm pl-md">Priority</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-outline-variant/60">
                 @for (task of recentTasks; track task.id) {
                   <tr class="hover:bg-surface-container-low">
-                    <td class="py-sm pr-md">
+                    <td class="py-sm pr-md font-mono text-xs font-bold text-on-surface-variant">
+                      #{{ task.controlNo }}
+                    </td>
+                    <td class="py-sm px-md">
                       <a [routerLink]="['/tasks', task.id]" class="flex min-w-0 items-center gap-sm">
-                        <span class="material-symbols-outlined text-[18px] text-primary">{{ getIssueIcon(task.type) }}</span>
+                        <span
+                          class="flex h-7 w-7 items-center justify-center rounded-lg border text-[18px] shrink-0"
+                          [ngClass]="getIssueTypeColorClass(task.type)"
+                        >
+                          <span class="material-symbols-outlined text-[16px]">{{ getIssueIcon(task.type) }}</span>
+                        </span>
                         <span class="truncate text-sm font-bold text-on-surface hover:text-primary">{{ task.description }}</span>
                       </a>
                     </td>
-                    <td class="py-sm px-md text-xs font-bold text-on-surface-variant">{{ task.type }}</td>
-                    <td class="py-sm px-md text-xs font-bold text-on-surface-variant">P{{ task.priority }}</td>
                     <td class="py-sm px-md">
                       <span class="inline-flex rounded border px-2 py-0.5 text-[9px] font-black uppercase" [ngClass]="getStatusBadgeClass(task.status)">
                         {{ getStatusLabel(task.status) }}
                       </span>
                     </td>
-                    <td class="py-sm pl-md text-right font-mono text-xs font-bold text-on-surface-variant">
-                      #{{ task.controlNo }}
+                    <td class="py-sm pl-md text-xs font-bold text-on-surface-variant">
+                      P{{ task.priority }}
                     </td>
                   </tr>
                 }

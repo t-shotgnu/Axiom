@@ -11,17 +11,31 @@ import {
     ProjectMemberService,
 } from '../../../core/services/project-member.service';
 import { User, UserService } from '../../../core/services/user.service';
+import { SelectComponent } from '../../../shared/components/ui/select';
 
 @Component({
     selector: 'app-project-members-panel',
     standalone: true,
-    imports: [CommonModule, FormsModule],
+    imports: [CommonModule, FormsModule, SelectComponent],
     templateUrl: './project-members-panel.html',
 })
 export class ProjectMembersPanelComponent implements OnInit {
     private readonly memberService = inject(ProjectMemberService);
     private readonly userService = inject(UserService);
     private readonly destroyRef = inject(DestroyRef);
+
+    roleOptions = [
+        { label: 'Member', value: 'MEMBER' },
+        { label: 'Admin', value: 'ADMIN' }
+    ];
+
+    get availableUserOptions() {
+        const opts = [{ label: 'Select a user', value: '' }];
+        for (const u of this.availableUsers) {
+            opts.push({ label: this.getUserLabel(u), value: u.id });
+        }
+        return opts;
+    }
 
     private _projectId = '';
 

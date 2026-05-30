@@ -67,7 +67,8 @@ export class DashboardService {
 
   constructor(private readonly http: HttpClient) {}
 
-  getSummary(): Observable<DashboardSummary> {
-    return this.http.get<DashboardSummary>(`${this.apiUrl}/summary`);
+  getSummary(projectId?: string): Observable<DashboardSummary> {
+    const url = projectId ? `${this.apiUrl}/summary?projectId=${projectId}` : `${this.apiUrl}/summary`;
+    return this.http.get<DashboardSummary>(url);
   }
 }

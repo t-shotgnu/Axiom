@@ -33,6 +33,7 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormsModule } from '@angular/f
           [class]="inputClasses"
         />
       </div>
+      <ng-content></ng-content>
     </div>
   `
 })

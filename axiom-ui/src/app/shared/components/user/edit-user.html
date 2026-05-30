@@ -20,60 +20,48 @@
         </div>
       } @else {
         <form class="flex-1 overflow-y-auto p-lg flex flex-col gap-md" (ngSubmit)="submit()">
-          <div class="flex flex-col gap-xs">
-            <label class="font-label-md text-on-surface">First name</label>
-            <input
-              type="text"
-              name="firstName"
-              required
-              [(ngModel)]="form.firstName"
-              class="w-full px-md py-sm pr-10 border border-outline-variant rounded focus:outline-none focus:border-primary bg-surface text-on-surface"
-              [class.border-error]="fieldErrors['firstName']"
-            />
+          <app-input
+            name="firstName"
+            [(ngModel)]="form.firstName"
+            label="First name"
+            [customClass]="fieldErrors['firstName'] ? 'border-error' : ''"
+          >
             @if (form.firstName && !isNameValid(form.firstName)) {
-              <p class="text-xs text-error">Enter a valid first name.</p>
+              <p class="text-xs text-error mt-xs">Enter a valid first name.</p>
             }
             @if (fieldErrors['firstName']) {
-              <p class="text-xs text-error">{{ fieldErrors['firstName'] }}</p>
+              <p class="text-xs text-error mt-xs">{{ fieldErrors['firstName'] }}</p>
             }
-          </div>
+          </app-input>
 
-          <div class="flex flex-col gap-xs">
-            <label class="font-label-md text-on-surface">Last name</label>
-            <input
-              type="text"
-              name="lastName"
-              required
-              [(ngModel)]="form.lastName"
-              class="w-full px-md py-sm pr-10 border border-outline-variant rounded focus:outline-none focus:border-primary bg-surface text-on-surface"
-              [class.border-error]="fieldErrors['lastName']"
-            />
+          <app-input
+            name="lastName"
+            [(ngModel)]="form.lastName"
+            label="Last name"
+            [customClass]="fieldErrors['lastName'] ? 'border-error' : ''"
+          >
             @if (form.lastName && !isNameValid(form.lastName)) {
-              <p class="text-xs text-error">Enter a valid last name.</p>
+              <p class="text-xs text-error mt-xs">Enter a valid last name.</p>
             }
             @if (fieldErrors['lastName']) {
-              <p class="text-xs text-error">{{ fieldErrors['lastName'] }}</p>
+              <p class="text-xs text-error mt-xs">{{ fieldErrors['lastName'] }}</p>
             }
-          </div>
+          </app-input>
 
-          <div class="flex flex-col gap-xs">
-            <label class="font-label-md text-on-surface">Date of birth</label>
-            <input
-              type="date"
-              name="dateOfBirth"
-              required
-              [(ngModel)]="form.dateOfBirth"
-              [max]="todayDate"
-              class="w-full px-md py-sm pr-10 border border-outline-variant rounded focus:outline-none focus:border-primary bg-surface text-on-surface"
-              [class.border-error]="fieldErrors['dateOfBirth']"
-            />
+          <app-input
+            type="date"
+            name="dateOfBirth"
+            [(ngModel)]="form.dateOfBirth"
+            label="Date of birth"
+            [customClass]="fieldErrors['dateOfBirth'] ? 'border-error' : ''"
+          >
             @if (form.dateOfBirth && !isDateOfBirthValid(form.dateOfBirth)) {
-              <p class="text-xs text-error">Date of birth cannot be in the future.</p>
+              <p class="text-xs text-error mt-xs">Date of birth cannot be in the future.</p>
             }
             @if (fieldErrors['dateOfBirth']) {
-              <p class="text-xs text-error">{{ fieldErrors['dateOfBirth'] }}</p>
+              <p class="text-xs text-error mt-xs">{{ fieldErrors['dateOfBirth'] }}</p>
             }
-          </div>
+          </app-input>
 
           @if (errorMessage) {
             <div
