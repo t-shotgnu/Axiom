@@ -17,6 +17,10 @@ import com.studproj.axiom.application.features.workitems.getworkitembyid.GetWork
 import com.studproj.axiom.application.features.workitems.getworkitemsbyproject.GetWorkItemsByProjectQuery;
 import com.studproj.axiom.application.features.workitems.getworkitemsbyproject.GetWorkItemsByProjectQueryHandler;
 import com.studproj.axiom.application.features.workitems.WorkItemDto;
+import com.studproj.axiom.presentation.controller.dto.AssignWorkItemRequest;
+import com.studproj.axiom.presentation.controller.dto.UpdateWorkItemNotesRequest;
+import com.studproj.axiom.presentation.controller.dto.UpdateWorkItemRequest;
+import com.studproj.axiom.presentation.controller.dto.UpdateWorkItemStatusRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -67,19 +71,19 @@ public class WorkItemController {
     }
 
     @PatchMapping("/{id}/assignee")
-    public ResponseEntity<Void> assignWorkItem(@PathVariable UUID id, @Valid @RequestBody com.studproj.axiom.presentation.controller.dto.AssignWorkItemRequest request) {
+    public ResponseEntity<Void> assignWorkItem(@PathVariable UUID id, @Valid @RequestBody AssignWorkItemRequest request) {
         assignWorkItemCommandHandler.handle(new AssignWorkItemCommand(id, request.assigneeId()));
         return ResponseEntity.ok().build();
     }
 
     @PatchMapping("/{id}/status")
-    public ResponseEntity<Void> updateStatus(@PathVariable UUID id, @Valid @RequestBody com.studproj.axiom.presentation.controller.dto.UpdateWorkItemStatusRequest request) {
+    public ResponseEntity<Void> updateStatus(@PathVariable UUID id, @Valid @RequestBody UpdateWorkItemStatusRequest request) {
         updateWorkItemStatusCommandHandler.handle(new UpdateWorkItemStatusCommand(id, request.status()));
         return ResponseEntity.ok().build();
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Void> updateWorkItem(@PathVariable UUID id, @Valid @RequestBody com.studproj.axiom.presentation.controller.dto.UpdateWorkItemRequest request) {
+    public ResponseEntity<Void> updateWorkItem(@PathVariable UUID id, @Valid @RequestBody UpdateWorkItemRequest request) {
         updateWorkItemCommandHandler.handle(new UpdateWorkItemCommand(
                 id,
                 request.description(),
@@ -95,7 +99,7 @@ public class WorkItemController {
     }
 
     @PatchMapping("/{id}/notes")
-    public ResponseEntity<Void> updateNotes(@PathVariable UUID id, @Valid @RequestBody com.studproj.axiom.presentation.controller.dto.UpdateWorkItemNotesRequest request) {
+    public ResponseEntity<Void> updateNotes(@PathVariable UUID id, @Valid @RequestBody UpdateWorkItemNotesRequest request) {
         updateWorkItemNotesCommandHandler.handle(new UpdateWorkItemNotesCommand(id, request.notes()));
         return ResponseEntity.ok().build();
     }

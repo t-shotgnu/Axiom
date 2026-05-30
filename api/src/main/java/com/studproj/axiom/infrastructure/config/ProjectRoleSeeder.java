@@ -24,10 +24,7 @@ public class ProjectRoleSeeder implements ApplicationRunner {
 
     private void seed(ProjectRoleType type) {
         projectRoleRepository.findByType(type).orElseGet(() -> {
-            ProjectRole role = ProjectRole.builder()
-                    .id(UUID.randomUUID())
-                    .type(type)
-                    .build();
+            ProjectRole role = new ProjectRole(UUID.randomUUID(), type);
             projectRoleRepository.save(role);
             return role;
         });
