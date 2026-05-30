@@ -5,6 +5,7 @@ import { RouterModule } from '@angular/router';
 
 import { finalize } from 'rxjs';
 import { Project, ProjectService } from '../../core/services/project.service';
+import { WorkItemService } from '../../core/services/work-item.service';
 import { CreateProjectComponent } from './create-project';
 import { DialogComponent } from '../../shared/components/ui/dialog';
 import { ButtonComponent } from '../../shared/components/ui/button';
@@ -27,8 +28,11 @@ export class ProjectsComponent {
 
   listState: 'loading' | 'error' | 'empty' | 'list' = 'loading';
 
+  projectStats = new Map<string, { total: number; completed: number; percentage: number }>();
+
   constructor(
     private readonly projectService: ProjectService,
+    private readonly workItemService: WorkItemService,
     private readonly cdr: ChangeDetectorRef,
   ) {
     this.loadProjects();
@@ -63,11 +67,44 @@ export class ProjectsComponent {
       .subscribe({
         next: (projects) => {
           this.projects = projects;
+          this.loadAllProjectStats();
         },
         error: (err: unknown) => {
           this.errorMessage = this.mapProjectLoadError(err);
         },
       });
+  }
+
+  private loadAllProjectStats(): void {
+    this.projectStats.clear();
+    for (const project of this.projects) {
+      this.workItemService.getWorkItems(project.id).subscribe({
+        next: (workItems) => {
+          const items = workItems || [];
+          const total = items.length;
+          const completed = items.filter(w => {
+            const s = (w.status || '').toLowerCase();
+            return s === 'resolved' || s === 'closed' || s === 'done';
+          }).length;
+          const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+          this.projectStats.set(project.id, { total, completed, percentage });
+          this.cdr.markForCheck();
+        },
+        error: (err) => {
+          console.error(`Error loading stats for project ${project.id}`, err);
+        }
+      });
+    }
+  }
+
+  getProjectProgressPercentage(projectId: string): number {
+    return this.projectStats.get(projectId)?.percentage ?? 0;
+  }
+
+  getProjectProgressLabel(projectId: string): string {
+    const stats = this.projectStats.get(projectId);
+    if (!stats) return '0 of 0 issues';
+    return `${stats.completed} of ${stats.total} issues`;
   }
 
   openDeleteDialog(project: Project): void {

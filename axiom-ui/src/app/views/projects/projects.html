@@ -174,11 +174,14 @@
                       <div
                         class="flex justify-between items-center text-[10px] font-bold text-on-surface-variant"
                       >
-                        <span>100%</span>
-                        <span>1 of 1 issues</span>
+                        <span>{{ getProjectProgressPercentage(project.id) }}%</span>
+                        <span>{{ getProjectProgressLabel(project.id) }}</span>
                       </div>
                       <div class="w-full h-1.5 bg-surface-container-low rounded overflow-hidden">
-                        <div class="h-full bg-green-500 rounded w-[100%]"></div>
+                        <div
+                          class="h-full bg-green-500 rounded transition-all duration-300"
+                          [style.width.%]="getProjectProgressPercentage(project.id)"
+                        ></div>
                       </div>
                     </div>
                   </td>
@@ -232,81 +235,55 @@
   <div class="grid grid-cols-12 gap-lg mb-xl">
     <!-- Card 1 -->
     <div
-      class="col-span-12 md:col-span-4 bg-surface-container-lowest border border-outline-variant rounded p-lg flex flex-col justify-between min-h-[140px]"
+      class="col-span-12 md:col-span-4 bg-surface-container-lowest border border-outline-variant rounded p-md flex flex-col justify-between min-h-[100px]"
     >
       <div class="flex justify-between items-start">
         <div>
-          <p class="text-[11px] font-bold tracking-wider uppercase text-on-surface-variant mb-xs">
+          <p class="text-[10px] font-bold tracking-wider uppercase text-on-surface-variant mb-xs">
             Efficiency Rate
           </p>
-          <h3 class="text-[32px] font-black text-on-surface leading-none">94.2%</h3>
+          <h3 class="text-2xl font-black text-on-surface leading-none">94.2%</h3>
         </div>
-        <span class="material-symbols-outlined text-primary text-[28px] font-bold"
+        <span class="material-symbols-outlined text-primary text-[22px] font-bold"
           >trending_up</span
         >
       </div>
-      <p class="text-xs text-green-600 font-bold mt-sm">+2.4% from last month</p>
+      <p class="text-[11px] text-green-600 font-bold mt-xs">+2.4% from last month</p>
     </div>
 
     <!-- Card 2 -->
     <div
-      class="col-span-12 md:col-span-4 bg-surface-container-lowest border border-outline-variant rounded p-lg flex flex-col justify-between min-h-[140px]"
+      class="col-span-12 md:col-span-4 bg-surface-container-lowest border border-outline-variant rounded p-md flex flex-col justify-between min-h-[100px]"
     >
       <div class="flex justify-between items-start">
         <div>
-          <p class="text-[11px] font-bold tracking-wider uppercase text-on-surface-variant mb-xs">
+          <p class="text-[10px] font-bold tracking-wider uppercase text-on-surface-variant mb-xs">
             Risk Profile
           </p>
-          <h3 class="text-[32px] font-black text-on-surface leading-none">Low</h3>
+          <h3 class="text-2xl font-black text-on-surface leading-none">Low</h3>
         </div>
-        <span class="material-symbols-outlined text-red-500 text-[28px]">warning</span>
+        <span class="material-symbols-outlined text-red-500 text-[22px]">warning</span>
       </div>
-      <p class="text-xs text-on-surface-variant font-semibold mt-sm">
+      <p class="text-[11px] text-on-surface-variant font-semibold mt-xs">
         2 projects require attention
       </p>
     </div>
 
     <!-- Card 3 -->
     <div
-      class="col-span-12 md:col-span-4 bg-surface-container-lowest border border-outline-variant rounded p-lg flex flex-col justify-between min-h-[140px]"
+      class="col-span-12 md:col-span-4 bg-surface-container-lowest border border-outline-variant rounded p-md flex flex-col justify-between min-h-[100px]"
     >
       <div class="flex justify-between items-start">
         <div>
-          <p class="text-[11px] font-bold tracking-wider uppercase text-on-surface-variant mb-xs">
+          <p class="text-[10px] font-bold tracking-wider uppercase text-on-surface-variant mb-xs">
             Resource Load
           </p>
-          <h3 class="text-[32px] font-black text-on-surface leading-none">Balanced</h3>
+          <h3 class="text-2xl font-black text-on-surface leading-none">Balanced</h3>
         </div>
-        <span class="material-symbols-outlined text-primary text-[28px]">group</span>
+        <span class="material-symbols-outlined text-primary text-[22px]">group</span>
       </div>
-      <p class="text-xs text-on-surface-variant font-semibold mt-sm">Avg. 4.2 tasks per member</p>
+      <p class="text-[11px] text-on-surface-variant font-semibold mt-xs">Avg. 4.2 tasks per member</p>
     </div>
-  </div>
-
-  <!-- Bottom CTA Promo Banner -->
-  <div
-    class="bg-gradient-to-r from-primary to-indigo-700 rounded p-xl text-white relative overflow-hidden flex flex-col justify-between md:flex-row md:items-center md:py-lg min-h-[150px] shadow-lg"
-  >
-    <div class="relative z-10 max-w-[650px] mb-lg md:mb-0">
-      <h2 class="text-xl font-black mb-sm tracking-tight">
-        Project Analytics 2024 is now available
-      </h2>
-      <p class="text-white/80 text-sm leading-relaxed font-medium">
-        Unlock advanced insights into your team's velocity and identify bottlenecks before they
-        happen with our new AI-driven forecasting tool.
-      </p>
-    </div>
-    <button
-      class="relative z-10 bg-white hover:bg-white/90 text-on-surface font-extrabold text-sm px-lg py-[12px] rounded shrink-0 self-start md:self-auto transition-all shadow-[0_2px_8px_rgba(0,0,0,0.1)]"
-    >
-      Explore Dashboards
-    </button>
-    <div
-      class="absolute inset-0 bg-no-repeat bg-right bg-cover opacity-15 pointer-events-none"
-      style="
-        background-image: url('https://images.unsplash.com/photo-1557683316-973673baf926?auto=format&fit=crop&w=600&q=80');
-      "
-    ></div>
   </div>
 
   <app-create-project #createProjectDialog (projectCreated)="loadProjects()"></app-create-project>
