@@ -1,10 +1,12 @@
 import { ChangeDetectorRef } from '@angular/core';
-import { Subject } from 'rxjs';
+import { BehaviorSubject, Subject } from 'rxjs';
 import { DashboardService, DashboardSummary } from '../../core/services/dashboard.service';
+import { ProjectService, Project } from '../../core/services/project.service';
 import { DashboardComponent } from './dashboard';
 
 describe('DashboardComponent', () => {
   let dashboardService: { getSummary: ReturnType<typeof vi.fn> };
+  let projectService: { currentProject$: BehaviorSubject<Project | null> };
   let cdr: { markForCheck: ReturnType<typeof vi.fn> };
   let summary$: Subject<DashboardSummary>;
   let component: DashboardComponent;
@@ -14,11 +16,15 @@ describe('DashboardComponent', () => {
     dashboardService = {
       getSummary: vi.fn(() => summary$.asObservable()),
     };
+    projectService = {
+      currentProject$: new BehaviorSubject<Project | null>(null),
+    };
     cdr = {
       markForCheck: vi.fn(),
     };
     component = new DashboardComponent(
       dashboardService as unknown as DashboardService,
+      projectService as unknown as ProjectService,
       cdr as unknown as ChangeDetectorRef,
     );
   });

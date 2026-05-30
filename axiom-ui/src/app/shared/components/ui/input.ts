@@ -1,4 +1,4 @@
-import { Component, Input, forwardRef } from '@angular/core';
+import { Component, Input, forwardRef, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormsModule } from '@angular/forms';
 
@@ -24,6 +24,7 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormsModule } from '@angular/f
         }
         <input
           [id]="id"
+          [name]="name"
           [type]="type"
           [value]="val"
           (input)="onInput($event)"
@@ -39,6 +40,7 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormsModule } from '@angular/f
 })
 export class InputComponent implements ControlValueAccessor {
   @Input() id = 'input-' + Math.random().toString(36).substr(2, 9);
+  @Input() name = '';
   @Input() label = '';
   @Input() type = 'text';
   @Input() placeholder = '';
@@ -57,8 +59,11 @@ export class InputComponent implements ControlValueAccessor {
     return `${base} ${padding} ${this.customClass}`.trim();
   }
 
+  constructor(private readonly cdr: ChangeDetectorRef) {}
+
   writeValue(value: any): void {
     this.val = value;
+    this.cdr.markForCheck();
   }
 
   registerOnChange(fn: any): void {
