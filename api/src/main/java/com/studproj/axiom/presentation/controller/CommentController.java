@@ -1,10 +1,17 @@
 package com.studproj.axiom.presentation.controller;
 
-import com.studproj.axiom.domain.repository.UserRepository;
-import com.studproj.axiom.domain.service.AuthenticatedUserProvider;
-import com.studproj.axiom.infrastructure.persistence.entity.CommentEntity;
-import com.studproj.axiom.infrastructure.persistence.repository.CommentJpaRepository;
+import com.studproj.axiom.application.features.comments.CommentDto;
+import com.studproj.axiom.application.features.comments.createcomment.CreateCommentCommand;
+import com.studproj.axiom.application.features.comments.createcomment.CreateCommentCommandHandler;
+import com.studproj.axiom.application.features.comments.deletecomment.DeleteCommentCommand;
+import com.studproj.axiom.application.features.comments.deletecomment.DeleteCommentCommandHandler;
+import com.studproj.axiom.application.features.comments.getcommentsbyworkitem.GetCommentsByWorkItemQuery;
+import com.studproj.axiom.application.features.comments.getcommentsbyworkitem.GetCommentsByWorkItemQueryHandler;
+import com.studproj.axiom.presentation.controller.dto.CreateCommentRequest;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,7 +21,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -22,39 +28,25 @@ import java.util.UUID;
 @RequestMapping("/api")
 @RequiredArgsConstructor
 public class CommentController {
-    private final CommentJpaRepository commentRepository;
-    private final UserRepository userRepository;
-    private final AuthenticatedUserProvider authenticatedUserProvider;
-
-    public record CreateCommentReq(String text) {}
+    private final GetCommentsByWorkItemQueryHandler getCommentsByWorkItemQueryHandler;
+    private final CreateCommentCommandHandler createCommentCommandHandler;
+    private final DeleteCommentCommandHandler deleteCommentCommandHandler;
 
     @GetMapping("/work-items/{workItemId}/comments")
-    public ResponseEntity<List<CommentEntity>> getComments(@PathVariable UUID workItemId) {
-        return ResponseEntity.ok(commentRepository.findByWorkItemIdOrderByCreatedOnAsc(workItemId));
+    public ResponseEntity<List<CommentDto>> getComments(@PathVariable UUID workItemId) {
+        return ResponseEntity.ok(getCommentsByWorkItemQueryHandler.handle(new GetCommentsByWorkItemQuery(workItemId)));
     }
 
     @PostMapping("/work-items/{workItemId}/comments")
-    public ResponseEntity<CommentEntity> addComment(@PathVariable UUID workItemId, @RequestBody CreateCommentReq req) {
-        String email = authenticatedUserProvider.getAuthenticatedUserEmail();
-        String authorName = userRepository.findByEmail(email)
-                .map(u -> u.getUserName())
-                .orElse(email);
+    public ResponseEntity<UUID> addComment(@PathVariable UUID workItemId, @Valid @RequestBody CreateCommentRequest request) {
+        UUID id = createCommentCommandHandler.handle(new CreateCommentCommand(workItemId, request.text()));
+        return new ResponseEntity<>(id, HttpStatus.CREATED);
 
-        CommentEntity comment = CommentEntity.builder()
-                .id(UUID.randomUUID())
-                .workItemId(workItemId)
-                .author(authorName)
-                .text(req.text())
-                .createdOn(LocalDateTime.now())
-                .build();
-
-        CommentEntity saved = commentRepository.save(comment);
-        return ResponseEntity.ok(saved);
     }
 
     @DeleteMapping("/comments/{id}")
     public ResponseEntity<Void> deleteComment(@PathVariable UUID id) {
-        commentRepository.deleteById(id);
+        deleteCommentCommandHandler.handle(new DeleteCommentCommand(id));
         return ResponseEntity.noContent().build();
     }
 }

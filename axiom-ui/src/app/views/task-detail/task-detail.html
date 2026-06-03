@@ -160,22 +160,8 @@
                 placeholder="Add a comment..."
               ></textarea>
               <div
-                class="bg-surface-container-low px-md py-sm flex justify-between items-center select-none border-t border-outline-variant/60"
+                class="bg-surface-container-low px-md py-sm flex justify-end select-none border-t border-outline-variant/60"
               >
-                <div class="flex gap-sm">
-                  <span
-                    class="material-symbols-outlined text-[18px] text-on-surface-variant cursor-pointer hover:text-on-surface p-unit rounded hover:bg-surface-container-high transition-colors"
-                    >format_bold</span
-                  >
-                  <span
-                    class="material-symbols-outlined text-[18px] text-on-surface-variant cursor-pointer hover:text-on-surface p-unit rounded hover:bg-surface-container-high transition-colors"
-                    >format_italic</span
-                  >
-                  <span
-                    class="material-symbols-outlined text-[18px] text-on-surface-variant cursor-pointer hover:text-on-surface p-unit rounded hover:bg-surface-container-high transition-colors"
-                    >link</span
-                  >
-                </div>
                 <app-button
                   variant="primary"
                   (onClick)="addComment()"
@@ -210,13 +196,18 @@
                   {{ c.text }}
                 </p>
                 <!-- Actions -->
-                <div
-                  class="flex items-center gap-md text-[10px] text-on-surface-variant font-bold select-none pt-unit"
-                >
-                  <button (click)="deleteComment(c.id)" class="hover:underline hover:text-red-500">
-                    Delete
-                  </button>
-                </div>
+                @if (canDeleteComment(c)) {
+                  <div
+                    class="flex items-center gap-md text-[10px] text-on-surface-variant font-bold select-none pt-unit"
+                  >
+                    <button
+                      (click)="deleteComment(c.id)"
+                      class="hover:underline hover:text-red-500"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                }
               </div>
             </div>
           }
@@ -318,7 +309,6 @@
             </div>
           </div>
         </div>
-
       </div>
     </div>
   </div>
@@ -343,11 +333,7 @@
         [options]="statusOptions"
       ></app-select>
 
-      <app-select
-        [(ngModel)]="editTask.type"
-        label="Type"
-        [options]="typeOptions"
-      ></app-select>
+      <app-select [(ngModel)]="editTask.type" label="Type" [options]="typeOptions"></app-select>
     </div>
 
     <div class="grid grid-cols-2 gap-md">

@@ -5,7 +5,7 @@ import { Observable } from 'rxjs';
 export interface Comment {
   id: string;
   workItemId: string;
-  author: string;
+  authorId: string;
   text: string;
   createdOn: string;
 }

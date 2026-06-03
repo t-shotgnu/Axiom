@@ -390,6 +390,18 @@ export class TaskDetailComponent implements OnInit {
     });
   }
 
+  canDeleteComment(comment: Comment): boolean {
+    if (!this.currentUserId) {
+      return false;
+    }
+
+    if (comment.authorId && comment.authorId === this.currentUserId) {
+      return true;
+    }
+
+    return this.projectUsers.some((member) => member.id === this.currentUserId && member.role === 'ADMIN');
+  }
+
   // Attachments Management
   loadAttachments(): void {
     if (!this.id) return;
