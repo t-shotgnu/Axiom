@@ -6,6 +6,7 @@ export interface Comment {
   id: string;
   workItemId: string;
   authorId: string;
+  author: string;
   text: string;
   createdOn: string;
 }
