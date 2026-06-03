@@ -23,7 +23,7 @@ public class CommentEntity {
     @Id
     private UUID id;
     private UUID workItemId;
-    private String author;
+    private UUID authorId;
     
     @jakarta.persistence.Column(columnDefinition = "TEXT")
     private String text;
