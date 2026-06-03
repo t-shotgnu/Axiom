@@ -54,6 +54,7 @@ describe('EditUserComponent', () => {
         subject.complete();
         fixture.detectChanges();
         await fixture.whenStable();
+        fixture.detectChanges();
 
         // overlay gone and form populated
         expect(fixture.nativeElement.querySelector('input[name="firstName"]').value).toBe('First2');

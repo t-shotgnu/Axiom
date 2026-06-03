@@ -49,7 +49,7 @@ public class ChangeProjectMemberRoleCommandHandler {
         var role = projectRoleRepository.findByType(command.role())
                 .orElseThrow(() -> new NotFoundException("Project role not found"));
 
-        membership.setRoleId(role.getId());
+        membership.changeRole(role.getId());
         projectMembershipRepository.save(membership);
     }
 }

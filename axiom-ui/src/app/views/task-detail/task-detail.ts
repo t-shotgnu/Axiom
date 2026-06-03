@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy, ChangeDetectorRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -12,16 +12,19 @@ import { CommentService, Comment } from '../../core/services/comment.service';
 import { AttachmentService, Attachment } from '../../core/services/attachment.service';
 import { ButtonComponent } from '../../shared/components/ui/button';
 import { DialogComponent } from '../../shared/components/ui/dialog';
+import { SelectComponent } from '../../shared/components/ui/select';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   selector: 'app-task-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, ButtonComponent, DialogComponent],
+  imports: [CommonModule, FormsModule, RouterModule, ButtonComponent, DialogComponent, SelectComponent],
   templateUrl: './task-detail.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TaskDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly toastService = inject(ToastService);
   private readonly workItemService = inject(WorkItemService);
   private readonly router = inject(Router);
   private readonly projectService = inject(ProjectService);
@@ -34,19 +37,36 @@ export class TaskDetailComponent implements OnInit {
   id: string | null = null;
   task: WorkItem | null = null;
   project: Project | null = null;
-  status: string = '';
-  assigneeId: string = '';
   currentUserId = '';
+
+  // Working state copy properties bound to controls
+  description: string = '';
+  notesText: string = '';
+  status: string = '';
+  type: string = '';
+  assigneeId: string = '';
+  priority: number = 1;
+  estimatedEffort: number | null = null;
+
+  currentUser: User | null = null;
+  showDiscardConfirmDialog = false;
+  deactivatePromiseResolve: ((value: boolean) => void) | null = null;
+
+  originalState: {
+    description: string;
+    notes: string;
+    status: string;
+    type: string;
+    assigneeId: string;
+    priority: number;
+    estimatedEffort: number | null;
+  } | null = null;
 
   // Real User Metadata
   assigneeName: string = 'Unassigned';
   reporterName: string = 'Unknown';
   // projectMembers: list of users who belong to the current project (for assignment)
   projectUsers: { id: string; userName?: string; fullName: string; email?: string; role: 'MEMBER' | 'ADMIN' }[] = [];
-
-  // Description / Notes Editor
-  editingNotes: boolean = false;
-  notesText: string = '';
 
   // Edit dialog
   showEditDialog = false;
@@ -77,6 +97,23 @@ export class TaskDetailComponent implements OnInit {
     { label: 'Lowest', value: 9, icon: 'keyboard_double_arrow_down', colorClass: 'text-[#8993a4]' }
   ];
 
+  typeOptions = [
+    { label: 'Task', value: 'Task' },
+    { label: 'Bug', value: 'Bug' },
+    { label: 'Epic', value: 'Epic' },
+    { label: 'Feature', value: 'Feature' },
+    { label: 'User Story', value: 'UserStory' },
+    { label: 'Subtask', value: 'Subtask' }
+  ];
+
+  get assigneeOptions() {
+    const opts = [{ label: 'Unassigned', value: '' }];
+    for (const u of this.projectUsers) {
+      opts.push({ label: u.fullName, value: u.id });
+    }
+    return opts;
+  }
+
   ngOnInit() {
     this.route.paramMap.subscribe({
       next: (params) => {
@@ -93,6 +130,7 @@ export class TaskDetailComponent implements OnInit {
     this.userService.getCurrentUserProfile().subscribe({
       next: (user) => {
         this.currentUserId = user.id;
+        this.currentUser = user;
         this.cdr.markForCheck();
       },
       error: (err) => {
@@ -179,9 +217,28 @@ export class TaskDetailComponent implements OnInit {
     this.workItemService.getWorkItemById(this.id).subscribe({
       next: (data) => {
         this.task = data;
-        this.status = data.status;
+        this.description = data.description || '';
+        this.status = data.status || '';
+        this.type = data.type || 'Task';
         this.assigneeId = data.assigneeId || '';
         this.notesText = data.notes || '';
+        this.priority = data.priority || 1;
+        this.estimatedEffort = data.estimatedEffort !== undefined ? data.estimatedEffort : null;
+
+        this.originalState = {
+          description: this.description,
+          notes: this.notesText,
+          status: this.status,
+          type: this.type,
+          assigneeId: this.assigneeId,
+          priority: this.priority,
+          estimatedEffort: this.estimatedEffort
+        };
+
+        setTimeout(() => {
+          const el = document.querySelector('textarea[placeholder="Issue summary"]');
+          this.adjustTitleHeight(el);
+        }, 0);
 
         // Load live Comments and Attachments
         this.loadComments();
@@ -300,18 +357,6 @@ export class TaskDetailComponent implements OnInit {
     }
   }
 
-  // Editable Notes
-  saveNotes(): void {
-    if (!this.id || !this.canEditTask()) return;
-    this.workItemService.updateWorkItemNotes(this.id, this.notesText.trim()).subscribe({
-      next: () => {
-        this.editingNotes = false;
-        this.loadTask();
-      },
-      error: (err) => console.error('Error updating notes', err)
-    });
-  }
-
   // Comments Management
   loadComments(): void {
     if (!this.id) return;
@@ -406,5 +451,109 @@ export class TaskDetailComponent implements OnInit {
     if (priority <= 6) return 'text-[#0052cc]';
     if (priority <= 8) return 'text-[#42526e]';
     return 'text-[#8993a4]';
+  }
+
+  // --- Dynamic Edit & Save Mechanism ---
+
+  get isDirty(): boolean {
+    if (!this.originalState) return false;
+    return (
+      this.description !== this.originalState.description ||
+      this.notesText !== this.originalState.notes ||
+      this.status !== this.originalState.status ||
+      this.type !== this.originalState.type ||
+      this.assigneeId !== this.originalState.assigneeId ||
+      this.priority !== this.originalState.priority ||
+      this.estimatedEffort !== this.originalState.estimatedEffort
+    );
+  }
+
+  get currentUserInitials(): string {
+    if (!this.currentUser) return 'ME';
+    const name = `${(this.currentUser.firstName || '').trim()} ${(this.currentUser.lastName || '').trim()}`.trim() || this.currentUser.userName || this.currentUser.emailAddress;
+    return name
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase())
+      .join('') || 'ME';
+  }
+
+  adjustTitleHeight(textarea: any): void {
+    if (textarea) {
+      textarea.style.height = 'auto';
+      textarea.style.height = textarea.scrollHeight + 'px';
+    }
+  }
+
+  @HostListener('window:beforeunload', ['$event'])
+  unloadNotification($event: any): void {
+    if (this.isDirty) {
+      $event.returnValue = true;
+    }
+  }
+
+  canDeactivate(): boolean | Promise<boolean> {
+    if (!this.isDirty) {
+      return true;
+    }
+
+    this.showDiscardConfirmDialog = true;
+    this.cdr.markForCheck();
+
+    return new Promise<boolean>((resolve) => {
+      this.deactivatePromiseResolve = resolve;
+    });
+  }
+
+  keepEditing(): void {
+    this.showDiscardConfirmDialog = false;
+    if (this.deactivatePromiseResolve) {
+      this.deactivatePromiseResolve(false);
+      this.deactivatePromiseResolve = null;
+    }
+  }
+
+  discardChanges(): void {
+    this.showDiscardConfirmDialog = false;
+    if (this.originalState) {
+      this.description = this.originalState.description;
+      this.notesText = this.originalState.notes;
+      this.status = this.originalState.status;
+      this.type = this.originalState.type;
+      this.assigneeId = this.originalState.assigneeId;
+      this.priority = this.originalState.priority;
+      this.estimatedEffort = this.originalState.estimatedEffort;
+    }
+    if (this.deactivatePromiseResolve) {
+      this.deactivatePromiseResolve(true);
+      this.deactivatePromiseResolve = null;
+    }
+  }
+
+  saveAllChanges(): void {
+    if (!this.id || !this.isDirty || !this.canEditTask()) return;
+
+    const normalizedAssigneeId = this.assigneeId?.trim() || null;
+    const workItemPayload = {
+      description: this.description.trim(),
+      priority: this.priority,
+      status: this.status,
+      type: this.type,
+      assigneeId: normalizedAssigneeId,
+      estimatedEffort: this.estimatedEffort,
+      notes: this.notesText.trim()
+    } as any;
+
+    this.workItemService.updateWorkItem(this.id, workItemPayload).subscribe({
+      next: () => {
+        this.toastService.success('Task updated successfully.');
+        this.loadTask();
+      },
+      error: (err) => {
+        this.toastService.error('Failed to update task.');
+        console.error('Error saving task modifications', err);
+      }
+    });
   }
 }

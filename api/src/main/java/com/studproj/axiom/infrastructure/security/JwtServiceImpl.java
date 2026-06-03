@@ -66,14 +66,14 @@ public class JwtServiceImpl implements JwtService {
 
     @Override
     public RefreshToken createRefreshToken(UUID userId) {
-        return RefreshToken.builder()
-                .id(UUID.randomUUID())
-                .token(generateRefreshTokenString())
-                .userId(userId)
-                .revoked(false)
-                .createdAt(LocalDateTime.now())
-                .expiresAt(LocalDateTime.now().plusDays(REFRESH_TOKEN_EXPIRATION_DAYS))
-                .build();
+        return new RefreshToken(
+                UUID.randomUUID(),
+                generateRefreshTokenString(),
+                userId,
+                false,
+                LocalDateTime.now().plusDays(REFRESH_TOKEN_EXPIRATION_DAYS),
+                LocalDateTime.now()
+        );
     }
 
     private boolean isExpired(String token) {

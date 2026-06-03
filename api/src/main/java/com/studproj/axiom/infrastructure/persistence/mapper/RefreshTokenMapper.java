@@ -6,14 +6,14 @@ import com.studproj.axiom.infrastructure.persistence.entity.RefreshTokenEntity;
 public class RefreshTokenMapper {
     public static RefreshToken toDomain(RefreshTokenEntity entity) {
         if (entity == null) return null;
-        return RefreshToken.builder()
-                .id(entity.getId())
-                .token(entity.getToken())
-                .userId(entity.getUserId())
-                .revoked(entity.isRevoked())
-                .expiresAt(entity.getExpiresAt())
-                .createdAt(entity.getCreatedAt())
-                .build();
+        return new RefreshToken(
+                entity.getId(),
+                entity.getToken(),
+                entity.getUserId(),
+                entity.isRevoked(),
+                entity.getExpiresAt(),
+                entity.getCreatedAt()
+        );
     }
 
     public static RefreshTokenEntity toEntity(RefreshToken domain) {

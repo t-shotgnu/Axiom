@@ -31,27 +31,27 @@ public class CreateProjectCommandHandler {
         var user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Project project = Project.builder()
-                .id(UUID.randomUUID())
-                .name(command.name())
-                .code(command.code())
-                .description(command.description())
-                .createdOn(LocalDateTime.now())
-                .ownerId(user.getId())
-                .build();
+        Project project = new Project(
+                UUID.randomUUID(),
+                command.name(),
+                command.code(),
+                command.description(),
+                LocalDateTime.now(),
+                user.getId()
+        );
 
         projectRepository.save(project);
 
         var adminRole = projectRoleRepository.findByType(ProjectRoleType.ADMIN)
                 .orElseThrow(() -> new NotFoundException("Project role ADMIN not found"));
 
-        projectMembershipRepository.save(ProjectMembership.builder()
-                .id(UUID.randomUUID())
-                .projectId(project.getId())
-                .userId(user.getId())
-                .roleId(adminRole.getId())
-                .createdOn(LocalDateTime.now())
-                .build());
+        projectMembershipRepository.save(new ProjectMembership(
+                UUID.randomUUID(),
+                project.getId(),
+                user.getId(),
+                adminRole.getId(),
+                LocalDateTime.now()
+        ));
 
         return project.getId();
     }

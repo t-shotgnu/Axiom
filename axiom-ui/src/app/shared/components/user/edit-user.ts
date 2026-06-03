@@ -13,6 +13,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { UserService } from '../../../core/services/user.service';
 import { ButtonComponent } from '../ui/button';
+import { InputComponent } from '../ui/input';
 
 interface EditProfileForm {
     firstName: string;
@@ -23,7 +24,7 @@ interface EditProfileForm {
 @Component({
     selector: 'app-edit-user',
     standalone: true,
-    imports: [CommonModule, FormsModule, ButtonComponent],
+    imports: [CommonModule, FormsModule, ButtonComponent, InputComponent],
     templateUrl: './edit-user.html',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })

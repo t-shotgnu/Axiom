@@ -17,11 +17,20 @@ import { ThemeService, Theme } from '../core/services/theme.service';
 import { ProjectDropdownComponent, DropdownProject } from '../shared/components/ui/project-dropdown';
 import { ChangePasswordComponent } from '../shared/components/user/change-password';
 import { EditUserComponent } from '../shared/components/user/edit-user';
+import { ToastContainerComponent } from '../shared/components/ui/toast';
 
 @Component({
   selector: 'app-layout',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, ProjectDropdownComponent, ChangePasswordComponent, EditUserComponent],
+  imports: [
+    CommonModule,
+    RouterModule,
+    FormsModule,
+    ProjectDropdownComponent,
+    ChangePasswordComponent,
+    EditUserComponent,
+    ToastContainerComponent
+  ],
   templateUrl: './app-layout.html',
   styles: [],
   changeDetection: ChangeDetectionStrategy.OnPush,

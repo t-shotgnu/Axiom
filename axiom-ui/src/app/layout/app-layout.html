@@ -1,244 +1,13 @@
-<header
-  class="bg-surface-container-lowest fixed top-0 left-0 right-0 z-40 border-b border-outline-variant flex justify-between items-center w-full px-lg h-14"
->
-  <div class="flex items-center gap-xl h-full">
-    <span class="text-primary font-extrabold text-[20px] font-headline-md tracking-tight"
-      >Axiom</span
-    >
-    <nav class="hidden md:flex gap-md h-full items-center">
-      <a
-        routerLink="/dashboard"
-        routerLinkActive="text-primary border-b-2 border-primary pt-2 h-full flex items-center font-bold"
-        [routerLinkActiveOptions]="{ exact: true }"
-        class="font-body-md text-body-md text-on-surface-variant hover:text-on-surface transition-colors px-sm cursor-pointer h-full"
-        >Dashboards</a
-      >
-      <a
-        routerLink="/projects"
-        routerLinkActive="text-primary border-b-2 border-primary pt-2 h-full flex items-center font-bold"
-        [routerLinkActiveOptions]="{ exact: false }"
-        class="font-body-md text-body-md text-on-surface-variant hover:text-on-surface transition-colors px-sm cursor-pointer h-full"
-        >Projects</a
-      >
-      <a
-        routerLink="/tasks"
-        routerLinkActive="text-primary border-b-2 border-primary pt-2 h-full flex items-center font-bold"
-        [routerLinkActiveOptions]="{ exact: false }"
-        class="font-body-md text-body-md text-on-surface-variant hover:text-on-surface transition-colors px-sm cursor-pointer h-full"
-        >Issues</a
-      >
-    </nav>
-  </div>
-  <div class="flex items-center gap-md">
-    <div class="flex gap-sm items-center">
-      <span
-        class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:bg-surface-container-high p-unit rounded-full"
-        >notifications</span
-      >
-    </div>
-
-    @if (isAuthenticated) {
-      <div class="flex items-center gap-sm relative">
-        <img
-          src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-          class="w-8 h-8 rounded-full border border-outline-variant hover:opacity-90 transition-opacity cursor-pointer object-cover"
-          [title]="userEmail || 'Account Settings'"
-          (click)="toggleUserMenu($event)"
-        />
-        @if (showUserMenu) {
-          <div
-            class="absolute right-0 top-full mt-sm w-[260px] bg-surface-container-lowest border border-outline-variant rounded-xl shadow-xl z-50 overflow-hidden"
-            (click)="$event.stopPropagation()"
-          >
-            <!-- Header -->
-            <div class="px-md py-md border-b border-outline-variant">
-              <p class="text-xs text-on-surface-variant mb-[2px]">Signed in as</p>
-              <p class="text-sm font-bold text-on-surface truncate">
-                {{ userEmail }}
-              </p>
-            </div>
-
-            <!-- Profile -->
-            <div class="p-sm">
-              <button
-                class="w-full flex items-center gap-sm px-sm py-sm rounded-lg hover:bg-surface-container-high transition"
-                (click)="openEditProfileDialog()"
-              >
-                <span class="material-symbols-outlined text-[18px]">manage_accounts</span>
-                <span>Edit profile</span>
-              </button>
-            </div>
-
-            <!-- Change Password -->
-            <button
-              class="w-full flex items-center gap-sm px-sm py-sm rounded-lg hover:bg-surface-container-high transition"
-              (click)="openChangePasswordDialog()"
-            >
-              <span class="material-symbols-outlined text-[18px]">lock</span>
-              <span>Change password</span>
-            </button>
-
-            <!-- Theme -->
-            <div class="p-sm border-b border-outline-variant relative">
-              <button
-                class="w-full flex items-center justify-between px-sm py-sm rounded-lg hover:bg-surface-container-high transition"
-                (click)="toggleThemeDropdown($event)"
-              >
-                <div class="relative flex items-center gap-sm">
-                  <span class="material-symbols-outlined text-[18px]"> palette </span>
-                  <span>Theme</span>
-                </div>
-
-                <span
-                  class="material-symbols-outlined text-[18px] transition-transform duration-200"
-                  [class.rotate-90]="showThemeDropdown"
-                >
-                  chevron_right
-                </span>
-              </button>
-
-              @if (showThemeDropdown) {
-                <div
-                  class="mt-xs w-full bg-surface-container-low border border-outline-variant rounded-xl shadow-inner z-50 p-md flex flex-col gap-sm"
-                  (click)="$event.stopPropagation()"
-                >
-                  <div
-                    class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-xs px-xs"
-                  >
-                    Theme
-                  </div>
-
-                  <!-- Light option -->
-                  <div
-                    class="flex items-center justify-between gap-md p-xs pr-sm rounded-lg border cursor-pointer select-none transition-all"
-                    [class.border-primary]="themeService.currentTheme() === 'light'"
-                    [class.bg-primary/5]="themeService.currentTheme() === 'light'"
-                    [class.border-outline-variant]="themeService.currentTheme() !== 'light'"
-                    (click)="setTheme('light')"
-                  >
-                    <div class="flex items-center gap-sm">
-                      <div
-                        class="w-12 h-8 rounded border border-outline-variant overflow-hidden flex flex-col bg-white shrink-0"
-                      >
-                        <div class="h-2 bg-[#0052cc] w-full"></div>
-                        <div class="flex-1 p-[3px] space-y-[2px]">
-                          <div class="h-[2px] bg-on-surface-variant/20 w-3"></div>
-                          <div class="h-[2px] bg-on-surface-variant/20 w-5"></div>
-                        </div>
-                      </div>
-                      <span class="text-xs font-bold text-on-surface">Light</span>
-                    </div>
-                    <span
-                      class="material-symbols-outlined text-[18px]"
-                      [class.text-primary]="themeService.currentTheme() === 'light'"
-                      [class.text-on-surface-variant]="themeService.currentTheme() !== 'light'"
-                    >
-                      {{
-                        themeService.currentTheme() === 'light'
-                          ? 'radio_button_checked'
-                          : 'radio_button_unchecked'
-                      }}
-                    </span>
-                  </div>
-
-                  <!-- Dark option -->
-                  <div
-                    class="flex items-center justify-between gap-md p-xs pr-sm rounded-lg border cursor-pointer select-none transition-all"
-                    [class.border-primary]="themeService.currentTheme() === 'dark'"
-                    [class.bg-primary/5]="themeService.currentTheme() === 'dark'"
-                    [class.border-outline-variant]="themeService.currentTheme() !== 'dark'"
-                    (click)="setTheme('dark')"
-                  >
-                    <div class="flex items-center gap-sm">
-                      <div
-                        class="w-12 h-8 rounded border border-outline-variant overflow-hidden flex flex-col bg-[#0b0d10] shrink-0"
-                      >
-                        <div class="h-2 bg-[#161b22] w-full"></div>
-                        <div class="flex-1 p-[3px] space-y-[2px]">
-                          <div class="h-[2px] bg-white/10 w-3"></div>
-                          <div class="h-[2px] bg-white/10 w-5"></div>
-                        </div>
-                      </div>
-                      <span class="text-xs font-bold text-on-surface">Dark</span>
-                    </div>
-                    <span
-                      class="material-symbols-outlined text-[18px]"
-                      [class.text-primary]="themeService.currentTheme() === 'dark'"
-                      [class.text-on-surface-variant]="themeService.currentTheme() !== 'dark'"
-                    >
-                      {{
-                        themeService.currentTheme() === 'dark'
-                          ? 'radio_button_checked'
-                          : 'radio_button_unchecked'
-                      }}
-                    </span>
-                  </div>
-
-                  <!-- System option -->
-                  <div
-                    class="flex items-center justify-between gap-md p-xs pr-sm rounded-lg border cursor-pointer select-none transition-all"
-                    [class.border-primary]="themeService.currentTheme() === 'system'"
-                    [class.bg-primary/5]="themeService.currentTheme() === 'system'"
-                    [class.border-outline-variant]="themeService.currentTheme() !== 'system'"
-                    (click)="setTheme('system')"
-                  >
-                    <div class="flex items-center gap-sm">
-                      <div
-                        class="w-12 h-8 rounded border border-outline-variant overflow-hidden flex flex-col shrink-0"
-                        style="background: linear-gradient(135deg, #ffffff 50%, #0b0d10 50%)"
-                      >
-                        <div
-                          class="h-2 w-full"
-                          style="background: linear-gradient(135deg, #0052cc 50%, #161b22 50%)"
-                        ></div>
-                        <div class="flex-1 p-[3px] space-y-[2px] relative">
-                          <div class="h-[2px] bg-on-surface-variant/20 w-3"></div>
-                          <div
-                            class="h-[2px] bg-white/10 w-5 absolute right-[3px] bottom-[3px]"
-                          ></div>
-                        </div>
-                      </div>
-                      <span class="text-xs font-bold text-on-surface">System</span>
-                    </div>
-                    <span
-                      class="material-symbols-outlined text-[18px]"
-                      [class.text-primary]="themeService.currentTheme() === 'system'"
-                      [class.text-on-surface-variant]="themeService.currentTheme() !== 'system'"
-                    >
-                      {{
-                        themeService.currentTheme() === 'system'
-                          ? 'radio_button_checked'
-                          : 'radio_button_unchecked'
-                      }}
-                    </span>
-                  </div>
-                </div>
-              }
-            </div>
-            <!-- Logout -->
-            <button
-              class="w-full flex items-center gap-sm px-md py-md text-red-500 hover:bg-red-500/10 transition font-medium"
-              (click)="logout()"
-            >
-              <span class="material-symbols-outlined text-[18px]"> logout </span>
-              Logout
-            </button>
-          </div>
-        }
-      </div>
-    } @else {
-      <a
-        routerLink="/login"
-        class="text-on-surface-variant hover:text-primary font-label-md transition-colors"
-        >Sign in</a
-      >
-    }
-  </div>
-</header>
-<div class="flex pt-14 h-screen overflow-hidden">
+<div class="flex h-screen overflow-hidden">
+  <!-- Sidebar -->
   <aside
     class="bg-surface border-r border-outline-variant w-sidebar-width h-full flex flex-col py-lg px-md gap-sm shrink-0 overflow-y-auto custom-scrollbar"
   >
+    <!-- Logo / Brand -->
+    <div class="mb-lg px-md flex items-center gap-sm">
+      <span class="text-primary font-extrabold text-[22px] font-headline-md tracking-tight">Axiom</span>
+    </div>
+
     <!-- Active Project Trigger & Selector Dropdown Component -->
     <div class="mb-lg">
       <app-project-dropdown
@@ -248,56 +17,325 @@
         (createProject)="createProjectFromDropdown()"
       ></app-project-dropdown>
     </div>
-    <div class="flex flex-col gap-unit flex-1">
-      <a
-        class="flex items-center gap-md px-md py-sm text-on-surface-variant font-label-md hover:bg-surface-container-low transition-all rounded"
-      >
-        <span class="material-symbols-outlined">list_alt</span>
-        <span>Backlog</span>
-      </a>
-      <a
-        class="flex items-center gap-md px-md py-sm text-on-surface-variant font-label-md hover:bg-surface-container-low transition-all rounded"
-      >
-        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1"
-          >view_kanban</span
-        >
-        <span>Active Sprint</span>
-      </a>
+
+    <div class="flex flex-col gap-xs flex-1">
+      <!-- Section: MENU -->
+      <div class="mb-xs px-md">
+        <span class="text-[10px] font-bold uppercase tracking-[0.2em] text-on-surface-variant/50">Menu</span>
+      </div>
+
+      <!-- Dashboard -->
       <a
         routerLink="/dashboard"
-        routerLinkActive="bg-primary/15 text-primary font-bold"
-        class="flex items-center gap-md px-md py-sm text-on-surface-variant font-label-md hover:bg-surface-container-low transition-all rounded"
+        routerLinkActive="text-primary font-bold bg-primary/6"
+        #rlaDashboard="routerLinkActive"
+        [routerLinkActiveOptions]="{ exact: true }"
+        class="relative flex items-center gap-md pl-6 pr-md py-2.5 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low/60 transition-all rounded-lg cursor-pointer"
       >
-        <span class="material-symbols-outlined">insights</span>
-        <span>Reports</span>
+        @if (rlaDashboard.isActive) {
+          <div class="absolute left-0 top-1/2 -translate-y-1/2 w-[4px] h-[18px] bg-primary rounded-r-full"></div>
+        }
+        <span class="material-symbols-outlined text-[20px]">dashboard</span>
+        <span class="text-sm font-semibold">Dashboard</span>
       </a>
+
+      <!-- Tasks -->
       <a
         routerLink="/tasks"
-        routerLinkActive="bg-primary/15 text-primary font-bold"
-        class="flex items-center gap-md px-md py-sm text-on-surface-variant font-label-md hover:bg-surface-container-low transition-all rounded"
+        routerLinkActive="text-primary font-bold bg-primary/6"
+        #rlaTasks="routerLinkActive"
+        class="relative flex items-center gap-md pl-6 pr-md py-2.5 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low/60 transition-all rounded-lg cursor-pointer"
       >
-        <span class="material-symbols-outlined">assignment</span>
-        <span>Issues</span>
+        @if (rlaTasks.isActive) {
+          <div class="absolute left-0 top-1/2 -translate-y-1/2 w-[4px] h-[18px] bg-primary rounded-r-full"></div>
+        }
+        <span class="material-symbols-outlined text-[20px]">assignment</span>
+        <span class="text-sm font-semibold">Tasks</span>
       </a>
-      <div class="mt-xl pt-sm border-t border-outline-variant">
-        <button class="flex items-center gap-sm text-primary font-label-md hover:underline px-sm">
-          <span class="material-symbols-outlined text-[16px]">add</span>
-          <span>Add shortcut</span>
-        </button>
-      </div>
-    </div>
-    <div class="mt-auto flex flex-col gap-unit pt-lg">
+
+      <!-- Calendar -->
       <a
-        class="flex items-center gap-md px-md py-sm text-on-surface-variant font-label-md hover:bg-surface-container-low transition-all rounded"
+        class="relative flex items-center gap-md pl-6 pr-md py-2.5 text-on-surface-variant/40 hover:bg-surface-container-low/30 transition-all rounded-lg cursor-not-allowed"
+        title="Coming soon"
       >
-        <span class="material-symbols-outlined">settings</span>
-        <span>Project settings</span>
+        <span class="material-symbols-outlined text-[20px]">calendar_month</span>
+        <span class="text-sm font-semibold">Calendar</span>
       </a>
+
+      <!-- Analytics -->
+      <a
+        class="relative flex items-center gap-md pl-6 pr-md py-2.5 text-on-surface-variant/40 hover:bg-surface-container-low/30 transition-all rounded-lg cursor-not-allowed"
+        title="Coming soon"
+      >
+        <span class="material-symbols-outlined text-[20px]">analytics</span>
+        <span class="text-sm font-semibold">Analytics</span>
+      </a>
+
+      <!-- Team -->
+      <a
+        class="relative flex items-center gap-md pl-6 pr-md py-2.5 text-on-surface-variant/40 hover:bg-surface-container-low/30 transition-all rounded-lg cursor-not-allowed"
+        title="Coming soon"
+      >
+        <span class="material-symbols-outlined text-[20px]">group</span>
+        <span class="text-sm font-semibold">Team</span>
+      </a>
+
+      <!-- Section: GENERAL -->
+      <div class="mt-lg mb-xs px-md">
+        <span class="text-[10px] font-bold uppercase tracking-[0.2em] text-on-surface-variant/50">General</span>
+      </div>
+
+      <!-- Settings -->
+      <a
+        class="relative flex items-center gap-md pl-6 pr-md py-2.5 text-on-surface-variant/40 hover:bg-surface-container-low/30 transition-all rounded-lg cursor-not-allowed"
+        title="Coming soon"
+      >
+        <span class="material-symbols-outlined text-[20px]">settings</span>
+        <span class="text-sm font-semibold">Settings</span>
+      </a>
+
+      <!-- Help -->
+      <a
+        class="relative flex items-center gap-md pl-6 pr-md py-2.5 text-on-surface-variant/40 hover:bg-surface-container-low/30 transition-all rounded-lg cursor-not-allowed"
+        title="Coming soon"
+      >
+        <span class="material-symbols-outlined text-[20px]">help</span>
+        <span class="text-sm font-semibold">Help</span>
+      </a>
+
+      <!-- Logout -->
+      <button
+        (click)="logout()"
+        class="w-full relative flex items-center gap-md pl-6 pr-md py-2.5 text-red-500 hover:bg-red-500/10 transition-all rounded-lg cursor-pointer text-left font-semibold"
+      >
+        <span class="material-symbols-outlined text-[20px]">logout</span>
+        <span class="text-sm">Logout</span>
+      </button>
     </div>
   </aside>
-  <main class="flex-1 overflow-y-auto bg-background flex flex-col w-full h-full relative">
-    <router-outlet></router-outlet>
-  </main>
+
+  <!-- Right Panel Container -->
+  <div class="flex-1 flex flex-col h-full overflow-hidden bg-background">
+    <!-- Top Toolbar -->
+    <div class="h-14 border-b border-outline-variant/65 flex justify-between items-center px-lg bg-surface-container-lowest shrink-0 select-none">
+      <!-- Search Bar -->
+      <div class="flex items-center gap-sm">
+        <div class="relative flex items-center">
+          <span class="material-symbols-outlined absolute left-3 text-on-surface-variant text-[16px] pointer-events-none">search</span>
+          <input
+            type="text"
+            placeholder="Search task..."
+            class="w-[200px] sm:w-[240px] pl-9 pr-8 py-1.5 border border-outline-variant/60 rounded-full text-xs bg-surface-container-low text-on-surface focus:outline-none focus:border-primary"
+          />
+          <span class="absolute right-3 text-[10px] text-on-surface-variant bg-surface-container-high px-1.5 py-0.5 rounded border border-outline-variant font-code pointer-events-none">⌘F</span>
+        </div>
+      </div>
+
+      <!-- Right Actions (Notifications & User Settings Capsule) -->
+      <div class="flex items-center gap-md">
+        <!-- Notification icon -->
+        <span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:bg-surface-container-low p-unit rounded-full">
+          notifications
+        </span>
+
+        <!-- Donezo-style profile card / capsule -->
+        @if (isAuthenticated) {
+          <div class="flex items-center gap-sm relative">
+            <div
+              class="flex items-center gap-sm hover:bg-surface-container-low/60 p-[3px] pr-sm rounded-full border border-outline-variant/60 cursor-pointer transition-all"
+              (click)="toggleUserMenu($event)"
+            >
+              <img
+                src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
+                class="w-7 h-7 rounded-full object-cover border border-outline-variant/40"
+              />
+              <div class="hidden sm:block text-left max-w-[120px]">
+                <p class="text-xs font-bold text-on-surface truncate leading-tight">
+                  {{ userEmail.split('@')[0] || 'User' }}
+                </p>
+                <p class="text-[9px] text-on-surface-variant truncate leading-none mt-[2.5px]">
+                  {{ userEmail }}
+                </p>
+              </div>
+            </div>
+
+            <!-- Profile Dropdown Card -->
+            @if (showUserMenu) {
+              <div
+                class="absolute right-0 top-full mt-xs w-[260px] bg-surface-container-lowest border border-outline-variant rounded-xl shadow-xl z-50 overflow-hidden"
+                (click)="$event.stopPropagation()"
+              >
+                <!-- Profile & Change Password -->
+                <div class="p-sm flex flex-col gap-[2px]">
+                  <button
+                    class="w-full flex items-center gap-sm px-sm py-sm rounded-lg hover:bg-surface-container-high transition"
+                    (click)="openEditProfileDialog()"
+                  >
+                    <span class="material-symbols-outlined text-[18px]">manage_accounts</span>
+                    <span class="text-sm">Edit profile</span>
+                  </button>
+
+                  <button
+                    class="w-full flex items-center gap-sm px-sm py-sm rounded-lg hover:bg-surface-container-high transition"
+                    (click)="openChangePasswordDialog()"
+                  >
+                    <span class="material-symbols-outlined text-[18px]">lock</span>
+                    <span class="text-sm">Change password</span>
+                  </button>
+                </div>
+
+                <!-- Theme Toggle Option -->
+                <div class="p-sm border-t border-outline-variant relative flex flex-col gap-[2px]">
+                  <button
+                    class="w-full flex items-center justify-between px-sm py-sm rounded-lg hover:bg-surface-container-high transition"
+                    (click)="toggleThemeDropdown($event)"
+                  >
+                    <div class="relative flex items-center gap-sm">
+                      <span class="material-symbols-outlined text-[18px]">palette</span>
+                      <span class="text-sm">Theme</span>
+                    </div>
+
+                    <span
+                      class="material-symbols-outlined text-[18px] transition-transform duration-200"
+                      [class.rotate-90]="showThemeDropdown"
+                    >
+                      chevron_right
+                    </span>
+                  </button>
+
+                  @if (showThemeDropdown) {
+                    <div
+                      class="mt-xs w-full bg-surface-container-low border border-outline-variant rounded-xl shadow-inner z-50 p-md flex flex-col gap-sm"
+                      (click)="$event.stopPropagation()"
+                    >
+                      <div
+                        class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-xs px-xs"
+                      >
+                        Theme
+                      </div>
+
+                      <!-- Light option -->
+                      <div
+                        class="flex items-center justify-between gap-md p-xs pr-sm rounded-lg border cursor-pointer select-none transition-all bg-surface-container-lowest"
+                        [class.border-primary]="themeService.currentTheme() === 'light'"
+                        [class.bg-primary/5]="themeService.currentTheme() === 'light'"
+                        [class.border-outline-variant]="themeService.currentTheme() !== 'light'"
+                        (click)="setTheme('light')"
+                      >
+                        <div class="flex items-center gap-sm">
+                          <div
+                            class="w-12 h-8 rounded border border-outline-variant overflow-hidden flex flex-col bg-white shrink-0"
+                          >
+                            <div class="h-2 bg-[#0052cc] w-full"></div>
+                            <div class="flex-1 p-[3px] space-y-[2px]">
+                              <div class="h-[2px] bg-on-surface-variant/20 w-3"></div>
+                              <div class="h-[2px] bg-on-surface-variant/20 w-5"></div>
+                            </div>
+                          </div>
+                          <span class="text-xs font-bold text-on-surface">Light</span>
+                        </div>
+                        <span
+                          class="material-symbols-outlined text-[18px]"
+                          [class.text-primary]="themeService.currentTheme() === 'light'"
+                          [class.text-on-surface-variant]="themeService.currentTheme() !== 'light'"
+                        >
+                          {{
+                            themeService.currentTheme() === 'light'
+                              ? 'radio_button_checked'
+                              : 'radio_button_unchecked'
+                          }}
+                        </span>
+                      </div>
+
+                      <!-- Dark option -->
+                      <div
+                        class="flex items-center justify-between gap-md p-xs pr-sm rounded-lg border cursor-pointer select-none transition-all bg-surface-container-lowest"
+                        [class.border-primary]="themeService.currentTheme() === 'dark'"
+                        [class.bg-primary/5]="themeService.currentTheme() === 'dark'"
+                        [class.border-outline-variant]="themeService.currentTheme() !== 'dark'"
+                        (click)="setTheme('dark')"
+                      >
+                        <div class="flex items-center gap-sm">
+                          <div
+                            class="w-12 h-8 rounded border border-outline-variant overflow-hidden flex flex-col bg-[#0b0d10] shrink-0"
+                          >
+                            <div class="h-2 bg-[#161b22] w-full"></div>
+                            <div class="flex-1 p-[3px] space-y-[2px]">
+                              <div class="h-[2px] bg-white/10 w-3"></div>
+                              <div class="h-[2px] bg-white/10 w-5"></div>
+                            </div>
+                          </div>
+                          <span class="text-xs font-bold text-on-surface">Dark</span>
+                        </div>
+                        <span
+                          class="material-symbols-outlined text-[18px]"
+                          [class.text-primary]="themeService.currentTheme() === 'dark'"
+                          [class.text-on-surface-variant]="themeService.currentTheme() !== 'dark'"
+                        >
+                          {{
+                            themeService.currentTheme() === 'dark'
+                              ? 'radio_button_checked'
+                              : 'radio_button_unchecked'
+                          }}
+                        </span>
+                      </div>
+
+                      <!-- System option -->
+                      <div
+                        class="flex items-center justify-between gap-md p-xs pr-sm rounded-lg border cursor-pointer select-none transition-all bg-surface-container-lowest"
+                        [class.border-primary]="themeService.currentTheme() === 'system'"
+                        [class.bg-primary/5]="themeService.currentTheme() === 'system'"
+                        [class.border-outline-variant]="themeService.currentTheme() !== 'system'"
+                        (click)="setTheme('system')"
+                      >
+                        <div class="flex items-center gap-sm">
+                          <div
+                            class="w-12 h-8 rounded border border-outline-variant overflow-hidden flex flex-col shrink-0"
+                            style="background: linear-gradient(135deg, #ffffff 50%, #0b0d10 50%)"
+                          >
+                            <div
+                              class="h-2 w-full"
+                              style="background: linear-gradient(135deg, #0052cc 50%, #161b22 50%)"
+                            ></div>
+                            <div class="flex-1 p-[3px] space-y-[2px] relative">
+                              <div class="h-[2px] bg-on-surface-variant/20 w-3"></div>
+                              <div
+                                class="h-[2px] bg-white/10 w-5 absolute right-[3px] bottom-[3px]"
+                              ></div>
+                            </div>
+                          </div>
+                          <span class="text-xs font-bold text-on-surface">System</span>
+                        </div>
+                        <span
+                          class="material-symbols-outlined text-[18px]"
+                          [class.text-primary]="themeService.currentTheme() === 'system'"
+                          [class.text-on-surface-variant]="themeService.currentTheme() !== 'system'"
+                        >
+                          {{
+                            themeService.currentTheme() === 'system'
+                              ? 'radio_button_checked'
+                              : 'radio_button_unchecked'
+                          }}
+                        </span>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 overflow-y-auto w-full relative">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
 </div>
+
 <app-change-password [(display)]="showChangePasswordDialog"> </app-change-password>
 <app-edit-user [(display)]="showEditProfileDialog" (saved)="onProfileSaved()"></app-edit-user>
+
+<app-toast-container></app-toast-container>

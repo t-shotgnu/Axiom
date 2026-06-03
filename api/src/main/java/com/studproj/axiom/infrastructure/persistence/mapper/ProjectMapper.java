@@ -6,14 +6,14 @@ import com.studproj.axiom.infrastructure.persistence.entity.ProjectEntity;
 public class ProjectMapper {
     public static Project toDomain(ProjectEntity entity) {
         if (entity == null) return null;
-        return Project.builder()
-                .id(entity.getId())
-                .name(entity.getName())
-                .code(entity.getCode())
-                .description(entity.getDescription())
-                .createdOn(entity.getCreatedOn())
-                .ownerId(entity.getOwnerId())
-                .build();
+        return new Project(
+                entity.getId(),
+                entity.getName(),
+                entity.getCode(),
+                entity.getDescription(),
+                entity.getCreatedOn(),
+                entity.getOwnerId()
+        );
     }
 
     public static ProjectEntity toEntity(Project domain) {

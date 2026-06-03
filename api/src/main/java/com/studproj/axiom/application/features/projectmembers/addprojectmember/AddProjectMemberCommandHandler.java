@@ -44,12 +44,12 @@ public class AddProjectMemberCommandHandler {
         var role = projectRoleRepository.findByType(command.role())
                 .orElseThrow(() -> new NotFoundException("Project role not found"));
 
-        projectMembershipRepository.save(ProjectMembership.builder()
-                .id(UUID.randomUUID())
-                .projectId(projectId)
-                .userId(command.userId())
-                .roleId(role.getId())
-                .createdOn(LocalDateTime.now())
-                .build());
+        projectMembershipRepository.save(new ProjectMembership(
+                UUID.randomUUID(),
+                projectId,
+                command.userId(),
+                role.getId(),
+                LocalDateTime.now()
+        ));
     }
 }
