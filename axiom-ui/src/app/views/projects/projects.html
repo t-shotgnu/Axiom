@@ -4,7 +4,7 @@
     class="flex flex-col gap-4 border-b border-outline-variant pb-6 sm:flex-row sm:items-center sm:justify-between mb-lg"
   >
     <div class="space-y-1">
-      <nav class="flex items-center gap-xs text-on-surface-variant mb-xs font-semibold text-xs">
+      <nav class="flex items-center gap-xs text-on-surface-variant mb-xs font-semibold text-body-sm">
         <span class="hover:underline cursor-pointer">Organization</span>
         <span class="material-symbols-outlined text-[12px]">chevron_right</span>
         <span>All Projects</span>
@@ -18,7 +18,7 @@
         variant="primary"
         icon="add"
         (onClick)="createProjectDialog.show()"
-        customClass="py-[10px] text-sm font-bold"
+        customClass="py-[10px] text-body-md font-bold"
       >
         Create Project
       </app-button>
@@ -30,26 +30,26 @@
     class="flex flex-col gap-md sm:flex-row sm:items-center sm:justify-between mb-lg border border-outline-variant rounded p-sm bg-surface-container-lowest"
   >
     <div class="flex flex-wrap items-center gap-sm">
-      <span class="text-xs text-on-surface-variant font-bold uppercase tracking-wider px-xs"
+      <span class="text-body-sm text-on-surface-variant font-bold uppercase tracking-wider px-xs"
         >Filter by:</span
       >
       <button
-        class="bg-surface-container-low border border-outline-variant rounded px-sm py-[6px] text-xs font-bold text-on-surface hover:bg-surface-container-high transition-colors"
+        class="bg-surface-container-low border border-outline-variant rounded px-sm py-[6px] text-body-sm font-bold text-on-surface hover:bg-surface-container-high transition-colors"
       >
         Status: <span class="text-primary">All</span>
       </button>
       <button
-        class="bg-surface-container-low border border-outline-variant rounded px-sm py-[6px] text-xs font-bold text-on-surface hover:bg-surface-container-high transition-colors"
+        class="bg-surface-container-low border border-outline-variant rounded px-sm py-[6px] text-body-sm font-bold text-on-surface hover:bg-surface-container-high transition-colors"
       >
         Lead: <span class="text-primary">Everyone</span>
       </button>
       <button
-        class="bg-surface-container-low border border-outline-variant rounded px-sm py-[6px] text-xs font-bold text-on-surface hover:bg-surface-container-high transition-colors"
+        class="bg-surface-container-low border border-outline-variant rounded px-sm py-[6px] text-body-sm font-bold text-on-surface hover:bg-surface-container-high transition-colors"
       >
         Category: <span class="text-primary">All</span>
       </button>
       <button
-        class="text-on-surface-variant hover:text-primary font-bold text-xs flex items-center gap-xs ml-sm py-1"
+        class="text-on-surface-variant hover:text-primary font-bold text-body-sm flex items-center gap-xs ml-sm py-1"
       >
         <span class="material-symbols-outlined text-[16px]">clear_all</span>
         <span>Clear All</span>
@@ -74,7 +74,7 @@
         class="flex items-center gap-3 text-on-surface-variant bg-surface-container-lowest border border-outline-variant rounded p-lg py-xl justify-center mb-xl shadow-sm"
       >
         <span class="material-symbols-outlined animate-spin text-primary">progress_activity</span>
-        <p class="font-body-md">Loading projects…</p>
+        <p class="text-body-md">Loading projects…</p>
       </div>
     }
     @case ('error') {
@@ -94,7 +94,7 @@
         >
           <span class="material-symbols-outlined text-[32px]">folder_open</span>
         </div>
-        <p class="font-headline-sm text-on-surface font-extrabold text-lg">No projects yet</p>
+        <p class="font-headline-sm text-on-surface font-extrabold text-headline-sm">No projects yet</p>
         <p class="mt-2 text-body-sm text-on-surface-variant font-medium">
           Create the first one using the button above.
         </p>
@@ -108,7 +108,7 @@
           <table class="w-full text-left border-collapse">
             <thead>
               <tr
-                class="bg-surface-container-low border-b border-outline-variant text-[11px] font-bold text-on-surface-variant tracking-wider uppercase"
+                class="bg-surface-container-low border-b border-outline-variant text-label-sm font-bold text-on-surface-variant tracking-wider uppercase"
               >
                 <th class="py-sm px-md">Project Name</th>
                 <th class="py-sm px-md w-[100px]">Key</th>
@@ -125,55 +125,55 @@
                   <td class="py-md px-md">
                     <div class="flex items-center gap-md">
                       <div
-                        class="w-10 h-10 bg-primary/10 text-primary rounded flex items-center justify-center font-bold shrink-0 text-sm"
+                        class="w-10 h-10 bg-primary/10 text-primary rounded flex items-center justify-center font-bold shrink-0 text-body-md"
                       >
                         {{ project.code.substring(0, 2) | uppercase }}
                       </div>
                       <div>
                         <a
                           [routerLink]="['/projects', project.id]"
-                          class="font-extrabold text-on-surface hover:text-primary transition-colors cursor-pointer text-sm"
+                          class="font-extrabold text-on-surface hover:text-primary transition-colors cursor-pointer text-body-md"
                           >{{ project.name }}</a
                         >
                         <p
-                          class="text-xs text-on-surface-variant mt-[2px] font-medium max-w-[280px] truncate"
+                          class="text-body-sm text-on-surface-variant mt-[2px] font-medium max-w-[280px] truncate"
                         >
                           {{ project.description || 'No description provided.' }}
                         </p>
                       </div>
                     </div>
                   </td>
-                  <td class="py-md px-md text-xs font-semibold text-on-surface-variant font-code">
+                  <td class="py-md px-md text-body-sm font-semibold text-on-surface-variant font-code">
                     {{ project.code | uppercase }}
                   </td>
                   <td class="py-md px-md">
                     <span
-                      class="bg-primary/15 text-primary font-bold text-[10px] px-2 py-0.5 rounded uppercase"
+                      class="bg-primary/15 text-primary font-bold text-label-sm px-2 py-0.5 rounded uppercase"
                       >Software</span
                     >
                   </td>
                   <td class="py-md px-md">
                     <div class="flex items-center gap-sm">
                       <div
-                        class="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary font-extrabold text-[10px]"
+                        class="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary font-extrabold text-label-sm"
                       >
                         {{ (project.ownerName || project.name).substring(0, 1) | uppercase }}
                       </div>
-                      <span class="text-xs font-bold text-on-surface">
+                      <span class="text-body-sm font-bold text-on-surface">
                         {{ project.ownerName || 'Unknown lead' }}
                       </span>
                     </div>
                   </td>
                   <td class="py-md px-md">
                     <span
-                      class="bg-green-500/10 text-green-600 dark:text-green-400 font-bold text-[10px] px-2 py-0.5 rounded border border-green-500/20"
+                      class="bg-green-500/10 text-green-600 dark:text-green-400 font-bold text-label-sm px-2 py-0.5 rounded border border-green-500/20"
                       >ACTIVE</span
                     >
                   </td>
                   <td class="py-md px-md">
                     <div class="flex flex-col gap-1 w-full max-w-[180px]">
                       <div
-                        class="flex justify-between items-center text-[10px] font-bold text-on-surface-variant"
+                        class="flex justify-between items-center text-label-sm font-bold text-on-surface-variant"
                       >
                         <span>{{ getProjectProgressPercentage(project.id) }}%</span>
                         <span>{{ getProjectProgressLabel(project.id) }}</span>
@@ -207,7 +207,7 @@
         <div
           class="flex items-center justify-between border-t border-outline-variant p-md bg-surface-container-lowest"
         >
-          <span class="text-xs text-on-surface-variant font-semibold"
+          <span class="text-body-sm text-on-surface-variant font-semibold"
             >Showing 1-{{ projects.length }} of {{ projects.length }} projects</span
           >
           <div class="flex items-center gap-xs">
@@ -217,7 +217,7 @@
               <span class="material-symbols-outlined text-[16px] font-bold">chevron_left</span>
             </button>
             <button
-              class="w-6 h-6 text-xs font-bold rounded bg-primary text-white flex items-center justify-center"
+              class="w-6 h-6 text-body-sm font-bold rounded bg-primary text-white flex items-center justify-center"
             >
               1
             </button>
@@ -240,16 +240,16 @@
     >
       <div class="flex justify-between items-start">
         <div>
-          <p class="text-[10px] font-bold tracking-wider uppercase text-on-surface-variant mb-xs">
+          <p class="text-label-sm font-bold tracking-wider uppercase text-on-surface-variant mb-xs">
             Efficiency Rate
           </p>
-          <h3 class="text-2xl font-black text-on-surface leading-none">94.2%</h3>
+          <h3 class="text-headline-lg font-black text-on-surface leading-none">94.2%</h3>
         </div>
         <span class="material-symbols-outlined text-primary text-[22px] font-bold"
           >trending_up</span
         >
       </div>
-      <p class="text-[11px] text-green-600 font-bold mt-xs">+2.4% from last month</p>
+      <p class="text-label-sm text-green-600 font-bold mt-xs">+2.4% from last month</p>
     </div>
 
     <!-- Card 2 -->
@@ -258,14 +258,14 @@
     >
       <div class="flex justify-between items-start">
         <div>
-          <p class="text-[10px] font-bold tracking-wider uppercase text-on-surface-variant mb-xs">
+          <p class="text-label-sm font-bold tracking-wider uppercase text-on-surface-variant mb-xs">
             Risk Profile
           </p>
-          <h3 class="text-2xl font-black text-on-surface leading-none">Low</h3>
+          <h3 class="text-headline-lg font-black text-on-surface leading-none">Low</h3>
         </div>
         <span class="material-symbols-outlined text-red-500 text-[22px]">warning</span>
       </div>
-      <p class="text-[11px] text-on-surface-variant font-semibold mt-xs">
+      <p class="text-label-sm text-on-surface-variant font-semibold mt-xs">
         2 projects require attention
       </p>
     </div>
@@ -276,14 +276,14 @@
     >
       <div class="flex justify-between items-start">
         <div>
-          <p class="text-[10px] font-bold tracking-wider uppercase text-on-surface-variant mb-xs">
+          <p class="text-label-sm font-bold tracking-wider uppercase text-on-surface-variant mb-xs">
             Resource Load
           </p>
-          <h3 class="text-2xl font-black text-on-surface leading-none">Balanced</h3>
+          <h3 class="text-headline-lg font-black text-on-surface leading-none">Balanced</h3>
         </div>
         <span class="material-symbols-outlined text-primary text-[22px]">group</span>
       </div>
-      <p class="text-[11px] text-on-surface-variant font-semibold mt-xs">Avg. 4.2 tasks per member</p>
+      <p class="text-label-sm text-on-surface-variant font-semibold mt-xs">Avg. 4.2 tasks per member</p>
     </div>
   </div>
 
@@ -296,7 +296,7 @@
     footerStyle="plain"
   >
     <div class="space-y-md">
-      <p class="text-base leading-relaxed text-on-surface">
+      <p class="text-body-md leading-relaxed text-on-surface">
         Are you sure you want to delete the project
         <span class="font-semibold">{{ deleteDialogProject?.name }}</span
         >? This operation can not be undone and will permanently remove all associated data.
@@ -304,7 +304,7 @@
 
       @if (deleteErrorMessage) {
         <div
-          class="rounded border border-red-200 bg-red-50 px-md py-sm text-sm font-medium text-red-800"
+          class="rounded border border-red-200 bg-red-50 px-md py-sm text-body-md font-medium text-red-800"
           role="alert"
         >
           {{ deleteErrorMessage }}

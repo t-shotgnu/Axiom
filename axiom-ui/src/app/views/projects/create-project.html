@@ -28,7 +28,7 @@
         ></app-input>
 
         <div class="flex flex-col gap-xs">
-          <label class="font-label-md text-on-surface" for="project-description">Description</label>
+          <label class="text-label-md font-semibold text-on-surface" for="project-description">Description</label>
           <textarea
             id="project-description"
             name="description"
@@ -40,7 +40,7 @@
         </div>
 
         @if (createErrorMessage) {
-          <div class="rounded bg-error-container border border-error p-sm text-sm text-on-error-container" role="alert">
+          <div class="rounded bg-error-container border border-error p-sm text-body-md text-on-error-container" role="alert">
             {{ createErrorMessage }}
           </div>
         }

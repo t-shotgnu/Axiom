@@ -16,7 +16,7 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormsModule } from '@angular/f
   template: `
     <div class="flex flex-col gap-xs w-full">
       @if (label) {
-        <label [for]="id" class="font-label-md text-on-surface font-semibold">{{ label }}</label>
+        <label [for]="id" class="text-label-md font-semibold text-on-surface">{{ label }}</label>
       }
       <div class="relative flex items-center w-full">
         @if (icon) {
@@ -54,7 +54,7 @@ export class InputComponent implements ControlValueAccessor {
   onTouch: any = () => {};
 
   get inputClasses(): string {
-    const base = 'w-full px-md py-sm border border-outline-variant rounded focus:outline-none focus:border-primary bg-surface text-on-surface transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed';
+    const base = 'w-full px-md py-sm border border-outline-variant rounded focus:outline-none focus:border-primary bg-surface text-body-md text-on-surface transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed';
     const padding = this.icon ? 'pl-10' : '';
     return `${base} ${padding} ${this.customClass}`.trim();
   }

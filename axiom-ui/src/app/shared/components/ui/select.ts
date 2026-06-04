@@ -23,7 +23,7 @@ export interface SelectOption {
   template: `
     <div class="flex flex-col gap-xs w-full relative" (click)="$event.stopPropagation()">
       @if (label) {
-        <label class="font-label-md text-on-surface font-semibold select-none">{{ label }}</label>
+        <label class="text-label-md font-semibold text-on-surface select-none">{{ label }}</label>
       }
       
       <!-- Select Trigger Button -->
@@ -48,7 +48,7 @@ export interface SelectOption {
           class="absolute top-full left-0 right-0 mt-xs bg-surface-container-lowest border border-outline-variant rounded-xl shadow-xl z-50 max-h-[220px] overflow-y-auto custom-scrollbar p-sm flex flex-col gap-[2px]"
         >
           @if (options.length === 0) {
-            <div class="text-xs text-on-surface-variant text-center py-sm select-none">No options available</div>
+            <div class="text-body-sm text-on-surface-variant text-center py-sm select-none">No options available</div>
           }
           
           @for (opt of options; track opt.value) {
@@ -57,7 +57,7 @@ export interface SelectOption {
               [class.bg-primary/6]="val === opt.value"
               [class.text-primary]="val === opt.value"
               [class.font-bold]="val === opt.value"
-              class="flex items-center justify-between gap-sm px-md py-sm rounded-lg hover:bg-surface-container-high cursor-pointer transition-colors text-xs font-semibold text-on-surface"
+              class="flex items-center justify-between gap-sm px-md py-sm rounded-lg hover:bg-surface-container-high cursor-pointer transition-colors text-body-md font-semibold text-on-surface"
             >
               <span class="truncate">{{ opt.label }}</span>
               @if (val === opt.value) {
@@ -91,7 +91,7 @@ export class SelectComponent implements ControlValueAccessor {
   }
 
   get triggerClasses(): string {
-    const base = 'w-full flex items-center justify-between px-md py-sm border border-outline-variant rounded bg-surface text-on-surface text-xs font-medium cursor-pointer transition-all duration-150 select-none';
+    const base = 'w-full flex items-center justify-between px-md py-sm border border-outline-variant rounded bg-surface text-body-md text-on-surface font-medium cursor-pointer transition-all duration-150 select-none';
     const active = this.isOpen ? 'border-primary ring-1 ring-primary/20' : 'hover:border-outline';
     const disabledState = this.disabled ? 'opacity-50 cursor-not-allowed pointer-events-none' : '';
     return `${base} ${active} ${disabledState} ${this.customClass}`.trim();

@@ -5,9 +5,9 @@
 } @else if (project()) {
   <div class="max-w-container-max mx-auto px-lg py-lg">
     <nav class="flex items-center gap-xs text-on-surface-variant mb-sm">
-      <a routerLink="/projects" class="font-label-sm hover:underline">Projects</a>
+      <a routerLink="/projects" class="text-label-sm hover:underline">Projects</a>
       <span class="material-symbols-outlined text-[16px]">chevron_right</span>
-      <span class="font-label-sm">{{ project()!.name }}</span>
+      <span class="text-label-sm">{{ project()!.name }}</span>
     </nav>
 
     <app-card variant="flat" customClass="mb-lg p-lg overflow-hidden relative">
@@ -17,10 +17,10 @@
 
       <div class="min-w-0">
         <div class="flex flex-wrap items-center gap-sm mb-sm">
-          <span class="text-[11px] font-black uppercase tracking-[0.28em] text-on-surface-variant"
+          <span class="text-label-sm font-black uppercase tracking-[0.28em] text-on-surface-variant"
             >Project overview</span
           >
-          <span class="rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary">{{
+          <span class="rounded-full bg-primary/10 px-3 py-1 text-body-sm font-bold text-primary">{{
             project()!.code | uppercase
           }}</span>
         </div>
@@ -42,7 +42,7 @@
             <button
               type="button"
               (click)="openDeleteProjectDialog()"
-              class="inline-flex items-center gap-2 rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-2 text-sm font-bold text-red-700 transition-colors hover:bg-red-500/20"
+              class="inline-flex items-center gap-2 rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-2 text-body-md font-bold text-red-700 transition-colors hover:bg-red-500/20"
             >
               <span class="material-symbols-outlined text-[18px]">delete</span>
               Delete project
@@ -52,24 +52,24 @@
 
         <div class="mt-lg grid gap-sm sm:grid-cols-3">
           <div class="rounded-2xl border border-outline-variant bg-surface-container-lowest p-md">
-            <p class="text-[10px] font-black uppercase tracking-[0.22em] text-on-surface-variant">
+            <p class="text-label-sm font-black uppercase tracking-[0.22em] text-on-surface-variant">
               Lead
             </p>
-            <p class="mt-2 text-sm font-bold text-on-surface truncate">
+            <p class="mt-2 text-body-md font-bold text-on-surface truncate">
               {{ project()!.ownerName || 'Unknown lead' }}
             </p>
           </div>
           <div class="rounded-2xl border border-outline-variant bg-surface-container-lowest p-md">
-            <p class="text-[10px] font-black uppercase tracking-[0.22em] text-on-surface-variant">
+            <p class="text-label-sm font-black uppercase tracking-[0.22em] text-on-surface-variant">
               Key
             </p>
-            <p class="mt-2 text-sm font-bold text-on-surface">{{ project()!.code | uppercase }}</p>
+            <p class="mt-2 text-body-md font-bold text-on-surface">{{ project()!.code | uppercase }}</p>
           </div>
           <div class="rounded-2xl border border-outline-variant bg-surface-container-lowest p-md">
-            <p class="text-[10px] font-black uppercase tracking-[0.22em] text-on-surface-variant">
+            <p class="text-label-sm font-black uppercase tracking-[0.22em] text-on-surface-variant">
               Created
             </p>
-            <p class="mt-2 text-sm font-bold text-on-surface">
+            <p class="mt-2 text-body-md font-bold text-on-surface">
               {{ project()!.createdOn | date: 'mediumDate' }}
             </p>
           </div>
@@ -101,14 +101,14 @@
   footerStyle="plain"
 >
   <div class="space-y-md">
-    <p class="text-base leading-relaxed text-on-surface">
+    <p class="text-body-md leading-relaxed text-on-surface">
       Are you sure you want to delete this project? This operation can not be undone and will
       permanently remove all associated data.
     </p>
 
     @if (projectDeleteErrorMessage()) {
       <div
-        class="rounded border border-red-200 bg-red-50 px-md py-sm text-sm font-medium text-red-800"
+        class="rounded border border-red-200 bg-red-50 px-md py-sm text-body-md font-medium text-red-800"
         role="alert"
       >
         {{ projectDeleteErrorMessage() }}

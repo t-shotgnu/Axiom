@@ -144,6 +144,20 @@
     --text-headline-sm: 16px;
     --text-headline-sm--line-height: 24px;
     --text-headline-sm--font-weight: 600;
+
+    --font-label-lg: "Inter", sans-serif;
+    --text-label-lg: 13px;
+    --text-label-lg--line-height: 18px;
+    --text-label-lg--font-weight: 600;
+}
+
+@layer base {
+    body {
+        font-family: var(--font-sans);
+        font-size: var(--text-body-md);
+        line-height: var(--text-body-md--line-height);
+        font-weight: var(--text-body-md--font-weight);
+    }
 }
 
 @custom-variant dark (&:is(.dark *));
