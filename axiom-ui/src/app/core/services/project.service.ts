@@ -18,6 +18,11 @@ export interface CreateProjectCommand {
   description?: string;
 }
 
+export interface UpdateProjectCommand {
+  name: string;
+  code: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -47,6 +52,10 @@ export class ProjectService {
 
   createProject(command: CreateProjectCommand): Observable<string> {
     return this.http.post<string>(this.apiUrl, command);
+  }
+
+  updateProject(id: string, command: UpdateProjectCommand): Observable<void> {
+    return this.http.put<void>(`${this.apiUrl}/${id}`, command);
   }
 
   deleteProject(id: string): Observable<void> {

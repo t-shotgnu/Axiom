@@ -8,6 +8,8 @@ import com.studproj.axiom.application.features.projects.getallprojects.GetAllPro
 import com.studproj.axiom.application.features.projects.getallprojects.GetAllProjectsQueryHandler;
 import com.studproj.axiom.application.features.projects.getprojectdetails.GetProjectDetailsQuery;
 import com.studproj.axiom.application.features.projects.getprojectdetails.GetProjectDetailsQueryHandler;
+import com.studproj.axiom.application.features.projects.updateproject.UpdateProjectCommand;
+import com.studproj.axiom.application.features.projects.updateproject.UpdateProjectCommandHandler;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -31,6 +34,7 @@ public class ProjectController {
     private final DeleteProjectCommandHandler deleteProjectCommandHandler;
     private final GetAllProjectsQueryHandler getAllProjectsQueryHandler;
     private final GetProjectDetailsQueryHandler getProjectDetailsQueryHandler;
+    private final UpdateProjectCommandHandler updateProjectCommandHandler;
 
     @PostMapping
     public ResponseEntity<UUID> createProject(@Valid @RequestBody CreateProjectCommand command) {
@@ -48,6 +52,15 @@ public class ProjectController {
         return getProjectDetailsQueryHandler.handle(new GetProjectDetailsQuery(id))
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Void> updateProject(
+            @PathVariable UUID id,
+            @Valid @RequestBody UpdateProjectCommand command
+    ) {
+        updateProjectCommandHandler.handle(id, command);
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}")

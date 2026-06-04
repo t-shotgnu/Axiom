@@ -6,6 +6,7 @@ import { TasksComponent } from './views/tasks/tasks';
 import { TaskDetailComponent } from './views/task-detail/task-detail';
 import { LoginComponent } from './views/login/login';
 import { ProjectDetailComponent } from './views/project-detail/project-detail';
+import { ProjectSettingsComponent } from './views/project-settings/project-settings';
 import { authGuard } from './core/guards/auth.guard';
 import { pendingChangesGuard } from './core/guards/pending-changes.guard';
 
@@ -20,6 +21,7 @@ export const routes: Routes = [
 			{ path: 'dashboard', component: DashboardComponent },
 			{ path: 'projects', component: ProjectsComponent },
 			{ path: 'projects/:id', component: ProjectDetailComponent },
+			{ path: 'projects/:id/settings', component: ProjectSettingsComponent },
 			{ path: 'tasks', component: TasksComponent },
 			{ path: 'tasks/:id', component: TaskDetailComponent, canDeactivate: [pendingChangesGuard] },
 		],

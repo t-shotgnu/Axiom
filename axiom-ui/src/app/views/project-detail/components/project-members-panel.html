@@ -1,21 +1,25 @@
 <div class="rounded-2xl border border-outline-variant bg-surface-container-lowest p-lg shadow-sm lg:sticky lg:top-20">
   <div class="mb-md">
-    <p class="text-[11px] font-black uppercase tracking-widest text-on-surface-variant">People</p>
-    <p class="mt-1 text-sm font-semibold text-on-surface">Project members and lead</p>
+    <p class="text-label-sm font-black uppercase tracking-widest text-on-surface-variant">
+      {{ manageMembers ? 'Manage members' : 'People' }}
+    </p>
+    <p class="mt-1 text-body-md font-semibold text-on-surface">
+      {{ manageMembers ? 'Add, remove, and change member roles' : 'Project members and lead' }}
+    </p>
   </div>
 
   <div class="space-y-md">
     <div class="flex items-center gap-sm rounded-xl bg-surface-container-low px-3 py-2">
-      <div class="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary font-black text-xs">
+      <div class="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary font-black text-body-sm">
         {{ (leadName || 'L').substring(0, 1) | uppercase }}
       </div>
       <div class="min-w-0 flex-1">
-        <div class="text-sm font-bold text-on-surface truncate">{{ leadName || 'Unknown lead' }}</div>
-        <div class="text-[11px] font-semibold uppercase tracking-wider text-on-surface-variant">Lead</div>
+        <div class="text-body-md font-bold text-on-surface truncate">{{ leadName || 'Unknown lead' }}</div>
+        <div class="text-label-sm font-semibold uppercase tracking-wider text-on-surface-variant">Lead</div>
       </div>
     </div>
 
-    @if (canManageProject()) {
+    @if (manageMembers && canManageProject()) {
       <div class="grid gap-md sm:grid-cols-[minmax(0,1.4fr)_140px_auto]">
         <app-select
           [ngModel]="selectedMemberUserId()"
@@ -36,7 +40,7 @@
             type="button"
             (click)="addMember()"
             [disabled]="!selectedMemberUserId()"
-            class="inline-flex h-10 items-center justify-center rounded-lg bg-primary px-4 text-sm font-bold text-white transition-colors hover:bg-[#0747a6] disabled:cursor-not-allowed disabled:opacity-50"
+            class="inline-flex h-10 items-center justify-center rounded-lg bg-primary px-4 text-body-md font-bold text-white transition-colors hover:bg-[#0747a6] disabled:cursor-not-allowed disabled:opacity-50"
           >
             Add
           </button>
@@ -44,23 +48,23 @@
       </div>
     }
 
-    @if (memberActionError()) {
-      <div class="rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-700" role="alert">
+    @if (manageMembers && memberActionError()) {
+      <div class="rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-body-md text-red-700" role="alert">
         {{ memberActionError() }}
       </div>
     }
 
     <div class="flex items-center justify-between gap-md">
-      <span class="text-[11px] font-black uppercase tracking-widest text-on-surface-variant">Members</span>
-      <span class="text-xs font-bold text-on-surface">{{ members().length }}</span>
+      <span class="text-label-sm font-black uppercase tracking-widest text-on-surface-variant">Members</span>
+      <span class="text-body-sm font-bold text-on-surface">{{ members().length }}</span>
     </div>
 
     @if (loadingMembers()) {
-      <div class="rounded-xl border border-dashed border-outline-variant px-3 py-4 text-sm text-on-surface-variant">
+      <div class="rounded-xl border border-dashed border-outline-variant px-3 py-4 text-body-md text-on-surface-variant">
         Loading members...
       </div>
     } @else if (members().length === 0) {
-      <div class="rounded-xl border border-dashed border-outline-variant px-3 py-4 text-sm text-on-surface-variant">
+      <div class="rounded-xl border border-dashed border-outline-variant px-3 py-4 text-body-md text-on-surface-variant">
         No project members yet.
       </div>
     } @else {
@@ -68,26 +72,26 @@
         @for (member of members(); track member.userId) {
           <div class="flex flex-wrap items-center justify-between gap-md rounded-xl bg-surface-container-low px-3 py-2">
             <div class="min-w-0 flex items-center gap-sm">
-              <div class="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary font-black text-[11px] shrink-0">
+              <div class="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary font-black text-label-sm shrink-0">
                 {{ getMemberLabel(member).substring(0, 1) | uppercase }}
               </div>
               <div class="min-w-0">
-                <div class="truncate text-sm font-bold text-on-surface">{{ getMemberLabel(member) }}</div>
-                <div class="truncate text-[11px] font-semibold text-on-surface-variant">{{ member.emailAddress }}</div>
+                <div class="truncate text-body-md font-bold text-on-surface">{{ getMemberLabel(member) }}</div>
+                <div class="truncate text-label-sm font-semibold text-on-surface-variant">{{ member.emailAddress }}</div>
               </div>
             </div>
 
             <div class="flex items-center gap-sm">
               @if (isProjectLead(member)) {
-                <span class="rounded-full bg-primary/10 px-3 py-1 text-[11px] font-black uppercase tracking-widest text-primary">
+                <span class="rounded-full bg-primary/10 px-3 py-1 text-label-sm font-black uppercase tracking-widest text-primary">
                   Lead
                 </span>
               } @else if (isCurrentUser(member)) {
-                <span class="rounded-full bg-violet-500/10 px-3 py-1 text-[11px] font-black uppercase tracking-widest text-violet-700">
+                <span class="rounded-full bg-violet-500/10 px-3 py-1 text-label-sm font-black uppercase tracking-widest text-violet-700">
                   You
                 </span>
-                <span class="inline-flex items-center rounded-full bg-surface-variant text-on-surface-variant text-[11px] px-sm py-1 ml-2">{{ member.role === 'ADMIN' ? 'Admin' : 'Member' }}</span>
-              } @else if (canManageProject() && !isProjectLead(member)) {
+                <span class="inline-flex items-center rounded-full bg-surface-variant text-on-surface-variant text-label-sm px-sm py-1 ml-2">{{ member.role === 'ADMIN' ? 'Admin' : 'Member' }}</span>
+              } @else if (manageMembers && canManageProject() && !isProjectLead(member)) {
                 <app-select
                   [ngModel]="member.role"
                   (ngModelChange)="changeMemberRole(member, $event)"
@@ -95,10 +99,10 @@
                   customClass="w-28"
                 ></app-select>
               } @else {
-                <span class="inline-flex items-center rounded-full bg-surface-variant text-on-surface-variant text-[11px] px-sm py-1">{{ member.role === 'ADMIN' ? 'Admin' : 'Member' }}</span>
+                <span class="inline-flex items-center rounded-full bg-surface-variant text-on-surface-variant text-label-sm px-sm py-1">{{ member.role === 'ADMIN' ? 'Admin' : 'Member' }}</span>
               }
 
-              @if (canRemoveMember(member)) {
+              @if (manageMembers && canRemoveMember(member)) {
                 <button
                   type="button"
                   (click)="removeMember(member)"

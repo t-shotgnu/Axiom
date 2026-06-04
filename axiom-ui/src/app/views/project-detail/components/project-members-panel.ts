@@ -53,6 +53,8 @@ export class ProjectMembersPanelComponent implements OnInit {
 
     @Input() leadName = '';
     @Input() leadUserId = '';
+    /** When true, shows add/remove/role controls (Settings). When false, read-only People list. */
+    @Input() manageMembers = false;
     @Output() canManageProjectChange = new EventEmitter<boolean>();
 
     members = signal<ProjectMember[]>([]);
