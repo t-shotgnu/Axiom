@@ -13,3 +13,11 @@ spring:
 jwt:
   secret: c3VwZXJTZWNyZXRLZXlGb3JKV1QxMjM0NTY3ODkwMTIzNDU2Nzg5MA==
   expiration: 86400000
+
+storage:
+  s3:
+    endpoint: http://localhost:9000
+    region: eu-central-1
+    bucket: axiom-attachments
+    access-key: axiomminio
+    secret-key: axiomminiopassword

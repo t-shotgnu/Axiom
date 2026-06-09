@@ -79,6 +79,8 @@ export class TaskDetailComponent implements OnInit {
   comments: Comment[] = [];
   attachments: Attachment[] = [];
   newCommentText = '';
+  selectedAttachment: File | null = null;
+  isUploadingAttachment = false;
 
   statusOptions = [
     { label: 'TO DO', value: 'New' },
@@ -412,6 +414,81 @@ export class TaskDetailComponent implements OnInit {
       },
       error: (err) => console.error('Error loading attachments', err)
     });
+  }
+
+  onAttachmentSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.selectedAttachment = input.files?.[0] || null;
+  }
+
+  uploadAttachment(): void {
+    if (!this.id || !this.selectedAttachment || this.isUploadingAttachment) return;
+
+    this.isUploadingAttachment = true;
+    this.attachmentService.uploadAttachment(this.id, this.selectedAttachment).subscribe({
+      next: () => {
+        this.selectedAttachment = null;
+        this.isUploadingAttachment = false;
+        this.toastService.success('Attachment uploaded successfully.');
+        this.loadAttachments();
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.isUploadingAttachment = false;
+        this.toastService.error('Failed to upload attachment.');
+        console.error('Error uploading attachment', err);
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  downloadAttachment(file: Attachment): void {
+    this.attachmentService.downloadAttachment(file.id).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = file.fileName;
+        link.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: (err) => {
+        this.toastService.error('Failed to download attachment.');
+        console.error('Error downloading attachment', err);
+      }
+    });
+  }
+
+  deleteAttachment(file: Attachment): void {
+    this.attachmentService.deleteAttachment(file.id).subscribe({
+      next: () => {
+        this.toastService.success('Attachment deleted.');
+        this.loadAttachments();
+      },
+      error: (err) => {
+        this.toastService.error('Failed to delete attachment.');
+        console.error('Error deleting attachment', err);
+      }
+    });
+  }
+
+  canDeleteAttachment(file: Attachment): boolean {
+    if (!this.currentUserId) {
+      return false;
+    }
+
+    if (file.uploadedBy === this.currentUserId) {
+      return true;
+    }
+
+    return this.projectUsers.some((member) => member.id === this.currentUserId && member.role === 'ADMIN');
+  }
+
+  formatFileSize(size: number): string {
+    if (!size) return '0 B';
+    if (size < 1024) return `${size} B`;
+    if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
+    return `${(size / (1024 * 1024)).toFixed(1)} MB`;
   }
 
   formatDate(dateStr: string): string {
