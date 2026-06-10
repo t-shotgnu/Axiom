@@ -98,7 +98,8 @@ public class GlobalExceptionHandler {
             MaxUploadSizeExceededException ex,
             HttpServletRequest request) {
 
-        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST,
+                ex.getMessage() + "Maximum allowed file size is 10 MB.");
         problem.setTitle("File too large");
         problem.setInstance(URI.create(request.getRequestURI()));
         return ResponseEntity.badRequest().body(problem);
