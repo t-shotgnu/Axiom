@@ -1,8 +1,6 @@
 package com.studproj.axiom.application.features.projects.updateproject;
 
 import com.studproj.axiom.application.features.projects.ProjectAccessChecks;
-import com.studproj.axiom.domain.exception.BadRequestException;
-import com.studproj.axiom.domain.exception.NotFoundException;
 import com.studproj.axiom.domain.model.Project;
 import com.studproj.axiom.domain.repository.ProjectMembershipRepository;
 import com.studproj.axiom.domain.repository.ProjectRepository;
@@ -23,7 +21,7 @@ public class UpdateProjectCommandHandler {
     private final AuthenticatedUserProvider authenticatedUserProvider;
 
     @Transactional
-    public void handle(UUID projectId, UpdateProjectCommand command) {
+    public void handle(UUID projectId, UpdateProjectCommand command) throws Exception {
         ProjectAccessChecks.ensureProjectAdmin(
                 projectRepository,
                 projectMembershipRepository,
@@ -32,13 +30,13 @@ public class UpdateProjectCommandHandler {
                 projectId);
 
         Project existing = projectRepository.findById(projectId)
-                .orElseThrow(() -> new NotFoundException("Project not found"));
+                .orElseThrow(() -> new Exception("Project not found"));
 
         String normalizedCode = command.code().trim().toUpperCase();
         projectRepository.findByCode(normalizedCode)
                 .filter(project -> !project.getId().equals(projectId))
                 .ifPresent(project -> {
-                    throw new BadRequestException("A project with this code already exists");
+                        throw new RuntimeException("Project code already exists");
                 });
 
         Project updated = new Project(

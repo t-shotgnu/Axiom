@@ -54,4 +54,11 @@ public class JpaProjectRepository implements ProjectRepository {
     public void delete(UUID id) {
         jpaRepository.deleteById(id);
     }
+
+    @Override
+    public Optional<Project> findByCode(String code) {
+        return jpaRepository.findByCode(code).stream()
+                .map(ProjectMapper::toDomain)
+                .findFirst();
+    }
 }

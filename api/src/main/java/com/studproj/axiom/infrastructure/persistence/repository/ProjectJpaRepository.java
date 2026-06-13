@@ -9,4 +9,5 @@ import java.util.UUID;
 
 public interface ProjectJpaRepository extends JpaRepository<ProjectEntity, UUID> {
 	List<ProjectEntity> findByIdIn(Collection<UUID> ids);
+	List<ProjectEntity> findByCode(String code);
 }

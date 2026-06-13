@@ -59,7 +59,12 @@ public class ProjectController {
             @PathVariable UUID id,
             @Valid @RequestBody UpdateProjectCommand command
     ) {
-        updateProjectCommandHandler.handle(id, command);
+        try {
+            updateProjectCommandHandler.handle(id, command);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().build();
+        }
         return ResponseEntity.noContent().build();
     }
 

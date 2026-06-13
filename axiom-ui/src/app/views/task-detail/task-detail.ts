@@ -239,6 +239,73 @@ export class TaskDetailComponent implements OnInit {
   loadTask() {
     if (!this.id) return;
 
+    if (this.id === 'new') {
+      const qProjectId = this.route.snapshot?.queryParamMap?.get('projectId');
+      const currentProj = qProjectId
+        ? { id: qProjectId } as Project
+        : (typeof this.projectService.getCurrentProject === 'function' ? this.projectService.getCurrentProject() : null);
+
+      const projectId = currentProj?.id || '';
+
+      this.task = {
+        id: 'new',
+        controlNo: 0,
+        description: '',
+        priority: 5,
+        type: 'Task',
+        status: 'New',
+        dueDate: '',
+        estimatedEffort: null,
+        projectId: projectId,
+        authorId: this.currentUserId,
+        assigneeId: '',
+      } as any;
+
+      this.description = '';
+      this.status = 'New';
+      this.type = 'Task';
+      this.assigneeId = '';
+      this.notesText = '';
+      this.priority = 5;
+      this.estimatedEffort = null;
+
+      this.originalState = {
+        description: this.description,
+        notes: this.notesText,
+        status: this.status,
+        type: this.type,
+        assigneeId: this.assigneeId,
+        priority: this.priority,
+        estimatedEffort: this.estimatedEffort,
+      };
+
+      if (projectId) {
+        this.projectService.getProjectById(projectId).subscribe({
+          next: (proj) => {
+            if (proj) {
+              this.project = proj;
+              this.loadProjectMembers(proj.id);
+            }
+            this.cdr.markForCheck();
+          },
+          error: (err) => console.error('Error loading project details', err),
+        });
+      }
+
+      this.reporterName = 'Unknown';
+      this.userService.getCurrentUserProfile().subscribe({
+        next: (user) => {
+          this.currentUserId = user.id;
+          this.currentUser = user;
+          this.reporterName = this.getUserDisplayName(user);
+          this.cdr.markForCheck();
+        },
+      });
+
+      this.cdr.markForCheck();
+      return;
+    }
+
     this.workItemService.getWorkItemById(this.id).subscribe({
       next: (data) => {
         this.task = data;
@@ -359,6 +426,10 @@ export class TaskDetailComponent implements OnInit {
   }
 
   canEditTask(): boolean {
+    if (this.id === 'new') {
+      return true;
+    }
+
     if (!this.task || !this.currentUserId) {
       return false;
     }
@@ -679,7 +750,57 @@ export class TaskDetailComponent implements OnInit {
   }
 
   saveAllChanges(): void {
-    if (!this.id || !this.isDirty || !this.canEditTask()) return;
+    if (!this.isDirty) return;
+
+    if (this.id === 'new') {
+      if (!this.description.trim()) {
+        this.toastService.error('Description is required.');
+        return;
+      }
+
+      const normalizedAssigneeId = this.assigneeId?.trim() || null;
+      const createPayload: CreateWorkItemCommand = {
+        description: this.description.trim(),
+        priority: this.priority,
+        status: this.status,
+        type: this.type,
+        projectId: this.task?.projectId || '',
+        assigneeId: normalizedAssigneeId,
+        estimatedEffort: this.estimatedEffort,
+      };
+
+      this.workItemService.createWorkItem(createPayload).subscribe({
+        next: (newId) => {
+          const notes = this.notesText.trim();
+          if (notes) {
+            this.workItemService.updateWorkItemNotes(newId, notes).subscribe({
+              next: () => {
+                this.toastService.success('Task created successfully.');
+                this.originalState = null; // Bypass pendingChangesGuard
+                this.router.navigate(['/tasks', newId]);
+              },
+              error: (err) => {
+                console.error('Error saving notes for new task', err);
+                this.toastService.success('Task created successfully.');
+                this.originalState = null; // Bypass pendingChangesGuard
+                this.router.navigate(['/tasks', newId]);
+              }
+            });
+          } else {
+            this.toastService.success('Task created successfully.');
+            this.originalState = null; // Bypass pendingChangesGuard
+            this.router.navigate(['/tasks', newId]);
+          }
+        },
+        error: (err) => {
+          this.toastService.error('Failed to create task.');
+          console.error('Error creating task', err);
+        },
+      });
+      return;
+    }
+
+    if (!this.id || !this.canEditTask()) return;
 
     const normalizedAssigneeId = this.assigneeId?.trim() || null;
     const workItemPayload = {

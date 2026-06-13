@@ -22,7 +22,7 @@
         }}</a>
         <span class="material-symbols-outlined text-[14px]">chevron_right</span>
         <span class="text-on-surface font-semibold"
-          >{{ project?.code || 'AX' }}-{{ task.controlNo }}</span
+          >{{ project?.code || 'AX' }}-{{ id === 'new' ? 'New' : task.controlNo }}</span
         >
       </nav>
 
@@ -47,21 +47,23 @@
     <!-- Save & Delete Actions -->
     @if (canEditTask()) {
       <div class="shrink-0 flex items-center gap-sm select-none">
-        <app-button
-          variant="secondary"
-          icon="delete"
-          (onClick)="openDeleteDialog()"
-          customClass="py-sm px-md text-body-sm font-bold"
-        >
-          Delete
-        </app-button>
+        @if (id !== 'new') {
+          <app-button
+            variant="secondary"
+            icon="delete"
+            (onClick)="openDeleteDialog()"
+            customClass="py-sm px-md text-body-sm font-bold"
+          >
+            Delete
+          </app-button>
+        }
         <app-button
           variant="primary"
           [disabled]="!isDirty"
           (onClick)="saveAllChanges()"
           customClass="px-lg py-sm font-bold text-body-md"
         >
-          Save
+          {{ id === 'new' ? 'Save' : 'Update' }}
         </app-button>
       </div>
     }
@@ -99,170 +101,172 @@
       </section>
 
       <!-- Attachments Section -->
-      <section class="space-y-md pt-md" *ngIf="attachments && attachments.length > 0">
-        <div class="flex items-center gap-xs select-none">
-          <span class="material-symbols-outlined text-[16px] text-on-surface-variant"
-            >attachment</span
-          >
-          <h3 class="text-label-sm font-bold text-on-surface-variant uppercase tracking-wider">
-            Attachments ({{ attachments.length }})
-          </h3>
-        </div>
-
-        @if (canEditTask()) {
-          <div
-            class="flex flex-col sm:flex-row sm:items-center gap-sm rounded-lg border border-dashed border-outline-variant bg-surface-container-lowest p-md"
-          >
-            <input
-              type="file"
-              (change)="onAttachmentSelected($event)"
-              class="min-w-0 flex-1 text-xs text-on-surface file:mr-md file:rounded file:border-0 file:bg-surface-container-high file:px-md file:py-sm file:text-xs file:font-bold file:text-on-surface hover:file:bg-surface-container-medium"
-            />
-            <app-button
-              variant="secondary"
-              icon="upload"
-              [disabled]="!selectedAttachment || isUploadingAttachment"
-              (onClick)="uploadAttachment()"
-              customClass="py-sm px-md text-xs font-bold"
+      @if (id !== 'new') {
+        <section class="space-y-md pt-md" *ngIf="attachments && attachments.length > 0">
+          <div class="flex items-center gap-xs select-none">
+            <span class="material-symbols-outlined text-[16px] text-on-surface-variant"
+              >attachment</span
             >
-              Upload
-            </app-button>
+            <h3 class="text-label-sm font-bold text-on-surface-variant uppercase tracking-wider">
+              Attachments ({{ attachments.length }})
+            </h3>
           </div>
-        }
 
-        @if (attachments.length === 0) {
-          <div
-            class="rounded-lg border border-outline-variant/60 bg-surface-container-lowest p-md text-xs text-on-surface-variant"
-          >
-            No attachments yet.
-          </div>
-        }
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-md">
-          @for (file of attachments; track file.id) {
+          @if (canEditTask()) {
             <div
-              class="flex items-center gap-md bg-surface-container-low border border-outline-variant rounded-lg p-sm hover:bg-surface-container-medium transition-colors"
+              class="flex flex-col sm:flex-row sm:items-center gap-sm rounded-lg border border-dashed border-outline-variant bg-surface-container-lowest p-md"
             >
-              <div
-                class="w-10 h-10 rounded flex items-center justify-center shrink-0 bg-surface-container-high text-on-surface-variant"
-                [class.bg-[#e8f0fe]]="file.fileType.startsWith('image/')"
-                [class.text-primary]="file.fileType.startsWith('image/')"
-                [class.bg-red-500/10]="file.fileType.includes('pdf')"
-                [class.text-red-500]="file.fileType.includes('pdf')"
+              <input
+                type="file"
+                (change)="onAttachmentSelected($event)"
+                class="min-w-0 flex-1 text-xs text-on-surface file:mr-md file:rounded file:border-0 file:bg-surface-container-high file:px-md file:py-sm file:text-xs file:font-bold file:text-on-surface hover:file:bg-surface-container-medium"
+              />
+              <app-button
+                variant="secondary"
+                icon="upload"
+                [disabled]="!selectedAttachment || isUploadingAttachment"
+                (onClick)="uploadAttachment()"
+                customClass="py-sm px-md text-xs font-bold"
               >
-                <span class="material-symbols-outlined text-[24px]">
-                  {{ file.fileType.startsWith('image/') ? 'image' : file.fileType.includes('pdf') ? 'picture_as_pdf' : 'description' }}
-                </span>
-              </div>
-              <div class="min-w-0 flex-1">
-                <div class="text-body-md font-semibold text-on-surface truncate">{{ file.fileName }}</div>
-                <div class="text-label-sm text-on-surface-variant mt-[2px]">
-                  {{ file.fileSize }} • {{ formatDate(file.uploadedOn) }}
-                </div>
-              </div>
-              <div class="flex items-center gap-xs shrink-0">
-                <button
-                  type="button"
-                  (click)="downloadAttachment(file)"
-                  class="w-8 h-8 rounded flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-surface-container-high"
-                  title="Download"
+                Upload
+              </app-button>
+            </div>
+          }
+
+          @if (attachments.length === 0) {
+            <div
+              class="rounded-lg border border-outline-variant/60 bg-surface-container-lowest p-md text-xs text-on-surface-variant"
+            >
+              No attachments yet.
+            </div>
+          }
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-md">
+            @for (file of attachments; track file.id) {
+              <div
+                class="flex items-center gap-md bg-surface-container-low border border-outline-variant rounded-lg p-sm hover:bg-surface-container-medium transition-colors"
+              >
+                <div
+                  class="w-10 h-10 rounded flex items-center justify-center shrink-0 bg-surface-container-high text-on-surface-variant"
+                  [class.bg-[#e8f0fe]]="file.fileType.startsWith('image/')"
+                  [class.text-primary]="file.fileType.startsWith('image/')"
+                  [class.bg-red-500/10]="file.fileType.includes('pdf')"
+                  [class.text-red-500]="file.fileType.includes('pdf')"
                 >
-                  <span class="material-symbols-outlined text-[18px]">download</span>
-                </button>
-                @if (canDeleteAttachment(file)) {
+                  <span class="material-symbols-outlined text-[24px]">
+                    {{ file.fileType.startsWith('image/') ? 'image' : file.fileType.includes('pdf') ? 'picture_as_pdf' : 'description' }}
+                  </span>
+                </div>
+                <div class="min-w-0 flex-1">
+                  <div class="text-body-md font-semibold text-on-surface truncate">{{ file.fileName }}</div>
+                  <div class="text-label-sm text-on-surface-variant mt-[2px]">
+                    {{ file.fileSize }} • {{ formatDate(file.uploadedOn) }}
+                  </div>
+                </div>
+                <div class="flex items-center gap-xs shrink-0">
                   <button
                     type="button"
-                    (click)="deleteAttachment(file)"
-                    class="w-8 h-8 rounded flex items-center justify-center text-on-surface-variant hover:text-red-500 hover:bg-red-500/10"
-                    title="Delete"
+                    (click)="downloadAttachment(file)"
+                    class="w-8 h-8 rounded flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-surface-container-high"
+                    title="Download"
                   >
-                    <span class="material-symbols-outlined text-[18px]">delete</span>
+                    <span class="material-symbols-outlined text-[18px]">download</span>
                   </button>
-                }
-              </div>
-            </div>
-          }
-        </div>
-      </section>
-
-      <!-- Activity Feed & Comments Section -->
-      <section class="pt-lg space-y-lg">
-        <h3
-          class="text-label-sm font-bold text-on-surface-variant uppercase tracking-wider select-none"
-        >
-          Activity
-        </h3>
-
-        <!-- Add Comment Textarea -->
-        <div class="flex gap-md">
-          <div
-            class="w-8 h-8 rounded-full bg-primary/10 text-primary border border-primary/20 flex items-center justify-center font-bold shrink-0 select-none"
-          >
-            {{ currentUserInitials }}
-          </div>
-          <div class="flex-1">
-            <div
-              class="border border-outline-variant rounded-xl focus-within:border-primary transition-all overflow-hidden bg-surface-container-lowest shadow-sm"
-            >
-              <textarea
-                [(ngModel)]="newCommentText"
-                class="w-full p-md text-body-md border-none focus:ring-0 placeholder-on-surface-variant focus:outline-none bg-transparent text-on-surface min-h-[80px] resize-y"
-                placeholder="Add a comment..."
-              ></textarea>
-              <div
-                class="bg-surface-container-low px-md py-sm flex justify-end select-none border-t border-outline-variant/60"
-              >
-                <app-button
-                  variant="primary"
-                  (onClick)="addComment()"
-                  customClass="py-unit px-md text-body-sm font-bold"
-                  >Save</app-button
-                >
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Render Comments List -->
-        <div class="space-y-lg pt-md">
-          @for (c of comments; track c.id) {
-            <div class="flex gap-md group">
-              <!-- Author Avatar -->
-              <div
-                class="w-8 h-8 rounded-full bg-surface-container-high border border-outline-variant text-on-surface-variant flex items-center justify-center font-bold shrink-0 select-none"
-              >
-                {{ c.author.substring(0, 2).toUpperCase() }}
-              </div>
-
-              <!-- Comment Body -->
-              <div class="flex-1 space-y-xs">
-                <div class="flex items-baseline gap-sm select-none">
-                  <span class="text-body-md font-semibold text-on-surface">{{ c.author }}</span>
-                  <span class="text-label-sm text-on-surface-variant">{{
-                    formatDate(c.createdOn)
-                  }}</span>
-                </div>
-                <p class="text-body-md text-body-md text-on-surface leading-relaxed">
-                  {{ c.text }}
-                </p>
-                <!-- Actions -->
-                @if (canDeleteComment(c)) {
-                  <div
-                    class="flex items-center gap-md text-label-sm text-on-surface-variant font-bold select-none pt-unit"
-                  >
+                  @if (canDeleteAttachment(file)) {
                     <button
-                      (click)="deleteComment(c.id)"
-                      class="hover:underline hover:text-red-500"
+                      type="button"
+                      (click)="deleteAttachment(file)"
+                      class="w-8 h-8 rounded flex items-center justify-center text-on-surface-variant hover:text-red-500 hover:bg-red-500/10"
+                      title="Delete"
                     >
-                      Delete
+                      <span class="material-symbols-outlined text-[18px]">delete</span>
                     </button>
-                  </div>
-                }
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </section>
+
+        <!-- Activity Feed & Comments Section -->
+        <section class="pt-lg space-y-lg">
+          <h3
+            class="text-label-sm font-bold text-on-surface-variant uppercase tracking-wider select-none"
+          >
+            Activity
+          </h3>
+
+          <!-- Add Comment Textarea -->
+          <div class="flex gap-md">
+            <div
+              class="w-8 h-8 rounded-full bg-primary/10 text-primary border border-primary/20 flex items-center justify-center font-bold shrink-0 select-none"
+            >
+              {{ currentUserInitials }}
+            </div>
+            <div class="flex-1">
+              <div
+                class="border border-outline-variant rounded-xl focus-within:border-primary transition-all overflow-hidden bg-surface-container-lowest shadow-sm"
+              >
+                <textarea
+                  [(ngModel)]="newCommentText"
+                  class="w-full p-md text-body-md border-none focus:ring-0 placeholder-on-surface-variant focus:outline-none bg-transparent text-on-surface min-h-[80px] resize-y"
+                  placeholder="Add a comment..."
+                ></textarea>
+                <div
+                  class="bg-surface-container-low px-md py-sm flex justify-end select-none border-t border-outline-variant/60"
+                >
+                  <app-button
+                    variant="primary"
+                    (onClick)="addComment()"
+                    customClass="py-unit px-md text-body-sm font-bold"
+                    >Save</app-button
+                  >
+                </div>
               </div>
             </div>
-          }
-        </div>
-      </section>
+          </div>
+
+          <!-- Render Comments List -->
+          <div class="space-y-lg pt-md">
+            @for (c of comments; track c.id) {
+              <div class="flex gap-md group">
+                <!-- Author Avatar -->
+                <div
+                  class="w-8 h-8 rounded-full bg-surface-container-high border border-outline-variant text-on-surface-variant flex items-center justify-center font-bold shrink-0 select-none"
+                >
+                  {{ c.author.substring(0, 2).toUpperCase() }}
+                </div>
+
+                <!-- Comment Body -->
+                <div class="flex-1 space-y-xs">
+                  <div class="flex items-baseline gap-sm select-none">
+                    <span class="text-body-md font-semibold text-on-surface">{{ c.author }}</span>
+                    <span class="text-label-sm text-on-surface-variant">{{
+                      formatDate(c.createdOn)
+                    }}</span>
+                  </div>
+                  <p class="text-body-md text-body-md text-on-surface leading-relaxed">
+                    {{ c.text }}
+                  </p>
+                  <!-- Actions -->
+                  @if (canDeleteComment(c)) {
+                    <div
+                      class="flex items-center gap-md text-label-sm text-on-surface-variant font-bold select-none pt-unit"
+                    >
+                      <button
+                        (click)="deleteComment(c.id)"
+                        class="hover:underline hover:text-red-500"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </section>
+      }
     </div>
 
     <!-- Right Column: Sidebar (Status, Attributes Table) -->
@@ -285,6 +289,22 @@
         <div
           class="rounded-xl border border-outline-variant bg-surface-container-lowest p-md space-y-md shadow-sm"
         >
+          <!-- Type -->
+          <div
+            class="grid grid-cols-12 gap-xs items-center py-xs border-b border-outline-variant/40"
+          >
+            <span class="col-span-4 text-label-md font-semibold text-on-surface-variant select-none"
+              >Type</span
+            >
+            <div class="col-span-8">
+              <app-select
+                [(ngModel)]="type"
+                [options]="typeOptions"
+                [disabled]="!canEditTask()"
+              ></app-select>
+            </div>
+          </div>
+
           <!-- Assignee -->
           <div
             class="grid grid-cols-12 gap-xs items-center py-xs border-b border-outline-variant/40"

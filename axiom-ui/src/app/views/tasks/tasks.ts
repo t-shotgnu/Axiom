@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize } from 'rxjs';
@@ -72,6 +72,7 @@ export class TasksComponent implements OnInit {
   private readonly userService = inject(UserService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly router = inject(Router);
 
   currentProject: Project | null = null;
   tasks: WorkItem[] = [];
@@ -256,6 +257,10 @@ export class TasksComponent implements OnInit {
     if (!this.currentProject) return;
     this.newTask = this.emptyTask();
     this.showCreateDialog = true;
+  }
+
+  navigateToCreate(): void {
+    this.router.navigate(['/tasks/new']);
   }
 
   cancelCreateDialog(): void {

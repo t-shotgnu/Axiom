@@ -4,11 +4,11 @@
     <div class="flex flex-col items-center mb-lg text-center">
       <div class="flex items-center gap-xs mb-sm">
         <span class="material-symbols-outlined text-[32px] text-primary font-bold">grid_view</span>
-        <span class="text-primary font-extrabold text-headline-lg tracking-tight">
+        <span class="app-span app-text-primary font-extrabold text-headline-lg tracking-tight">
           Axiom
         </span>
       </div>
-      <p class="text-on-surface-variant font-medium text-body-md">
+      <p class="app-p app-text-muted font-medium text-body-md">
         @if (mode === 'login') {
           Sign in to your Enterprise account
         } @else {
@@ -36,7 +36,7 @@
         @if (mode === 'register') {
           <div class="grid gap-sm sm:grid-cols-2">
             <div class="flex flex-col gap-xs">
-              <label class="text-label-md font-semibold text-on-surface-variant">
+              <label class="app-label app-text-muted text-label-md font-semibold">
                 Username
               </label>
               <input
@@ -48,14 +48,14 @@
                 required
               />
               @if (registerForm.userName && !isUserNameValid(registerForm.userName)) {
-                <p class="text-body-sm text-error font-medium">
+                <p class="app-p app-text-error text-body-sm font-medium">
                   Username must be between 3 and 30 characters.
                 </p>
               }
             </div>
 
             <div class="flex flex-col gap-xs">
-              <label class="text-label-md font-semibold text-on-surface-variant">
+              <label class="app-label app-text-muted text-label-md font-semibold">
                 Date of birth
               </label>
               <input
@@ -67,14 +67,14 @@
                 required
               />
               @if (registerForm.dateOfBirth && !isDateOfBirthValid(registerForm.dateOfBirth)) {
-                <p class="text-body-sm text-error font-medium">Date of birth cannot be in the future.</p>
+                <p class="app-p app-text-error text-body-sm font-medium">Date of birth cannot be in the future.</p>
               }
             </div>
           </div>
 
           <div class="grid gap-sm sm:grid-cols-2">
             <div class="flex flex-col gap-xs">
-              <label class="text-label-md font-semibold text-on-surface-variant">
+              <label class="app-label app-text-muted text-label-md font-semibold">
                 First name
               </label>
               <input
@@ -86,12 +86,12 @@
                 required
               />
               @if (registerForm.firstName && !isNameValid(registerForm.firstName)) {
-                <p class="text-body-sm text-error font-medium">Enter a valid first name.</p>
+                <p class="app-p app-text-error text-body-sm font-medium">Enter a valid first name.</p>
               }
             </div>
 
             <div class="flex flex-col gap-xs">
-              <label class="text-label-md font-semibold text-on-surface-variant">
+              <label class="app-label app-text-muted text-label-md font-semibold">
                 Last name
               </label>
               <input
@@ -103,7 +103,7 @@
                 required
               />
               @if (registerForm.lastName && !isNameValid(registerForm.lastName)) {
-                <p class="text-body-sm text-error font-medium">Enter a valid last name.</p>
+                <p class="app-p app-text-error text-body-sm font-medium">Enter a valid last name.</p>
               }
             </div>
           </div>
@@ -111,7 +111,7 @@
 
         <!-- Email Field -->
         <div class="flex flex-col gap-xs">
-          <label class="text-label-md font-semibold text-on-surface-variant">
+          <label class="app-label app-text-muted text-label-md font-semibold">
             Email address
           </label>
           <input
@@ -123,13 +123,13 @@
             required
           />
           @if (mode === 'register' && emailAddress && !isEmailValid(emailAddress)) {
-            <p class="text-body-sm text-error font-medium">Enter a valid email address.</p>
+            <p class="app-p app-text-error text-body-sm font-medium">Enter a valid email address.</p>
           }
         </div>
 
         <!-- Password Field -->
         <div class="flex flex-col gap-xs">
-          <label class="text-label-md font-semibold text-on-surface-variant">
+          <label class="app-label app-text-muted text-label-md font-semibold">
             Password
           </label>
 
@@ -165,10 +165,9 @@
                 ></div>
               </div>
 
-              <p class="text-label-sm text-on-surface-variant">
+              <p class="app-p app-text-muted text-label-sm">
                 Password strength:
-                <span
-                  class="font-bold"
+                <span class="app-span font-bold"
                   [ngClass]="{
                     'text-red-500': passwordStrengthPercentage <= 25,
                     'text-orange-500': passwordStrengthPercentage == 50,
@@ -182,7 +181,7 @@
           }
 
           @if (mode === 'register' && password && !passwordMeetsRegistrationRules) {
-            <p class="text-body-sm text-error font-medium mt-xs">
+            <p class="app-p app-text-error text-body-sm font-medium mt-xs">
               Password must contain at least 8 characters, uppercase and lowercase letters, and a
               number.
             </p>
@@ -202,7 +201,7 @@
       </form>
 
       <!-- Toggle Mode Link -->
-      <p class="mt-lg text-center text-body-md text-on-surface-variant font-medium">
+      <p class="app-p app-text-muted mt-lg text-center text-body-md font-medium">
         @if (mode === 'login') {
           Don't have an account?
           <a (click)="toggleMode()" class="text-primary font-bold hover:underline cursor-pointer">
@@ -218,7 +217,7 @@
 
       <!-- Footer -->
       <div class="mt-xl pt-lg border-t border-outline-variant/50 w-full text-center space-y-sm">
-        <p class="text-label-sm text-on-surface-variant/70">© 2026 Axiom Enterprise.</p>
+        <p class="app-p text-label-sm text-on-surface-variant/70">© 2026 Axiom Enterprise.</p>
       </div>
     </div>
   </div>

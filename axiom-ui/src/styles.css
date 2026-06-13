@@ -179,3 +179,26 @@
 .dark ::-webkit-scrollbar-track { background: #161b22; }
 .dark ::-webkit-scrollbar-thumb { background: #30363d; }
 .dark ::-webkit-scrollbar-thumb:hover { background: #8b949e; }
+
+/* Standardized Typography Classes */
+.app-h1 { @apply font-headline-xl text-headline-xl font-black tracking-tight leading-tight; }
+.app-h2 { @apply font-headline-lg text-headline-lg font-extrabold tracking-tight; }
+.app-h3 { @apply font-headline-md text-headline-md font-bold; }
+.app-h4 { @apply font-headline-sm text-headline-sm font-semibold; }
+.app-h5 { @apply font-headline-sm text-headline-sm font-medium; }
+.app-h6 { @apply font-headline-sm text-headline-sm font-normal; }
+.app-p  { @apply font-body-md text-body-md leading-relaxed; }
+.app-span { @apply font-body-md text-body-md; }
+.app-label { @apply text-label-md font-semibold select-none; }
+.app-code { @apply font-mono text-code; }
+.app-small { @apply text-body-sm font-normal; }
+.app-caption { @apply text-label-sm font-bold uppercase tracking-wider; }
+.app-subtitle { @apply text-body-sm font-bold; }
+
+/* Text Color Classes */
+.app-text-default { @apply text-on-surface; }
+.app-text-muted   { @apply text-on-surface-variant; }
+.app-text-primary { @apply text-primary; }
+.app-text-secondary { @apply text-secondary; }
+.app-text-error   { @apply text-error; }
+
