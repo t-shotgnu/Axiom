@@ -2,8 +2,8 @@ package com.studproj.axiom.application.features.comments.getcommentsbyworkitem;
 
 import com.studproj.axiom.application.features.comments.CommentDto;
 import com.studproj.axiom.application.features.projects.ProjectAccessChecks;
-import com.studproj.axiom.domain.exception.ForbiddenException;
-import com.studproj.axiom.domain.exception.NotFoundException;
+import com.studproj.axiom.domain.exception.AccessDeniedException;
+import com.studproj.axiom.domain.exception.EntityNotFoundException;
 import com.studproj.axiom.domain.model.WorkItem;
 import com.studproj.axiom.domain.repository.*;
 import com.studproj.axiom.domain.service.AuthenticatedUserProvider;
@@ -27,7 +27,7 @@ public class GetCommentsByWorkItemQueryHandler {
 
     public List<CommentDto> handle(GetCommentsByWorkItemQuery query) {
         WorkItem workItem = workItemRepository.findById(query.workItemId())
-                .orElseThrow(() -> new NotFoundException("WorkItem not found"));
+                .orElseThrow(() -> new EntityNotFoundException("WorkItem not found"));
 
         ensureProjectMember(workItem.getProjectId());
 
@@ -38,7 +38,7 @@ public class GetCommentsByWorkItemQueryHandler {
 
     private void ensureProjectMember(UUID projectId) {
         if (!ProjectAccessChecks.isProjectMember(projectRepository, projectMembershipRepository, authenticatedUserProvider, projectId)) {
-            throw new ForbiddenException("You are not a member of this project");
+            throw new AccessDeniedException("You are not a member of this project");
         }
     }
 

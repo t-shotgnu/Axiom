@@ -1,8 +1,8 @@
 package com.studproj.axiom.application.features.attachments.deleteattachment;
 
 import com.studproj.axiom.application.features.projects.ProjectAccessChecks;
-import com.studproj.axiom.domain.exception.ForbiddenException;
-import com.studproj.axiom.domain.exception.NotFoundException;
+import com.studproj.axiom.domain.exception.AccessDeniedException;
+import com.studproj.axiom.domain.exception.EntityNotFoundException;
 import com.studproj.axiom.domain.model.Attachment;
 import com.studproj.axiom.domain.model.WorkItem;
 import com.studproj.axiom.domain.repository.AttachmentObjectRepository;
@@ -30,10 +30,10 @@ public class DeleteAttachmentCommandHandler {
     @Transactional
     public void handle(DeleteAttachmentCommand command) {
         Attachment attachment = attachmentRepository.findById(command.id())
-                .orElseThrow(() -> new NotFoundException("Attachment not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Attachment not found"));
 
         WorkItem workItem = workItemRepository.findById(attachment.getWorkItemId())
-                .orElseThrow(() -> new NotFoundException("WorkItem not found"));
+                .orElseThrow(() -> new EntityNotFoundException("WorkItem not found"));
 
         ProjectAccessChecks.ensureProjectMember(
                 projectRepository,
@@ -50,7 +50,7 @@ public class DeleteAttachmentCommandHandler {
                 workItem.getProjectId());
 
         if (!isUploader && !isAdmin) {
-            throw new ForbiddenException("Only the uploader or project admin can delete this attachment");
+            throw new AccessDeniedException("Only the uploader or project admin can delete this attachment");
         }
 
         attachmentObjectRepository.delete(attachment.getObjectKey());

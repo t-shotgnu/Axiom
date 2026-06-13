@@ -2,7 +2,7 @@ package com.studproj.axiom.application.features.workitems.getworkitemsbyproject;
 
 import com.studproj.axiom.application.features.projects.ProjectAccessChecks;
 import com.studproj.axiom.application.features.workitems.WorkItemDto;
-import com.studproj.axiom.domain.exception.ForbiddenException;
+import com.studproj.axiom.domain.exception.AccessDeniedException;
 import com.studproj.axiom.domain.repository.ProjectMembershipRepository;
 import com.studproj.axiom.domain.repository.ProjectRepository;
 import com.studproj.axiom.domain.repository.WorkItemRepository;
@@ -24,7 +24,7 @@ public class GetWorkItemsByProjectQueryHandler {
 
     public List<WorkItemDto> handle(GetWorkItemsByProjectQuery query) {
         if (!ProjectAccessChecks.isProjectMember(projectRepository, projectMembershipRepository, authenticatedUserProvider, query.projectId())) {
-            throw new ForbiddenException("You are not a member of this project");
+            throw new AccessDeniedException("You are not a member of this project");
         }
 
         return workItemRepository.findByProjectId(query.projectId()).stream()

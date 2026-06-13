@@ -1,8 +1,8 @@
 package com.studproj.axiom.application.features.comments.deletecomment;
 
 import com.studproj.axiom.application.features.projects.ProjectAccessChecks;
-import com.studproj.axiom.domain.exception.ForbiddenException;
-import com.studproj.axiom.domain.exception.NotFoundException;
+import com.studproj.axiom.domain.exception.AccessDeniedException;
+import com.studproj.axiom.domain.exception.EntityNotFoundException;
 import com.studproj.axiom.domain.model.WorkItem;
 import com.studproj.axiom.domain.repository.ProjectMembershipRepository;
 import com.studproj.axiom.domain.repository.ProjectRepository;
@@ -28,10 +28,10 @@ public class DeleteCommentCommandHandler {
     @Transactional
     public void handle(DeleteCommentCommand command) {
         CommentEntity comment = commentRepository.findById(command.id())
-                .orElseThrow(() -> new NotFoundException("Comment not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Comment not found"));
 
         WorkItem workItem = workItemRepository.findById(comment.getWorkItemId())
-                .orElseThrow(() -> new NotFoundException("WorkItem not found"));
+                .orElseThrow(() -> new EntityNotFoundException("WorkItem not found"));
 
         ensureProjectMember(workItem.getProjectId());
 
@@ -50,12 +50,12 @@ public class DeleteCommentCommandHandler {
             return;
         }
 
-        throw new ForbiddenException("Only the author or project admin can delete this comment");
+        throw new AccessDeniedException("Only the author or project admin can delete this comment");
     }
 
     private void ensureProjectMember(java.util.UUID projectId) {
         if (!ProjectAccessChecks.isProjectMember(projectRepository, projectMembershipRepository, authenticatedUserProvider, projectId)) {
-            throw new ForbiddenException("You are not a member of this project");
+            throw new AccessDeniedException("You are not a member of this project");
         }
     }
 }

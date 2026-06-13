@@ -1,8 +1,9 @@
 package com.studproj.axiom.application.features.attachments.uploadattachment;
 
 import com.studproj.axiom.application.features.projects.ProjectAccessChecks;
-import com.studproj.axiom.domain.exception.BadRequestException;
-import com.studproj.axiom.domain.exception.NotFoundException;
+import com.studproj.axiom.domain.exception.DomainRuleViolationException;
+import com.studproj.axiom.domain.exception.EntityNotFoundException;
+import com.studproj.axiom.domain.exception.EntityNotFoundException;
 import com.studproj.axiom.domain.model.Attachment;
 import com.studproj.axiom.domain.model.WorkItem;
 import com.studproj.axiom.domain.repository.AttachmentObjectRepository;
@@ -31,11 +32,11 @@ public class UploadAttachmentCommandHandler {
     @Transactional
     public UUID handle(UploadAttachmentCommand command) {
         if (command.content() == null || command.content().length == 0) {
-            throw new BadRequestException("File can not be empty");
+            throw new DomainRuleViolationException("File can not be empty");
         }
 
         WorkItem workItem = workItemRepository.findById(command.workItemId())
-                .orElseThrow(() -> new NotFoundException("WorkItem not found"));
+                .orElseThrow(() -> new EntityNotFoundException("WorkItem not found"));
 
         ProjectAccessChecks.ensureProjectMember(
                 projectRepository,

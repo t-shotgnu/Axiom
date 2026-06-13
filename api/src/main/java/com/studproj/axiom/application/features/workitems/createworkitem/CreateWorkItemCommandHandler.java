@@ -1,7 +1,7 @@
 package com.studproj.axiom.application.features.workitems.createworkitem;
 
 import com.studproj.axiom.application.features.projects.ProjectAccessChecks;
-import com.studproj.axiom.domain.exception.ForbiddenException;
+import com.studproj.axiom.domain.exception.AccessDeniedException;
 import com.studproj.axiom.domain.model.WorkItem;
 import com.studproj.axiom.domain.repository.ProjectMembershipRepository;
 import com.studproj.axiom.domain.repository.ProjectRepository;
@@ -31,11 +31,11 @@ public class CreateWorkItemCommandHandler {
                 .getId();
 
         if (!ProjectAccessChecks.isProjectMember(projectRepository, projectMembershipRepository, authenticatedUserProvider, command.projectId())) {
-            throw new ForbiddenException("You are not a member of this project");
+            throw new AccessDeniedException("You are not a member of this project");
         }
 
         if (command.assigneeId() != null && !projectMembershipRepository.existsByProjectIdAndUserId(command.projectId(), command.assigneeId())) {
-            throw new ForbiddenException("Assignee must be a member of this project");
+            throw new AccessDeniedException("Assignee must be a member of this project");
         }
 
         int nextControlNo = workItemRepository

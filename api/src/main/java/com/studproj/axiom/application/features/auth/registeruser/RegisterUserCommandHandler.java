@@ -1,6 +1,6 @@
 package com.studproj.axiom.application.features.auth.registeruser;
 
-import com.studproj.axiom.domain.exception.BadRequestException;
+import com.studproj.axiom.domain.exception.DomainRuleViolationException;
 import com.studproj.axiom.domain.model.RefreshToken;
 import com.studproj.axiom.domain.model.User;
 import com.studproj.axiom.domain.repository.RefreshTokenRepository;
@@ -25,7 +25,7 @@ public class RegisterUserCommandHandler {
     @Transactional
     public RegisterUserResponse handle(RegisterUserCommand command) {
         userRepository.findByEmail(command.emailAddress()).ifPresent(u -> {
-            throw new BadRequestException("Email already in use");
+            throw new DomainRuleViolationException("Email already in use");
         });
 
         User user = User.builder()

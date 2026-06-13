@@ -1,7 +1,7 @@
 package com.studproj.axiom.application.features.attachments.downloadattachment;
 
 import com.studproj.axiom.application.features.projects.ProjectAccessChecks;
-import com.studproj.axiom.domain.exception.NotFoundException;
+import com.studproj.axiom.domain.exception.EntityNotFoundException;
 import com.studproj.axiom.domain.model.Attachment;
 import com.studproj.axiom.domain.model.WorkItem;
 import com.studproj.axiom.domain.repository.AttachmentObjectRepository;
@@ -27,10 +27,10 @@ public class DownloadAttachmentQueryHandler {
 
     public DownloadAttachmentResult handle(DownloadAttachmentQuery query) {
         Attachment attachment = attachmentRepository.findById(query.id())
-                .orElseThrow(() -> new NotFoundException("Attachment not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Attachment not found"));
 
         WorkItem workItem = workItemRepository.findById(attachment.getWorkItemId())
-                .orElseThrow(() -> new NotFoundException("WorkItem not found"));
+                .orElseThrow(() -> new EntityNotFoundException("WorkItem not found"));
 
         ProjectAccessChecks.ensureProjectMember(
                 projectRepository,

@@ -1,6 +1,6 @@
 package com.studproj.axiom.application.features.auth.login;
 
-import com.studproj.axiom.domain.exception.BadRequestException;
+import com.studproj.axiom.domain.exception.DomainRuleViolationException;
 import com.studproj.axiom.domain.model.RefreshToken;
 import com.studproj.axiom.domain.model.User;
 import com.studproj.axiom.domain.repository.RefreshTokenRepository;
@@ -22,10 +22,10 @@ public class LoginCommandHandler {
     @Transactional
     public LoginResponse handle(LoginCommand command) {
         User user = userRepository.findByEmail(command.emailAddress())
-                .orElseThrow(() -> new BadRequestException("Invalid email or password"));
+                .orElseThrow(() -> new DomainRuleViolationException("Invalid email or password"));
 
         if (!passwordEncoder.matches(command.password(), user.getPassword())) {
-            throw new BadRequestException("Invalid email or password");
+            throw new DomainRuleViolationException("Invalid email or password");
         }
 
         user.updateLoginTime();

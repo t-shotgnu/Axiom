@@ -1,9 +1,9 @@
 package com.studproj.axiom.infrastructure.config;
 
-import com.studproj.axiom.domain.exception.BadRequestException;
-import com.studproj.axiom.domain.exception.ForbiddenException;
-import com.studproj.axiom.domain.exception.NotFoundException;
-import com.studproj.axiom.domain.exception.UnauthorizedException;
+import com.studproj.axiom.domain.exception.AccessDeniedException;
+import com.studproj.axiom.domain.exception.AuthenticationRequiredException;
+import com.studproj.axiom.domain.exception.DomainRuleViolationException;
+import com.studproj.axiom.domain.exception.EntityNotFoundException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -19,16 +19,16 @@ import java.net.URI;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<ProblemDetail> handleNotFound(NotFoundException ex, HttpServletRequest request) {
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<ProblemDetail> handleNotFound(EntityNotFoundException ex, HttpServletRequest request) {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
         problem.setTitle("Not Found");
         problem.setInstance(URI.create(request.getRequestURI()));
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problem);
     }
 
-    @ExceptionHandler(BadRequestException.class)
-    public ResponseEntity<ProblemDetail> handleBadRequest(BadRequestException ex, HttpServletRequest request) {
+    @ExceptionHandler(DomainRuleViolationException.class)
+    public ResponseEntity<ProblemDetail> handleDomainRuleViolation(DomainRuleViolationException ex, HttpServletRequest request) {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
         problem.setTitle("Bad request");
         problem.setInstance(URI.create(request.getRequestURI()));
@@ -66,16 +66,16 @@ public class GlobalExceptionHandler {
                 .body(problem);
     }
 
-    @ExceptionHandler(UnauthorizedException.class)
-    public ResponseEntity<ProblemDetail> handleUnauthorized(UnauthorizedException ex, HttpServletRequest request) {
+    @ExceptionHandler(AuthenticationRequiredException.class)
+    public ResponseEntity<ProblemDetail> handleUnauthorized(AuthenticationRequiredException ex, HttpServletRequest request) {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, ex.getMessage());
         problem.setTitle("Unauthorized");
         problem.setInstance(URI.create(request.getRequestURI()));
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(problem);
     }
 
-    @ExceptionHandler(ForbiddenException.class)
-    public ResponseEntity<ProblemDetail> handleForbidden(ForbiddenException ex, HttpServletRequest request) {
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ProblemDetail> handleForbidden(AccessDeniedException ex, HttpServletRequest request) {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, ex.getMessage());
         problem.setTitle("Forbidden");
         problem.setInstance(URI.create(request.getRequestURI()));

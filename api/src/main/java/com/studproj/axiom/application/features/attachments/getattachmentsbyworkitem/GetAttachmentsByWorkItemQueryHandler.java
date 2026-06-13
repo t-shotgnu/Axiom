@@ -2,7 +2,7 @@ package com.studproj.axiom.application.features.attachments.getattachmentsbywork
 
 import com.studproj.axiom.application.features.attachments.AttachmentDto;
 import com.studproj.axiom.application.features.projects.ProjectAccessChecks;
-import com.studproj.axiom.domain.exception.NotFoundException;
+import com.studproj.axiom.domain.exception.EntityNotFoundException;
 import com.studproj.axiom.domain.model.WorkItem;
 import com.studproj.axiom.domain.repository.AttachmentRepository;
 import com.studproj.axiom.domain.repository.ProjectMembershipRepository;
@@ -27,7 +27,7 @@ public class GetAttachmentsByWorkItemQueryHandler {
 
     public List<AttachmentDto> handle(GetAttachmentsByWorkItemQuery query) {
         WorkItem workItem = workItemRepository.findById(query.workItemId())
-                .orElseThrow(() -> new NotFoundException("WorkItem not found"));
+                .orElseThrow(() -> new EntityNotFoundException("WorkItem not found"));
 
         ProjectAccessChecks.ensureProjectMember(
                 projectRepository,
