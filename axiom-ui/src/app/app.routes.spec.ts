@@ -36,6 +36,7 @@ describe('routes', () => {
       'dashboard',
       'projects',
       'projects/:id',
+      'projects/:id/settings',
       'tasks',
       'tasks/:id',
     ]);

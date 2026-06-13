@@ -1,4 +1,4 @@
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { of } from 'rxjs';
 import { WorkItem, WorkItemService } from '../../core/services/work-item.service';
 import { TaskDetailComponent } from './task-detail';
@@ -14,6 +14,14 @@ describe('TaskDetailComponent', () => {
     getWorkItemById: ReturnType<typeof vi.fn>;
     updateWorkItemStatus: ReturnType<typeof vi.fn>;
     assignWorkItem: ReturnType<typeof vi.fn>;
+    createWorkItem: ReturnType<typeof vi.fn>;
+    updateWorkItemNotes: ReturnType<typeof vi.fn>;
+    updateWorkItem: ReturnType<typeof vi.fn>;
+    getRelationshipsByWorkItem: ReturnType<typeof vi.fn>;
+    getWorkItems: ReturnType<typeof vi.fn>;
+    createRelationship: ReturnType<typeof vi.fn>;
+    deleteRelationship: ReturnType<typeof vi.fn>;
+    getTypeHierarchy: ReturnType<typeof vi.fn>;
   };
   let fixture: ComponentFixture<TaskDetailComponent>;
   let component: TaskDetailComponent;
@@ -51,6 +59,14 @@ describe('TaskDetailComponent', () => {
       getWorkItemById: vi.fn(() => of(task)),
       updateWorkItemStatus: vi.fn(() => of(undefined)),
       assignWorkItem: vi.fn(() => of(undefined)),
+      createWorkItem: vi.fn(() => of('task-new')),
+      updateWorkItemNotes: vi.fn(() => of(undefined)),
+      updateWorkItem: vi.fn(() => of(undefined)),
+      getRelationshipsByWorkItem: vi.fn(() => of([])),
+      getWorkItems: vi.fn(() => of([])),
+      createRelationship: vi.fn(() => of('rel-new')),
+      deleteRelationship: vi.fn(() => of(undefined)),
+      getTypeHierarchy: vi.fn(() => of({})),
     };
 
     await TestBed.configureTestingModule({
@@ -58,6 +74,7 @@ describe('TaskDetailComponent', () => {
       providers: [
         { provide: ActivatedRoute, useValue: createRoute('task-1') },
         { provide: WorkItemService, useValue: workItemService },
+        { provide: Router, useValue: { navigate: vi.fn(() => Promise.resolve(true)) } },
         // shallow stubs for other injected services
         { provide: ProjectService, useValue: { getProjectById: vi.fn(() => of(null)) } },
         {
@@ -94,6 +111,7 @@ describe('TaskDetailComponent', () => {
       providers: [
         { provide: ActivatedRoute, useValue: createRoute(null) },
         { provide: WorkItemService, useValue: workItemService },
+        { provide: Router, useValue: { navigate: vi.fn(() => Promise.resolve(true)) } },
         { provide: ProjectService, useValue: { getProjectById: vi.fn(() => of(null)) } },
         {
           provide: UserService,
@@ -113,6 +131,48 @@ describe('TaskDetailComponent', () => {
     component.loadTask();
 
     expect(workItemService.getWorkItemById).not.toHaveBeenCalled();
+  });
+
+  it('initializes empty fields when id is new', () => {
+    component.id = 'new';
+    component.loadTask();
+
+    expect(workItemService.getWorkItemById).not.toHaveBeenCalled();
+    expect(component.task).toEqual(expect.objectContaining({
+      id: 'new',
+      description: '',
+      status: 'New',
+      type: 'Task',
+    }));
+    expect(component.description).toBe('');
+    expect(component.status).toBe('New');
+  });
+
+  it('creates a new task when saveAllChanges is called for new', () => {
+    component.id = 'new';
+    component.loadTask();
+
+    component.description = 'New task description';
+    component.notesText = 'Some notes';
+    component.estimatedEffort = 8;
+    component.priority = 3;
+    component.parentId = 'parent-1';
+
+    component.saveAllChanges();
+
+    expect(workItemService.createWorkItem).toHaveBeenCalledWith(expect.objectContaining({
+      description: 'New task description',
+      priority: 3,
+      status: 'New',
+      type: 'Task',
+      estimatedEffort: 8,
+    }));
+    expect(workItemService.updateWorkItemNotes).toHaveBeenCalledWith('task-new', 'Some notes');
+    expect(workItemService.createRelationship).toHaveBeenCalledWith({
+      sourceId: 'task-new',
+      targetId: 'parent-1',
+      linkType: 'ChildOf'
+    });
   });
 
   it('updates status and reloads the task', () => {

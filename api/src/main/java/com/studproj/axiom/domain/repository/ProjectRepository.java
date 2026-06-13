@@ -14,6 +14,8 @@ public interface ProjectRepository {
 
     List<Project> findByIds(Collection<UUID> ids);
 
+    Optional<Project> findByCode(String code);
+
     List<Project> findAll();
 
     long countAll();

@@ -1,0 +1,90 @@
+@if (loadingProject()) {
+  <div class="flex justify-center items-center py-24 text-primary">
+    <span class="material-symbols-outlined animate-spin text-[48px]">progress_activity</span>
+  </div>
+} @else if (project()) {
+  <div class="max-w-container-max mx-auto px-lg py-lg">
+    <nav class="flex items-center gap-xs text-on-surface-variant mb-sm">
+      <a routerLink="/projects" class="text-label-sm hover:underline">Projects</a>
+      <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+      <a [routerLink]="['/projects', project()!.id]" class="text-label-sm hover:underline">{{ project()!.name }}</a>
+      <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+      <span class="text-label-sm">Settings</span>
+    </nav>
+
+    <div class="mb-lg">
+      <h1 class="text-headline-lg font-bold tracking-tight text-on-surface">Settings</h1>
+      <p class="mt-1 text-body-md text-on-surface-variant">Project configuration and member management</p>
+    </div>
+
+    <div class="grid gap-lg lg:grid-cols-2 items-start">
+      <app-card variant="flat" customClass="p-lg">
+        <p class="text-label-sm font-black uppercase tracking-widest text-on-surface-variant">Project</p>
+        <p class="mt-1 mb-md text-body-md font-semibold text-on-surface">Change project name and key</p>
+
+        @if (canManageProject()) {
+          <form class="flex flex-col gap-md" (ngSubmit)="saveProjectDetails()">
+            <app-input
+              id="settings-project-name"
+              name="name"
+              [(ngModel)]="form.name"
+              label="Name"
+              [disabled]="savingProject()"
+            ></app-input>
+
+            <app-input
+              id="settings-project-code"
+              name="code"
+              [(ngModel)]="form.code"
+              label="Key"
+              customClass="uppercase"
+              [disabled]="savingProject()"
+            ></app-input>
+
+            @if (projectSaveError()) {
+              <div
+                class="rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-body-md text-red-700"
+                role="alert"
+              >
+                {{ projectSaveError() }}
+              </div>
+            }
+
+            <div class="flex justify-end">
+              <app-button
+                type="submit"
+                variant="primary"
+                [loading]="savingProject()"
+                [disabled]="!form.name.trim() || !form.code.trim()"
+              >
+                Save changes
+              </app-button>
+            </div>
+          </form>
+        } @else {
+          <p class="text-body-md text-on-surface-variant">
+            Only project admins can change the project name and key.
+          </p>
+          <dl class="mt-md space-y-sm">
+            <div>
+              <dt class="text-label-sm font-black uppercase tracking-wider text-on-surface-variant">Name</dt>
+              <dd class="text-body-md font-bold text-on-surface">{{ project()!.name }}</dd>
+            </div>
+            <div>
+              <dt class="text-label-sm font-black uppercase tracking-wider text-on-surface-variant">Key</dt>
+              <dd class="text-body-md font-bold text-on-surface">{{ project()!.code | uppercase }}</dd>
+            </div>
+          </dl>
+        }
+      </app-card>
+
+      <app-project-members-panel
+        [projectId]="project()!.id"
+        [leadName]="project()!.ownerName || 'Unknown lead'"
+        [leadUserId]="project()!.ownerId"
+        [manageMembers]="true"
+        (canManageProjectChange)="canManageProject.set($event)"
+      ></app-project-members-panel>
+    </div>
+  </div>
+}

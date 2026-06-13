@@ -4,11 +4,11 @@
     <div class="flex flex-col items-center mb-lg text-center">
       <div class="flex items-center gap-xs mb-sm">
         <span class="material-symbols-outlined text-[32px] text-primary font-bold">grid_view</span>
-        <span class="text-primary font-extrabold text-[28px] font-headline-md tracking-tight">
+        <span class="app-span app-text-primary font-extrabold text-headline-lg tracking-tight">
           Axiom
         </span>
       </div>
-      <p class="text-on-surface-variant font-medium text-body-md">
+      <p class="app-p app-text-muted font-medium text-body-md">
         @if (mode === 'login') {
           Sign in to your Enterprise account
         } @else {
@@ -25,7 +25,7 @@
         <!-- Error Message -->
         @if (errorMessage) {
           <div
-            class="rounded border border-red-200 bg-red-50 p-sm text-sm text-red-800 font-semibold"
+            class="rounded border border-red-200 bg-red-50 p-sm text-body-md text-red-800 font-semibold"
             role="alert"
           >
             {{ errorMessage }}
@@ -36,7 +36,7 @@
         @if (mode === 'register') {
           <div class="grid gap-sm sm:grid-cols-2">
             <div class="flex flex-col gap-xs">
-              <label class="text-[11px] font-bold text-on-surface-variant tracking-wider uppercase">
+              <label class="app-label app-text-muted text-label-md font-semibold">
                 Username
               </label>
               <input
@@ -44,18 +44,18 @@
                 name="userName"
                 [(ngModel)]="registerForm.userName"
                 placeholder="e.g. JohnSmith15"
-                class="w-full px-md py-[10px] border border-outline-variant rounded focus:outline-none focus:border-primary bg-surface-container-low text-on-surface text-sm placeholder:text-on-surface-variant/60 transition-colors"
+                class="w-full px-md py-[10px] border border-outline-variant rounded focus:outline-none focus:border-primary bg-surface-container-low text-on-surface text-body-md placeholder:text-on-surface-variant/60 transition-colors"
                 required
               />
               @if (registerForm.userName && !isUserNameValid(registerForm.userName)) {
-                <p class="text-xs text-error font-medium">
+                <p class="app-p app-text-error text-body-sm font-medium">
                   Username must be between 3 and 30 characters.
                 </p>
               }
             </div>
 
             <div class="flex flex-col gap-xs">
-              <label class="text-[11px] font-bold text-on-surface-variant tracking-wider uppercase">
+              <label class="app-label app-text-muted text-label-md font-semibold">
                 Date of birth
               </label>
               <input
@@ -63,18 +63,18 @@
                 name="dateOfBirth"
                 [(ngModel)]="registerForm.dateOfBirth"
                 [max]="todayDate"
-                class="w-full px-md py-[10px] border border-outline-variant rounded focus:outline-none focus:border-primary bg-surface-container-low text-on-surface text-sm transition-colors"
+                class="w-full px-md py-[10px] border border-outline-variant rounded focus:outline-none focus:border-primary bg-surface-container-low text-on-surface text-body-md transition-colors"
                 required
               />
               @if (registerForm.dateOfBirth && !isDateOfBirthValid(registerForm.dateOfBirth)) {
-                <p class="text-xs text-error font-medium">Date of birth cannot be in the future.</p>
+                <p class="app-p app-text-error text-body-sm font-medium">Date of birth cannot be in the future.</p>
               }
             </div>
           </div>
 
           <div class="grid gap-sm sm:grid-cols-2">
             <div class="flex flex-col gap-xs">
-              <label class="text-[11px] font-bold text-on-surface-variant tracking-wider uppercase">
+              <label class="app-label app-text-muted text-label-md font-semibold">
                 First name
               </label>
               <input
@@ -82,16 +82,16 @@
                 name="firstName"
                 [(ngModel)]="registerForm.firstName"
                 placeholder="e.g. John"
-                class="w-full px-md py-[10px] border border-outline-variant rounded focus:outline-none focus:border-primary bg-surface-container-low text-on-surface text-sm placeholder:text-on-surface-variant/60 transition-colors"
+                class="w-full px-md py-[10px] border border-outline-variant rounded focus:outline-none focus:border-primary bg-surface-container-low text-on-surface text-body-md placeholder:text-on-surface-variant/60 transition-colors"
                 required
               />
               @if (registerForm.firstName && !isNameValid(registerForm.firstName)) {
-                <p class="text-xs text-error font-medium">Enter a valid first name.</p>
+                <p class="app-p app-text-error text-body-sm font-medium">Enter a valid first name.</p>
               }
             </div>
 
             <div class="flex flex-col gap-xs">
-              <label class="text-[11px] font-bold text-on-surface-variant tracking-wider uppercase">
+              <label class="app-label app-text-muted text-label-md font-semibold">
                 Last name
               </label>
               <input
@@ -99,11 +99,11 @@
                 name="lastName"
                 [(ngModel)]="registerForm.lastName"
                 placeholder="e.g. Smith"
-                class="w-full px-md py-[10px] border border-outline-variant rounded focus:outline-none focus:border-primary bg-surface-container-low text-on-surface text-sm placeholder:text-on-surface-variant/60 transition-colors"
+                class="w-full px-md py-[10px] border border-outline-variant rounded focus:outline-none focus:border-primary bg-surface-container-low text-on-surface text-body-md placeholder:text-on-surface-variant/60 transition-colors"
                 required
               />
               @if (registerForm.lastName && !isNameValid(registerForm.lastName)) {
-                <p class="text-xs text-error font-medium">Enter a valid last name.</p>
+                <p class="app-p app-text-error text-body-sm font-medium">Enter a valid last name.</p>
               }
             </div>
           </div>
@@ -111,7 +111,7 @@
 
         <!-- Email Field -->
         <div class="flex flex-col gap-xs">
-          <label class="text-[11px] font-bold text-on-surface-variant tracking-wider uppercase">
+          <label class="app-label app-text-muted text-label-md font-semibold">
             Email address
           </label>
           <input
@@ -119,17 +119,17 @@
             name="emailAddress"
             [(ngModel)]="emailAddress"
             placeholder="e.g. john.smith@company.com"
-            class="w-full px-md py-[10px] border border-outline-variant rounded focus:outline-none focus:border-primary bg-surface-container-low text-on-surface text-sm placeholder:text-on-surface-variant/60 transition-colors"
+            class="w-full px-md py-[10px] border border-outline-variant rounded focus:outline-none focus:border-primary bg-surface-container-low text-on-surface text-body-md placeholder:text-on-surface-variant/60 transition-colors"
             required
           />
           @if (mode === 'register' && emailAddress && !isEmailValid(emailAddress)) {
-            <p class="text-xs text-error font-medium">Enter a valid email address.</p>
+            <p class="app-p app-text-error text-body-sm font-medium">Enter a valid email address.</p>
           }
         </div>
 
         <!-- Password Field -->
         <div class="flex flex-col gap-xs">
-          <label class="text-[11px] font-bold text-on-surface-variant tracking-wider uppercase">
+          <label class="app-label app-text-muted text-label-md font-semibold">
             Password
           </label>
 
@@ -139,7 +139,7 @@
               name="password"
               [(ngModel)]="password"
               [placeholder]="mode === 'login' ? 'Enter your password' : 'Minimum 8 characters'"
-              class="w-full pl-md pr-10 py-[10px] border border-outline-variant rounded focus:outline-none focus:border-primary bg-surface-container-low text-on-surface text-sm placeholder:text-on-surface-variant/60 transition-colors"
+              class="w-full pl-md pr-10 py-[10px] border border-outline-variant rounded focus:outline-none focus:border-primary bg-surface-container-low text-on-surface text-body-md placeholder:text-on-surface-variant/60 transition-colors"
               required
             />
 
@@ -165,10 +165,9 @@
                 ></div>
               </div>
 
-              <p class="text-[11px] text-on-surface-variant">
+              <p class="app-p app-text-muted text-label-sm">
                 Password strength:
-                <span
-                  class="font-bold"
+                <span class="app-span font-bold"
                   [ngClass]="{
                     'text-red-500': passwordStrengthPercentage <= 25,
                     'text-orange-500': passwordStrengthPercentage == 50,
@@ -182,7 +181,7 @@
           }
 
           @if (mode === 'register' && password && !passwordMeetsRegistrationRules) {
-            <p class="text-xs text-error font-medium mt-xs">
+            <p class="app-p app-text-error text-body-sm font-medium mt-xs">
               Password must contain at least 8 characters, uppercase and lowercase letters, and a
               number.
             </p>
@@ -195,14 +194,14 @@
           variant="primary"
           [loading]="submitting"
           [disabled]="!canSubmit"
-          customClass="w-full py-[10px] text-sm font-bold mt-sm"
+          customClass="w-full py-[10px] text-body-md font-bold mt-sm"
         >
           {{ mode === 'login' ? 'Sign in' : 'Create account' }}
         </app-button>
       </form>
 
       <!-- Toggle Mode Link -->
-      <p class="mt-lg text-center text-sm text-on-surface-variant font-medium">
+      <p class="app-p app-text-muted mt-lg text-center text-body-md font-medium">
         @if (mode === 'login') {
           Don't have an account?
           <a (click)="toggleMode()" class="text-primary font-bold hover:underline cursor-pointer">
@@ -218,7 +217,7 @@
 
       <!-- Footer -->
       <div class="mt-xl pt-lg border-t border-outline-variant/50 w-full text-center space-y-sm">
-        <p class="text-[10px] text-on-surface-variant/70">© 2026 Axiom Enterprise.</p>
+        <p class="app-p text-label-sm text-on-surface-variant/70">© 2026 Axiom Enterprise.</p>
       </div>
     </div>
   </div>

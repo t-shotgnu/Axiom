@@ -144,6 +144,20 @@
     --text-headline-sm: 16px;
     --text-headline-sm--line-height: 24px;
     --text-headline-sm--font-weight: 600;
+
+    --font-label-lg: "Inter", sans-serif;
+    --text-label-lg: 13px;
+    --text-label-lg--line-height: 18px;
+    --text-label-lg--font-weight: 600;
+}
+
+@layer base {
+    body {
+        font-family: var(--font-sans);
+        font-size: var(--text-body-md);
+        line-height: var(--text-body-md--line-height);
+        font-weight: var(--text-body-md--font-weight);
+    }
 }
 
 @custom-variant dark (&:is(.dark *));
@@ -165,3 +179,44 @@
 .dark ::-webkit-scrollbar-track { background: #161b22; }
 .dark ::-webkit-scrollbar-thumb { background: #30363d; }
 .dark ::-webkit-scrollbar-thumb:hover { background: #8b949e; }
+
+/* Standardized Typography Classes */
+.app-h1 { @apply font-headline-xl text-headline-xl font-black tracking-tight leading-tight; }
+.app-h2 { @apply font-headline-lg text-headline-lg font-extrabold tracking-tight; }
+.app-h3 { @apply font-headline-md text-headline-md font-bold; }
+.app-h4 { @apply font-headline-sm text-headline-sm font-semibold; }
+.app-h5 { @apply font-headline-sm text-headline-sm font-medium; }
+.app-h6 { @apply font-headline-sm text-headline-sm font-normal; }
+.app-p  { @apply font-body-md text-body-md leading-relaxed; }
+.app-span { @apply font-body-md text-body-md; }
+.app-label { @apply text-label-md font-semibold select-none; }
+.app-code { @apply font-mono text-code; }
+.app-small { @apply text-body-sm font-normal; }
+.app-caption { @apply text-label-sm font-bold uppercase tracking-wider; }
+.app-subtitle { @apply text-body-sm font-bold; }
+
+/* Text Color Classes */
+.app-text-default { @apply text-on-surface; }
+.app-text-muted   { @apply text-on-surface-variant; }
+.app-text-primary { @apply text-primary; }
+.app-text-secondary { @apply text-secondary; }
+.app-text-error   { @apply text-error; }
+
+/* Jira-style row hover bottom blue border */
+tr.hovered-row td,
+tr.task-row:hover:not(.active-inline-row):not(.insert-active-row) td {
+    box-shadow: inset 0 -2px 0 #388bfd !important;
+}
+
+/* Jira-style active inline row blue outline using box-shadow */
+tr.active-inline-row td {
+    position: relative;
+    box-shadow: inset 0 2px 0 #388bfd, inset 0 -2px 0 #388bfd !important;
+}
+tr.active-inline-row td:first-child {
+    box-shadow: inset 2px 0 0 #388bfd, inset 0 2px 0 #388bfd, inset 0 -2px 0 #388bfd !important;
+}
+tr.active-inline-row td:last-child {
+    box-shadow: inset -2px 0 0 #388bfd, inset 0 2px 0 #388bfd, inset 0 -2px 0 #388bfd !important;
+}
+

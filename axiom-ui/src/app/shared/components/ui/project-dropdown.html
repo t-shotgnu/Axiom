@@ -6,15 +6,15 @@
   >
     <div class="flex items-center gap-sm min-w-0">
       <div
-        class="w-8 h-8 bg-primary rounded flex items-center justify-center text-white font-bold shrink-0 text-sm"
+        class="w-8 h-8 bg-primary rounded flex items-center justify-center text-white font-bold shrink-0 text-body-md"
       >
         {{ activeProject.code }}
       </div>
       <div class="min-w-0">
-        <div class="font-label-md text-label-md text-on-surface font-extrabold truncate text-sm">
+        <div class="text-body-md text-on-surface font-semibold truncate">
           {{ activeProject.name }}
         </div>
-        <div class="text-[10px] text-on-surface-variant font-medium mt-[1px]">
+        <div class="text-body-sm text-on-surface-variant mt-[1px]">
           {{ activeProject.type }}
         </div>
       </div>
@@ -38,7 +38,7 @@
         <input
           type="text"
           placeholder="Filter projects..."
-          class="w-full pl-9 pr-3 py-1.5 border border-outline-variant rounded text-xs bg-surface-container-low text-on-surface focus:outline-none focus:border-primary"
+          class="w-full pl-9 pr-3 py-1.5 border border-outline-variant rounded text-body-md bg-surface-container-low text-on-surface focus:outline-none focus:border-primary"
           [(ngModel)]="searchText"
           (ngModelChange)="onSearchChange()"
         />
@@ -53,14 +53,14 @@
           >
             <div class="flex items-center gap-md min-w-0">
               <div
-                class="w-8 h-8 rounded flex items-center justify-center text-white font-bold shrink-0 text-sm"
+                class="w-8 h-8 rounded flex items-center justify-center text-white font-bold shrink-0 text-body-md"
                 [ngClass]="proj.colorClass || 'bg-primary'"
               >
                 {{ proj.code }}
               </div>
               <div class="min-w-0">
-                <p class="font-bold text-xs text-on-surface truncate">{{ proj.name }}</p>
-                <p class="text-[10px] text-on-surface-variant font-medium mt-[1px] truncate">
+                <p class="font-semibold text-body-md text-on-surface truncate">{{ proj.name }}</p>
+                <p class="text-body-sm text-on-surface-variant mt-[1px] truncate">
                   {{ proj.type }}
                 </p>
               </div>
@@ -78,7 +78,7 @@
       <div class="pt-xs border-t border-outline-variant">
         <button
           (click)="triggerCreateProject()"
-          class="w-full flex items-center gap-xs text-primary font-bold hover:cursor-pointer px-sm py-1.5 text-xs text-left"
+          class="w-full flex items-center gap-xs text-primary font-bold hover:cursor-pointer px-sm py-1.5 text-body-sm text-left"
         >
           <span class="material-symbols-outlined text-[16px]">settings</span>
           <span>Manage projects</span>

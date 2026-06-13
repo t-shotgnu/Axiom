@@ -20,7 +20,7 @@ import { ToastService, Toast } from '../../../core/services/toast.service';
           </span>
           
           <!-- Message -->
-          <span class="text-xs font-bold leading-tight">{{ toast.message }}</span>
+          <span class="text-body-sm font-semibold leading-tight">{{ toast.message }}</span>
           
           <!-- Close Button -->
           <button

@@ -21,6 +21,7 @@ import com.studproj.axiom.presentation.controller.dto.AssignWorkItemRequest;
 import com.studproj.axiom.presentation.controller.dto.UpdateWorkItemNotesRequest;
 import com.studproj.axiom.presentation.controller.dto.UpdateWorkItemRequest;
 import com.studproj.axiom.presentation.controller.dto.UpdateWorkItemStatusRequest;
+import com.studproj.axiom.domain.model.WorkItemType;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -36,8 +37,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/work-items")
@@ -56,6 +61,25 @@ public class WorkItemController {
     public ResponseEntity<UUID> createWorkItem(@Valid @RequestBody CreateWorkItemCommand command) {
         UUID workItemId = createWorkItemCommandHandler.handle(command);
         return new ResponseEntity<>(workItemId, HttpStatus.CREATED);
+    }
+
+    /**
+     * Returns the allowed child types for each work item type.
+     * The response is derived from the domain enum (same rules the relationship validator uses),
+     * so the frontend and backend are always in sync.
+     * Example: { "Epic": ["Feature","UserStory","Task","Bug","Subtask"], ... }
+     */
+    @GetMapping("/type-hierarchy")
+    public ResponseEntity<Map<String, List<String>>> getTypeHierarchy() {
+        Map<String, List<String>> hierarchy = new LinkedHashMap<>();
+        Arrays.stream(WorkItemType.values()).forEach(type -> {
+            List<String> children = type.allowedChildTypes()
+                    .stream()
+                    .map(Enum::name)
+                    .collect(Collectors.toList());
+            hierarchy.put(type.name(), children);
+        });
+        return ResponseEntity.ok(hierarchy);
     }
 
     @GetMapping

@@ -8,6 +8,8 @@ describe('TasksComponent', () => {
   let workItemService: {
     getWorkItems: ReturnType<typeof vi.fn>;
     createWorkItem: ReturnType<typeof vi.fn>;
+    getRelationshipsByProject: ReturnType<typeof vi.fn>;
+    getTypeHierarchy: ReturnType<typeof vi.fn>;
   };
   let fixture: ComponentFixture<TasksComponent>;
   let component: TasksComponent;
@@ -32,6 +34,8 @@ describe('TasksComponent', () => {
     workItemService = {
       getWorkItems: vi.fn(() => of(workItems)),
       createWorkItem: vi.fn(() => of('task-2')),
+      getRelationshipsByProject: vi.fn(() => of([])),
+      getTypeHierarchy: vi.fn(() => of({})),
     };
 
     TestBed.configureTestingModule({

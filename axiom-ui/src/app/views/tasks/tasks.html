@@ -2,7 +2,7 @@
   <!-- Breadcrumbs & Header -->
   <div class="flex justify-between items-end mb-lg">
     <div>
-      <nav class="flex text-[11px] font-bold text-on-surface-variant gap-xs mb-xs uppercase tracking-wider">
+      <nav class="flex text-label-sm font-bold text-on-surface-variant gap-xs mb-xs uppercase tracking-wider">
         <a routerLink="/projects" class="hover:underline">Projects</a>
         <span>/</span>
         <span class="text-on-surface">{{ currentProject?.name || 'No Project' }}</span>
@@ -16,8 +16,8 @@
         <app-button
           variant="primary"
           icon="add"
-          (onClick)="openCreateDialog()"
-          customClass="py-xs font-bold text-xs"
+          (onClick)="navigateToCreate()"
+          customClass="py-xs font-bold text-body-sm"
           >Create issue</app-button
         >
       }
@@ -33,7 +33,7 @@
         (ngModelChange)="onSearchChange()"
         placeholder="Search tasks..."
         icon="search"
-        customClass="bg-surface-container-lowest text-sm py-[7px]"
+        customClass="bg-surface-container-lowest text-body-md py-[7px]"
       ></app-input>
     </div>
 
@@ -47,7 +47,7 @@
       [class.bg-surface-container-lowest]="!onlyMyIssues"
       [class.text-on-surface-variant]="!onlyMyIssues"
       [class.hover:bg-surface-container-low]="!onlyMyIssues"
-      class="px-md py-[7px] border border-outline-variant rounded text-xs font-bold transition-all"
+      class="px-md py-[7px] border border-outline-variant rounded text-body-sm font-bold transition-all"
     >
       Only My Issues
     </button>
@@ -61,7 +61,7 @@
       [class.bg-surface-container-lowest]="!recentlyUpdated"
       [class.text-on-surface-variant]="!recentlyUpdated"
       [class.hover:bg-surface-container-low]="!recentlyUpdated"
-      class="px-md py-[7px] border border-outline-variant rounded text-xs font-bold transition-all"
+      class="px-md py-[7px] border border-outline-variant rounded text-body-sm font-bold transition-all"
     >
       Newest First
     </button>
@@ -77,7 +77,7 @@
     <div class="flex-1 flex flex-col justify-center items-center text-center p-xl">
       <span class="material-symbols-outlined text-[64px] text-on-surface-variant opacity-40 mb-4">folder_open</span>
       <h3 class="font-headline-sm text-headline-sm font-bold text-on-surface">No Project Selected</h3>
-      <p class="text-on-surface-variant mt-sm text-sm max-w-sm">
+      <p class="text-on-surface-variant mt-sm text-body-md max-w-sm">
         Select a project from the top-left dropdown to view and manage its active tasks.
       </p>
     </div>
@@ -86,7 +86,7 @@
     <div class="flex-1 flex flex-col justify-center items-center text-center p-xl">
       <span class="material-symbols-outlined text-[64px] text-on-surface-variant opacity-40 mb-4">assignment_late</span>
       <h3 class="font-headline-sm text-headline-sm font-bold text-on-surface">No Tasks Found</h3>
-      <p class="text-on-surface-variant mt-sm text-sm max-w-sm">
+      <p class="text-on-surface-variant mt-sm text-body-md max-w-sm">
         Try modifying your search or quick filters, or create a new issue inside the Backlog view of this project.
       </p>
     </div>
@@ -95,66 +95,140 @@
     <div class="flex-1 overflow-auto rounded-xl border border-outline-variant bg-surface-container-lowest shadow-sm mb-md">
       <table class="w-full border-collapse text-left">
         <thead>
-          <tr class="bg-surface-container-low border-b border-outline-variant text-[11px] font-bold text-on-surface-variant uppercase tracking-wider select-none">
-            <th class="py-md pl-md pr-xs w-10"></th>
+          <tr class="bg-surface-container-low border-b border-outline-variant text-label-sm font-bold text-on-surface-variant uppercase tracking-wider select-none">
+            <th class="w-12 p-0"></th>
             <th class="py-md px-md w-28">Key</th>
             <th class="py-md px-md">Summary</th>
-            <th class="py-md px-md w-36">Status</th>
+            <th class="py-md px-md w-28">Type</th>
+            <th class="py-md px-md w-44">Status</th>
             <th class="py-md px-md w-48">Assignee</th>
             <th class="py-md px-md w-32">Priority</th>
             <th class="py-md pr-md pl-xs w-16 text-center">SP</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-outline-variant/60">
+        <tbody>
           @for (task of visibleTasks; track task.id) {
             <tr
               [routerLink]="['/tasks', task.id]"
-              class="hover:bg-surface-container-low transition-colors duration-150 cursor-pointer"
+              class="group group/row task-row border-b border-outline-variant/60 hover:bg-surface-container-low transition-colors duration-150 cursor-pointer"
+              [class.hovered-row]="hoveredRowId === task.id"
+              [class.insert-active-row]="insertAfterTaskId === task.id"
+              (mouseenter)="onRowMouseEnter(task.id)"
+              (mouseleave)="onRowMouseLeave(task.id)"
             >
-              <!-- Issue Icon -->
-              <td class="py-sm pl-md pr-xs text-center">
-                <span class="material-symbols-outlined text-[18px] align-middle select-none"
-                  [class.text-red-500]="task.type === 'Bug'"
-                  [class.text-green-500]="task.type === 'UserStory'"
-                  [class.text-blue-500]="task.type === 'Task'"
-                >
-                  {{ task.type === 'Bug' ? 'bug_report' : task.type === 'UserStory' ? 'menu_book' : 'assignment' }}
-                </span>
+              <!-- Actions/Plus cell -->
+              <td class="w-12 p-0 relative select-none" (click)="$event.stopPropagation()">
+                @if (insertAfterTaskId !== task.id) {
+                  <div class="absolute right-0 bottom-[-10px] z-30 translate-x-1/2 flex items-center cursor-pointer select-none group/createbtn opacity-0 pointer-events-none group-hover/row:opacity-100 group-hover/row:pointer-events-auto transition-opacity duration-150"
+                       (click)="openInsertAfter($event, task)">
+                    <!-- Create label -->
+                    <span class="bg-[#2c3e50] group-hover/createbtn:bg-[#34495e] text-[#c1c7d0] text-[11px] font-bold px-1.5 py-[1px] h-5 flex items-center rounded-l border border-outline-variant border-r-0 transition-colors shadow">
+                      Create
+                    </span>
+                    <!-- Plus button -->
+                    <button
+                      type="button"
+                      class="w-5 h-5 rounded-r bg-[#1d2125] group-hover/createbtn:bg-[#2c3036] text-white flex items-center justify-center border border-outline-variant border-l-0 transition-colors shadow"
+                    >
+                      <span class="material-symbols-outlined text-[13px] font-bold">add</span>
+                    </button>
+                  </div>
+                }
               </td>
 
               <!-- Key -->
-              <td class="py-sm px-md font-mono text-xs font-semibold text-on-surface-variant tracking-wider">
+              <td class="py-sm px-md font-mono text-code font-semibold text-on-surface-variant tracking-wider whitespace-nowrap">
                 {{ currentProject.code.toUpperCase() }}-{{ task.controlNo }}
               </td>
 
-              <!-- Summary -->
+              <!-- Summary: indent + collapse-arrow + type-icon + title -->
               <td class="py-sm px-md min-w-0">
-                <a
-                  [routerLink]="['/tasks', task.id]"
-                  class="font-body-md text-on-surface font-semibold hover:text-primary hover:underline cursor-pointer block truncate"
-                  [title]="task.description"
-                >
-                  {{ task.description }}
-                </a>
+                <div class="flex items-center min-w-0" [style.padding-left.px]="task.level * 20">
+
+                  <!-- Collapse/expand toggle for items with children -->
+                  @if (task.hasChildren) {
+                    <button
+                      type="button"
+                      (click)="toggleCollapse($event, task.id)"
+                      class="shrink-0 w-5 h-5 flex items-center justify-center rounded hover:bg-surface-container-high text-on-surface-variant mr-0.5 transition-transform duration-150"
+                      [class.rotate-[-90deg]]="collapsedItems.has(task.id)"
+                      title="Toggle children"
+                    >
+                      <span class="material-symbols-outlined text-[16px] font-bold">expand_more</span>
+                    </button>
+                  } @else if (task.level > 0) {
+                    <!-- Non-parent children: tree connecting line -->
+                    <div class="w-4 h-5 flex shrink-0 mr-1 select-none pointer-events-none relative opacity-0 group-hover/row:opacity-100 transition-opacity duration-150">
+                      <div class="absolute left-[7px] top-0 bottom-1/2 border-l border-on-surface-variant/40"></div>
+                      <div class="absolute left-[7px] right-0 top-1/2 border-t border-on-surface-variant/40"></div>
+                    </div>
+                  } @else {
+                    <!-- Root with no children: spacing placeholder -->
+                    <span class="w-5 mr-0.5 shrink-0"></span>
+                  }
+
+                  <!-- Type icon (crown for Epic, etc.) -->
+                  <span
+                    class="material-symbols-outlined text-[18px] shrink-0 select-none mr-1.5"
+                    [ngClass]="getTypeColor(task.type)"
+                    [title]="task.type"
+                  >
+                    {{ getTypeIcon(task.type) }}
+                  </span>
+
+                  <!-- Title -->
+                  <a
+                    [routerLink]="['/tasks', task.id]"
+                    class="text-body-md text-on-surface font-semibold group-hover:text-primary group-hover:underline cursor-pointer block truncate"
+                    [title]="task.description"
+                  >
+                    {{ task.description }}
+                  </a>
+
+                  @if (task.hasDependencies) {
+                    <span
+                      (click)="openDepsDialog($event, task)"
+                      class="material-symbols-outlined text-[18px] text-amber-500 hover:text-amber-600 ml-2 cursor-pointer select-none font-semibold shrink-0"
+                      title="Has dependencies. Click to view."
+                    >
+                      link
+                    </span>
+                  }
+                </div>
               </td>
 
               <!-- Status -->
               <td class="py-sm px-md">
                 <span
-                  class="px-2 py-0.5 rounded text-[9px] font-bold border uppercase inline-block select-none"
+                  class="px-2 py-0.5 rounded text-label-sm font-bold border uppercase inline-block select-none whitespace-nowrap"
                   [ngClass]="getStatusBadgeClass(task.status)"
                 >
                   {{ getStatusLabel(task.status) }}
                 </span>
               </td>
 
+              <!-- Type -->
+              <td class="py-sm px-md">
+                <div class="flex items-center gap-xs">
+                  <span
+                    class="material-symbols-outlined text-[15px] shrink-0 select-none"
+                    [ngClass]="getTypeColor(task.type)"
+                  >
+                    {{ getTypeIcon(task.type) }}
+                  </span>
+                  <span class="text-body-md text-on-surface-variant font-medium">
+                    {{ task.type === 'UserStory' ? 'User Story' : task.type }}
+                  </span>
+                </div>
+              </td>
+
               <!-- Assignee -->
               <td class="py-sm px-md">
                 <div class="flex items-center gap-xs">
-                  <div class="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-[9px] shrink-0 select-none">
+                  <div class="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-label-sm shrink-0 select-none">
                     {{ getAssigneeInitials(task) }}
                   </div>
-                  <span class="text-xs text-on-surface font-medium truncate" [class.italic]="!task.assigneeId" [class.text-on-surface-variant]="!task.assigneeId">
+                  <span class="text-body-md text-on-surface font-medium truncate" [class.italic]="!task.assigneeId" [class.text-on-surface-variant]="!task.assigneeId">
                     {{ getAssigneeName(task) }}
                   </span>
                 </div>
@@ -168,16 +242,168 @@
                   >
                     {{ getPriorityIcon(task.priority) }}
                   </span>
-                  <span class="text-xs text-on-surface font-semibold">
+                  <span class="text-body-md text-on-surface font-semibold">
                     {{ getPriorityLabel(task.priority) }}
                   </span>
                 </div>
               </td>
 
               <!-- SP (Story Points / Effort) -->
-              <td class="py-sm pr-md pl-xs text-center font-mono text-xs font-bold text-on-surface-variant">
+              <td class="py-sm pr-md pl-xs text-center font-mono text-body-sm font-bold text-on-surface-variant">
                 {{ task.estimatedEffort || (task.priority * 2 - 1) }}
               </td>
+            </tr>
+
+            @if (insertAfterTaskId === task.id) {
+              <!-- Expanded inline insert form -->
+              <tr id="insert-inline-container" class="active-inline-row bg-primary/5">
+                <!-- Actions column spacer -->
+                <td class="w-12 p-0"></td>
+                <td class="py-sm px-md font-mono text-code text-on-surface-variant/40 tracking-wider whitespace-nowrap">
+                  {{ currentProject!.code.toUpperCase() }}-…
+                </td>
+                <td class="py-sm px-md min-w-0" colspan="5">
+                  <div class="flex items-center gap-sm" [style.padding-left.px]="(task.level + 1) * 20">
+                    <!-- Indent arrow -->
+                    <div class="w-4 h-5 flex shrink-0 mr-1 select-none pointer-events-none relative">
+                      <div class="absolute left-[7px] top-0 bottom-1/2 border-l border-on-surface-variant/40"></div>
+                      <div class="absolute left-[7px] right-0 top-1/2 border-t border-on-surface-variant/40"></div>
+                    </div>
+
+                    <!-- Type picker (child types only) -->
+                    <div class="relative shrink-0">
+                      <button
+                        type="button"
+                        (click)="toggleInsertTypePicker($event)"
+                        class="flex items-center gap-0.5 px-1 py-0.5 rounded hover:bg-surface-container-high transition-colors"
+                        title="Change type"
+                      >
+                        <span class="material-symbols-outlined text-[18px]" [ngClass]="getTypeColor(insertInlineType)">{{ getTypeIcon(insertInlineType) }}</span>
+                        <span class="material-symbols-outlined text-[13px] text-on-surface-variant">expand_more</span>
+                      </button>
+                      @if (showInsertTypePicker) {
+                        <div
+                          class="absolute left-0 top-full mt-1 z-50 bg-surface-container-low border border-outline-variant rounded-lg shadow-lg py-1 min-w-[150px]"
+                          (click)="$event.stopPropagation()"
+                        >
+                          @for (opt of getChildTypeOptions(insertInlineParentType!); track opt.value) {
+                            <button
+                              type="button"
+                              (click)="selectInsertType(opt.value)"
+                              class="w-full flex items-center gap-sm px-md py-xs hover:bg-surface-container-high transition-colors text-left cursor-pointer group"
+                              [class.bg-surface-container-high]="insertInlineType === opt.value"
+                            >
+                              <span class="material-symbols-outlined text-[16px]" [ngClass]="getTypeColor(opt.value)">{{ getTypeIcon(opt.value) }}</span>
+                              <span class="text-body-md text-on-surface font-medium group-hover:underline">{{ opt.label }}</span>
+                            </button>
+                          }
+                        </div>
+                      }
+                    </div>
+
+                    <!-- Input -->
+                    <input
+                      id="insert-inline-input"
+                      type="text"
+                      [(ngModel)]="insertInlineDescription"
+                      placeholder="What needs to be done?"
+                      (blur)="onInsertBlur($event)"
+                      (keydown.enter)="commitInsert()"
+                      (keydown.escape)="cancelInsert()"
+                      class="flex-1 bg-transparent text-body-md text-on-surface placeholder-on-surface-variant/50 outline-none border-0 focus:ring-0 py-0.5 min-w-0"
+                    />
+
+                    <!-- Confirm / cancel -->
+                    @if (insertInlineDescription.trim()) {
+                      <div class="flex items-center gap-xs shrink-0">
+                        <button
+                          type="button"
+                          (click)="commitInsert()"
+                          class="flex items-center justify-center w-6 h-6 rounded bg-primary text-white hover:bg-primary/90 transition-colors"
+                          title="Create (Enter)"
+                          [class.opacity-50]="insertInlineCreating"
+                        >
+                          <span class="material-symbols-outlined text-[14px]">{{ insertInlineCreating ? 'hourglass_empty' : 'check' }}</span>
+                        </button>
+                        <button
+                          type="button"
+                          (click)="cancelInsert()"
+                          class="flex items-center justify-center w-6 h-6 rounded hover:bg-surface-container-high text-on-surface-variant transition-colors"
+                          title="Cancel (Esc)"
+                        >
+                          <span class="material-symbols-outlined text-[14px]">close</span>
+                        </button>
+                      </div>
+                    }
+                  </div>
+                </td>
+                <td></td>
+              </tr>
+            }
+          }
+
+          <!-- Inline creation row (Jira-style) -->
+          @if (currentProject) {
+            <tr class="border-t border-outline-variant/60 hover:bg-surface-container-low/60 transition-colors duration-150"
+                [class.active-inline-row]="inlineCreateActive"
+                [class.bg-surface-container-low/40]="inlineCreateActive">
+              <!-- Actions empty cell -->
+              <td class="w-12 p-0"></td>
+              <!-- Key: empty -->
+              <td class="py-sm px-md font-mono text-code text-on-surface-variant/40 tracking-wider whitespace-nowrap">
+                {{ currentProject.code.toUpperCase() }}-…
+              </td>
+
+              <!-- Summary: type picker + input -->
+              <td class="py-sm px-md min-w-0" colspan="5">
+                <div class="flex items-center gap-sm">
+
+                  <!-- Type: Epic only (root level) -->
+                  <div class="flex items-center gap-0.5 px-1 py-0.5 select-none shrink-0" title="Epic (root issues only)">
+                    <span
+                      class="material-symbols-outlined text-[18px] text-[#ffab00]"
+                    >crown</span>
+                  </div>
+
+                  <!-- Text input -->
+                  <input
+                    #inlineInput
+                    type="text"
+                    [(ngModel)]="inlineDescription"
+                    placeholder="What needs to be done?"
+                    (focus)="inlineCreateActive = true"
+                    (blur)="onInlineBlur()"
+                    (keydown.enter)="commitInlineCreate()"
+                    (keydown.escape)="cancelInlineCreate()"
+                    class="flex-1 bg-transparent text-body-md text-on-surface placeholder-on-surface-variant/50 outline-none border-0 focus:ring-0 py-0.5 min-w-0"
+                  />
+
+                  <!-- Confirm / cancel (visible when active) -->
+                  @if (inlineCreateActive && inlineDescription.trim()) {
+                    <div class="flex items-center gap-xs shrink-0">
+                      <button
+                        type="button"
+                        (mousedown)="$event.preventDefault(); commitInlineCreate()"
+                        class="flex items-center justify-center w-6 h-6 rounded bg-primary text-white hover:bg-primary/90 transition-colors"
+                        title="Create (Enter)"
+                      >
+                        <span class="material-symbols-outlined text-[14px]">check</span>
+                      </button>
+                      <button
+                        type="button"
+                        (mousedown)="$event.preventDefault(); cancelInlineCreate()"
+                        class="flex items-center justify-center w-6 h-6 rounded hover:bg-surface-container-high text-on-surface-variant transition-colors"
+                        title="Cancel (Esc)"
+                      >
+                        <span class="material-symbols-outlined text-[14px]">close</span>
+                      </button>
+                    </div>
+                  }
+                </div>
+              </td>
+
+              <!-- SP: empty -->
+              <td></td>
             </tr>
           }
         </tbody>
@@ -185,7 +411,7 @@
     </div>
 
     <!-- Pagination Footer -->
-    <div class="flex justify-between items-center text-xs text-on-surface-variant select-none">
+    <div class="flex justify-between items-center text-body-sm text-on-surface-variant select-none">
       <div>
         Showing
         <span class="font-bold text-on-surface">{{ (currentPage - 1) * pageSize + 1 }}</span>
@@ -216,7 +442,7 @@
               [class.hover:bg-primary]="currentPage === page"
               [class.border-outline-variant]="currentPage !== page"
               [class.hover:bg-surface-container-low]="currentPage !== page"
-              class="w-6 h-6 flex items-center justify-center font-bold text-xs border rounded transition-colors"
+              class="w-6 h-6 flex items-center justify-center font-bold text-body-sm border rounded transition-colors"
             >
               {{ page }}
             </button>
@@ -278,5 +504,38 @@
   <div footer>
     <app-button variant="outlined" (onClick)="cancelCreateDialog()">Cancel</app-button>
     <app-button variant="primary" (onClick)="createTask()" [loading]="creating">Create</app-button>
+  </div>
+</app-dialog>
+
+<app-dialog [(visible)]="showDepsDialog" [title]="'Dependencies for ' + (selectedTaskForDeps ? (currentProject?.code?.toUpperCase() + '-' + selectedTaskForDeps.controlNo) : '')">
+  <div class="space-y-md">
+    <p class="text-body-md text-on-surface-variant">
+      This issue cannot start until the following dependencies are completed:
+    </p>
+    <div class="divide-y divide-outline-variant/60 max-h-60 overflow-y-auto border border-outline-variant rounded-md bg-surface-container-low">
+      @for (dep of dependenciesList; track dep.id) {
+        <a
+          [routerLink]="['/tasks', dep.id]"
+          (click)="closeDepsDialog()"
+          class="flex items-center justify-between p-sm hover:bg-surface-container transition-colors"
+        >
+          <div class="flex items-center gap-sm min-w-0">
+            <span class="material-symbols-outlined text-[16px] text-primary shrink-0">link</span>
+            <span class="font-mono text-body-sm text-on-surface-variant font-semibold shrink-0">
+              {{ currentProject?.code?.toUpperCase() }}-{{ dep.controlNo }}
+            </span>
+            <span class="text-body-md text-on-surface font-semibold truncate">
+              {{ dep.description }}
+            </span>
+          </div>
+          <span class="px-2 py-0.5 rounded text-label-sm font-bold border uppercase bg-surface-container-high shrink-0" [ngClass]="getStatusBadgeClass(dep.status)">
+            {{ getStatusLabel(dep.status) }}
+          </span>
+        </a>
+      }
+    </div>
+  </div>
+  <div footer>
+    <app-button variant="primary" (onClick)="closeDepsDialog()">Close</app-button>
   </div>
 </app-dialog>

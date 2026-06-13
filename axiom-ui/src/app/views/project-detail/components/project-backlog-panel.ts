@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, DestroyRef, Input, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize } from 'rxjs';
@@ -29,6 +29,7 @@ export class ProjectBacklogPanelComponent implements OnInit {
     private readonly workItemService = inject(WorkItemService);
     private readonly memberService = inject(ProjectMemberService);
     private readonly destroyRef = inject(DestroyRef);
+    private readonly router = inject(Router);
 
     private _projectId = '';
 
@@ -150,6 +151,10 @@ export class ProjectBacklogPanelComponent implements OnInit {
     openCreateDialog(): void {
         this.newTask = this.emptyTask();
         this.showCreateDialog.set(true);
+    }
+
+    navigateToCreate(): void {
+        this.router.navigate(['/tasks/new'], { queryParams: { projectId: this.projectId } });
     }
 
     createTask(): void {

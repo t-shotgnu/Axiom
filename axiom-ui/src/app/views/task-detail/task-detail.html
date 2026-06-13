@@ -13,7 +13,7 @@
     <div class="min-w-0 flex-1">
       <!-- Breadcrumbs -->
       <nav
-        class="flex items-center gap-xs mb-sm text-xs font-bold text-on-surface-variant uppercase tracking-wider select-none"
+        class="flex items-center gap-xs mb-sm text-body-sm font-bold text-on-surface-variant uppercase tracking-wider select-none"
       >
         <a routerLink="/projects" class="hover:underline">Projects</a>
         <span class="material-symbols-outlined text-[14px]">chevron_right</span>
@@ -21,8 +21,10 @@
           project?.name || 'Project'
         }}</a>
         <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+        <a routerLink="/tasks" class="hover:underline">Tasks</a>
+        <span class="material-symbols-outlined text-[14px]">chevron_right</span>
         <span class="text-on-surface font-semibold"
-          >{{ project?.code || 'AX' }}-{{ task.controlNo }}</span
+          >{{ project?.code || 'AX' }}-{{ id === 'new' ? 'New' : task.controlNo }}</span
         >
       </nav>
 
@@ -47,21 +49,24 @@
     <!-- Save & Delete Actions -->
     @if (canEditTask()) {
       <div class="shrink-0 flex items-center gap-sm select-none">
-        <app-button
-          variant="secondary"
-          icon="delete"
-          (onClick)="openDeleteDialog()"
-          customClass="py-sm px-md text-xs font-bold"
-        >
-          Delete
-        </app-button>
+        @if (id !== 'new') {
+          <app-button
+            variant="secondary"
+            icon="delete"
+            (onClick)="openDeleteDialog()"
+            customClass="py-sm px-md text-body-sm font-bold"
+          >
+            Delete
+          </app-button>
+        }
         <app-button
           variant="primary"
-          [disabled]="!isDirty"
+          [disabled]="!isDirty || saving"
+          [loading]="saving"
           (onClick)="saveAllChanges()"
-          customClass="px-lg py-sm font-bold text-sm"
+          customClass="px-lg py-sm font-bold text-body-md"
         >
-          Save
+          {{ id === 'new' ? 'Save' : 'Update' }}
         </app-button>
       </div>
     }
@@ -74,7 +79,7 @@
       <section class="space-y-md">
         <div class="flex items-center justify-between">
           <h3
-            class="text-xs font-black text-on-surface-variant uppercase tracking-widest select-none"
+            class="text-label-sm font-bold text-on-surface-variant uppercase tracking-wider select-none"
           >
             Description
           </h3>
@@ -82,7 +87,7 @@
 
         @if (!canEditTask()) {
           <div
-            class="text-xs text-on-surface leading-relaxed p-md rounded-xl border border-outline-variant/60 bg-surface-container-lowest min-h-[80px]"
+            class="text-body-md text-on-surface leading-relaxed p-md rounded-xl border border-outline-variant/60 bg-surface-container-lowest min-h-[80px]"
             [class.italic]="!notesText"
             [class.text-on-surface-variant]="!notesText"
           >
@@ -92,179 +97,319 @@
           <textarea
             [(ngModel)]="notesText"
             rows="6"
-            class="w-full text-xs bg-surface border border-outline-variant rounded-xl p-md focus:outline-none focus:ring-1 focus:ring-primary text-on-surface bg-surface-container-lowest"
+            class="w-full text-body-md bg-surface border border-outline-variant rounded-xl p-md focus:outline-none focus:ring-1 focus:ring-primary text-on-surface bg-surface-container-lowest"
             placeholder="Add a more detailed description to this task..."
           ></textarea>
         }
       </section>
 
       <!-- Attachments Section -->
-      <section class="space-y-md pt-md">
-        <div class="flex items-center justify-between gap-md select-none">
-          <div class="flex items-center gap-xs">
+      @if (id !== 'new') {
+        <section class="space-y-md pt-md" *ngIf="attachments && attachments.length > 0">
+          <div class="flex items-center gap-xs select-none">
             <span class="material-symbols-outlined text-[16px] text-on-surface-variant"
               >attachment</span
             >
-            <h3 class="text-xs font-black text-on-surface-variant uppercase tracking-widest">
+            <h3 class="text-label-sm font-bold text-on-surface-variant uppercase tracking-wider">
               Attachments ({{ attachments.length }})
             </h3>
           </div>
-        </div>
 
-        @if (canEditTask()) {
-          <div
-            class="flex flex-col sm:flex-row sm:items-center gap-sm rounded-lg border border-dashed border-outline-variant bg-surface-container-lowest p-md"
-          >
-            <input
-              type="file"
-              (change)="onAttachmentSelected($event)"
-              class="min-w-0 flex-1 text-xs text-on-surface file:mr-md file:rounded file:border-0 file:bg-surface-container-high file:px-md file:py-sm file:text-xs file:font-bold file:text-on-surface hover:file:bg-surface-container-medium"
-            />
-            <app-button
-              variant="secondary"
-              icon="upload"
-              [disabled]="!selectedAttachment || isUploadingAttachment"
-              (onClick)="uploadAttachment()"
-              customClass="py-sm px-md text-xs font-bold"
-            >
-              Upload
-            </app-button>
-          </div>
-        }
-
-        @if (attachments.length === 0) {
-          <div
-            class="rounded-lg border border-outline-variant/60 bg-surface-container-lowest p-md text-xs text-on-surface-variant"
-          >
-            No attachments yet.
-          </div>
-        }
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-md">
-          @for (file of attachments; track file.id) {
+          @if (canEditTask()) {
             <div
-              class="flex items-center gap-md bg-surface-container-low border border-outline-variant rounded-lg p-sm hover:bg-surface-container-medium transition-colors"
+              class="flex flex-col sm:flex-row sm:items-center gap-sm rounded-lg border border-dashed border-outline-variant bg-surface-container-lowest p-md"
             >
-              <div
-                class="w-10 h-10 rounded flex items-center justify-center shrink-0 bg-surface-container-high text-on-surface-variant"
-                [class.bg-[#e8f0fe]]="file.fileType.startsWith('image/')"
-                [class.text-primary]="file.fileType.startsWith('image/')"
-                [class.bg-red-500/10]="file.fileType.includes('pdf')"
-                [class.text-red-500]="file.fileType.includes('pdf')"
+              <input
+                type="file"
+                (change)="onAttachmentSelected($event)"
+                class="min-w-0 flex-1 text-xs text-on-surface file:mr-md file:rounded file:border-0 file:bg-surface-container-high file:px-md file:py-sm file:text-xs file:font-bold file:text-on-surface hover:file:bg-surface-container-medium"
+              />
+              <app-button
+                variant="secondary"
+                icon="upload"
+                [disabled]="!selectedAttachment || isUploadingAttachment"
+                (onClick)="uploadAttachment()"
+                customClass="py-sm px-md text-xs font-bold"
               >
-                <span class="material-symbols-outlined text-[24px]">
-                  {{ file.fileType.startsWith('image/') ? 'image' : file.fileType.includes('pdf') ? 'picture_as_pdf' : 'description' }}
-                </span>
-              </div>
-              <div class="min-w-0 flex-1">
-                <div class="text-xs font-bold text-on-surface truncate">{{ file.fileName }}</div>
-                <div class="text-[10px] text-on-surface-variant mt-[2px]">
-                  {{ formatFileSize(file.fileSize) }} • {{ formatDate(file.uploadedOn) }}
-                </div>
-              </div>
-              <div class="flex items-center gap-xs shrink-0">
-                <button
-                  type="button"
-                  (click)="downloadAttachment(file)"
-                  class="w-8 h-8 rounded flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-surface-container-high"
-                  title="Download"
+                Upload
+              </app-button>
+            </div>
+          }
+
+          @if (attachments.length === 0) {
+            <div
+              class="rounded-lg border border-outline-variant/60 bg-surface-container-lowest p-md text-xs text-on-surface-variant"
+            >
+              No attachments yet.
+            </div>
+          }
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-md">
+            @for (file of attachments; track file.id) {
+              <div
+                class="flex items-center gap-md bg-surface-container-low border border-outline-variant rounded-lg p-sm hover:bg-surface-container-medium transition-colors"
+              >
+                <div
+                  class="w-10 h-10 rounded flex items-center justify-center shrink-0 bg-surface-container-high text-on-surface-variant"
+                  [class.bg-[#e8f0fe]]="file.fileType.startsWith('image/')"
+                  [class.text-primary]="file.fileType.startsWith('image/')"
+                  [class.bg-red-500/10]="file.fileType.includes('pdf')"
+                  [class.text-red-500]="file.fileType.includes('pdf')"
                 >
-                  <span class="material-symbols-outlined text-[18px]">download</span>
-                </button>
-                @if (canDeleteAttachment(file)) {
+                  <span class="material-symbols-outlined text-[24px]">
+                    {{ file.fileType.startsWith('image/') ? 'image' : file.fileType.includes('pdf') ? 'picture_as_pdf' : 'description' }}
+                  </span>
+                </div>
+                <div class="min-w-0 flex-1">
+                  <div class="text-body-md font-semibold text-on-surface truncate">{{ file.fileName }}</div>
+                  <div class="text-label-sm text-on-surface-variant mt-[2px]">
+                    {{ file.fileSize }} • {{ formatDate(file.uploadedOn) }}
+                  </div>
+                </div>
+                <div class="flex items-center gap-xs shrink-0">
                   <button
                     type="button"
-                    (click)="deleteAttachment(file)"
-                    class="w-8 h-8 rounded flex items-center justify-center text-on-surface-variant hover:text-red-500 hover:bg-red-500/10"
-                    title="Delete"
+                    (click)="downloadAttachment(file)"
+                    class="w-8 h-8 rounded flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-surface-container-high"
+                    title="Download"
                   >
-                    <span class="material-symbols-outlined text-[18px]">delete</span>
+                    <span class="material-symbols-outlined text-[18px]">download</span>
                   </button>
-                }
+                  @if (canDeleteAttachment(file)) {
+                    <button
+                      type="button"
+                      (click)="deleteAttachment(file)"
+                      class="w-8 h-8 rounded flex items-center justify-center text-on-surface-variant hover:text-red-500 hover:bg-red-500/10"
+                      title="Delete"
+                    >
+                      <span class="material-symbols-outlined text-[18px]">delete</span>
+                    </button>
+                  }
+                </div>
               </div>
-            </div>
-          }
-        </div>
-      </section>
-
-      <!-- Activity Feed & Comments Section -->
-      <section class="pt-lg space-y-lg">
-        <h3
-          class="text-xs font-black text-on-surface-variant uppercase tracking-widest select-none"
-        >
-          Activity
-        </h3>
-
-        <!-- Add Comment Textarea -->
-        <div class="flex gap-md">
-          <div
-            class="w-8 h-8 rounded-full bg-primary/10 text-primary border border-primary/20 flex items-center justify-center font-bold shrink-0 select-none"
-          >
-            {{ currentUserInitials }}
+            }
           </div>
-          <div class="flex-1">
-            <div
-              class="border border-outline-variant rounded-xl focus-within:border-primary transition-all overflow-hidden bg-surface-container-lowest shadow-sm"
-            >
-              <textarea
-                [(ngModel)]="newCommentText"
-                class="w-full p-md font-body-md border-none focus:ring-0 placeholder-on-surface-variant focus:outline-none bg-transparent text-on-surface min-h-[80px] resize-y"
-                placeholder="Add a comment..."
-              ></textarea>
-              <div
-                class="bg-surface-container-low px-md py-sm flex justify-end select-none border-t border-outline-variant/60"
-              >
+        </section>
+
+        <!-- Relationships Section -->
+        @if (id !== 'new') {
+          <section class="border-t border-outline-variant/60 pt-lg space-y-md">
+            <h3 class="text-label-sm font-bold text-on-surface-variant uppercase tracking-wider select-none">
+              Relationships
+            </h3>
+
+            <!-- Link creation inline form -->
+            @if (canEditTask() && availableTasksToLink.length > 0) {
+              <div class="flex flex-wrap items-end gap-md p-md bg-surface-container-low border border-outline-variant rounded-xl shadow-sm mb-md">
+                <div class="flex-1 min-w-[200px] space-y-xs">
+                  <label class="text-label-sm font-bold text-on-surface-variant uppercase tracking-wider block">This issue</label>
+                  <app-select
+                    [(ngModel)]="newLinkType"
+                    [options]="linkTypeOptions"
+                    customClass="bg-surface-container-lowest text-body-md py-xs"
+                  ></app-select>
+                </div>
+                <div class="flex-1 min-w-[250px] space-y-xs">
+                  <label class="text-label-sm font-bold text-on-surface-variant uppercase tracking-wider block font-semibold">Target issue</label>
+                  <select
+                    [(ngModel)]="newLinkTargetId"
+                    class="w-full border border-outline-variant rounded-md bg-surface-container-lowest text-body-md p-2 focus:ring-1 focus:ring-primary focus:outline-none text-on-surface"
+                  >
+                    <option value="" disabled selected>Select issue to link...</option>
+                    @for (item of availableTasksToLink; track item.id) {
+                      <option [value]="item.id">
+                        {{ getTaskLabel(item, item.id) }}
+                      </option>
+                    }
+                  </select>
+                </div>
                 <app-button
                   variant="primary"
-                  (onClick)="addComment()"
-                  customClass="py-unit px-md text-xs font-bold"
-                  >Save</app-button
+                  icon="add"
+                  [disabled]="!newLinkTargetId"
+                  (onClick)="addRelationship()"
+                  customClass="py-xs font-bold text-body-sm shrink-0"
                 >
+                  Link
+                </app-button>
+              </div>
+            }
+
+            <!-- Relationships List -->
+            <div class="space-y-sm">
+              <!-- Parent Relation -->
+              @for (rel of parentRelations; track rel.id) {
+                <div class="flex items-center justify-between p-sm border border-outline-variant rounded-lg bg-surface-container-low hover:bg-surface-container-medium transition-colors">
+                  <div class="flex items-center gap-sm min-w-0">
+                    <span class="text-label-sm font-bold text-on-surface-variant uppercase tracking-wider shrink-0 bg-surface-container-high px-xs py-unit rounded">Parent</span>
+                    <a [routerLink]="['/tasks', rel.targetId]" class="text-body-md text-primary font-semibold hover:underline truncate">
+                      {{ getTaskLabel(rel.task, rel.targetId) }}
+                    </a>
+                  </div>
+                  @if (canEditTask()) {
+                    <button type="button" (click)="removeRelationship(rel.id)" class="w-8 h-8 rounded flex items-center justify-center text-on-surface-variant hover:text-red-500 hover:bg-red-500/10 shrink-0" title="Remove Link">
+                      <span class="material-symbols-outlined text-[18px]">close</span>
+                    </button>
+                  }
+                </div>
+              }
+
+              <!-- Children Relations -->
+              @for (rel of childrenRelations; track rel.id) {
+                <div class="flex items-center justify-between p-sm border border-outline-variant rounded-lg bg-surface-container-low hover:bg-surface-container-medium transition-colors">
+                  <div class="flex items-center gap-sm min-w-0">
+                    <span class="text-label-sm font-bold text-on-surface-variant uppercase tracking-wider shrink-0 bg-surface-container-high px-xs py-unit rounded">Child</span>
+                    <a [routerLink]="['/tasks', rel.targetId]" class="text-body-md text-primary font-semibold hover:underline truncate">
+                      {{ getTaskLabel(rel.task, rel.targetId) }}
+                    </a>
+                  </div>
+                  @if (canEditTask()) {
+                    <button type="button" (click)="removeRelationship(rel.id)" class="w-8 h-8 rounded flex items-center justify-center text-on-surface-variant hover:text-red-500 hover:bg-red-500/10 shrink-0" title="Remove Link">
+                      <span class="material-symbols-outlined text-[18px]">close</span>
+                    </button>
+                  }
+                </div>
+              }
+
+              <!-- Blocker Relations -->
+              @for (rel of blockerRelations; track rel.id) {
+                <div class="flex items-center justify-between p-sm border border-outline-variant rounded-lg bg-surface-container-low hover:bg-surface-container-medium transition-colors">
+                  <div class="flex items-center gap-sm min-w-0">
+                    <span class="text-label-sm font-bold text-on-surface-variant uppercase tracking-wider shrink-0 bg-surface-container-high px-xs py-unit rounded">Depends On</span>
+                    <a [routerLink]="['/tasks', rel.targetId]" class="text-body-md text-primary font-semibold hover:underline truncate">
+                      {{ getTaskLabel(rel.task, rel.targetId) }}
+                    </a>
+                  </div>
+                  @if (canEditTask()) {
+                    <button type="button" (click)="removeRelationship(rel.id)" class="w-8 h-8 rounded flex items-center justify-center text-on-surface-variant hover:text-red-500 hover:bg-red-500/10 shrink-0" title="Remove Link">
+                      <span class="material-symbols-outlined text-[18px]">close</span>
+                    </button>
+                  }
+                </div>
+              }
+
+              <!-- Dependent Relations -->
+              @for (rel of dependentRelations; track rel.id) {
+                <div class="flex items-center justify-between p-sm border border-outline-variant rounded-lg bg-surface-container-low hover:bg-surface-container-medium transition-colors">
+                  <div class="flex items-center gap-sm min-w-0">
+                    <span class="text-label-sm font-bold text-on-surface-variant uppercase tracking-wider shrink-0 bg-surface-container-high px-xs py-unit rounded">Depended On By</span>
+                    <a [routerLink]="['/tasks', rel.targetId]" class="text-body-md text-primary font-semibold hover:underline truncate">
+                      {{ getTaskLabel(rel.task, rel.targetId) }}
+                    </a>
+                  </div>
+                  @if (canEditTask()) {
+                    <button type="button" (click)="removeRelationship(rel.id)" class="w-8 h-8 rounded flex items-center justify-center text-on-surface-variant hover:text-red-500 hover:bg-red-500/10 shrink-0" title="Remove Link">
+                      <span class="material-symbols-outlined text-[18px]">close</span>
+                    </button>
+                  }
+                </div>
+              }
+
+              <!-- Related Relations -->
+              @for (rel of relatedRelations; track rel.id) {
+                <div class="flex items-center justify-between p-sm border border-outline-variant rounded-lg bg-surface-container-low hover:bg-surface-container-medium transition-colors">
+                  <div class="flex items-center gap-sm min-w-0">
+                    <span class="text-label-sm font-bold text-on-surface-variant uppercase tracking-wider shrink-0 bg-surface-container-high px-xs py-unit rounded">Relates To</span>
+                    <a [routerLink]="['/tasks', rel.targetId]" class="text-body-md text-primary font-semibold hover:underline truncate">
+                      {{ getTaskLabel(rel.task, rel.targetId) }}
+                    </a>
+                  </div>
+                  @if (canEditTask()) {
+                    <button type="button" (click)="removeRelationship(rel.id)" class="w-8 h-8 rounded flex items-center justify-center text-on-surface-variant hover:text-red-500 hover:bg-red-500/10 shrink-0" title="Remove Link">
+                      <span class="material-symbols-outlined text-[18px]">close</span>
+                    </button>
+                  }
+                </div>
+              }
+
+              @if (relationships.length === 0) {
+                <div class="rounded-lg border border-outline-variant/60 bg-surface-container-lowest p-md text-xs text-on-surface-variant">
+                  No relationships linked to this issue yet.
+                </div>
+              }
+            </div>
+          </section>
+        }
+
+        <!-- Activity Feed & Comments Section -->
+        <section class="pt-lg space-y-lg">
+          <h3
+            class="text-label-sm font-bold text-on-surface-variant uppercase tracking-wider select-none"
+          >
+            Activity
+          </h3>
+
+          <!-- Add Comment Textarea -->
+          <div class="flex gap-md">
+            <div
+              class="w-8 h-8 rounded-full bg-primary/10 text-primary border border-primary/20 flex items-center justify-center font-bold shrink-0 select-none"
+            >
+              {{ currentUserInitials }}
+            </div>
+            <div class="flex-1">
+              <div
+                class="border border-outline-variant rounded-xl focus-within:border-primary transition-all overflow-hidden bg-surface-container-lowest shadow-sm"
+              >
+                <textarea
+                  [(ngModel)]="newCommentText"
+                  class="w-full p-md text-body-md border-none focus:ring-0 placeholder-on-surface-variant focus:outline-none bg-transparent text-on-surface min-h-[80px] resize-y"
+                  placeholder="Add a comment..."
+                ></textarea>
+                <div
+                  class="bg-surface-container-low px-md py-sm flex justify-end select-none border-t border-outline-variant/60"
+                >
+                  <app-button
+                    variant="primary"
+                    (onClick)="addComment()"
+                    customClass="py-unit px-md text-body-sm font-bold"
+                    >Save</app-button
+                  >
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- Render Comments List -->
-        <div class="space-y-lg pt-md">
-          @for (c of comments; track c.id) {
-            <div class="flex gap-md group">
-              <!-- Author Avatar -->
-              <div
-                class="w-8 h-8 rounded-full bg-surface-container-high border border-outline-variant text-on-surface-variant flex items-center justify-center font-bold shrink-0 select-none"
-              >
-                {{ c.author.substring(0, 2).toUpperCase() }}
-              </div>
-
-              <!-- Comment Body -->
-              <div class="flex-1 space-y-xs">
-                <div class="flex items-baseline gap-sm select-none">
-                  <span class="text-xs font-bold text-on-surface">{{ c.author }}</span>
-                  <span class="text-[10px] text-on-surface-variant">{{
-                    formatDate(c.createdOn)
-                  }}</span>
+          <!-- Render Comments List -->
+          <div class="space-y-lg pt-md">
+            @for (c of comments; track c.id) {
+              <div class="flex gap-md group">
+                <!-- Author Avatar -->
+                <div
+                  class="w-8 h-8 rounded-full bg-surface-container-high border border-outline-variant text-on-surface-variant flex items-center justify-center font-bold shrink-0 select-none"
+                >
+                  {{ c.author.substring(0, 2).toUpperCase() }}
                 </div>
-                <p class="font-body-md text-body-md text-on-surface leading-relaxed">
-                  {{ c.text }}
-                </p>
-                <!-- Actions -->
-                @if (canDeleteComment(c)) {
-                  <div
-                    class="flex items-center gap-md text-[10px] text-on-surface-variant font-bold select-none pt-unit"
-                  >
-                    <button
-                      (click)="deleteComment(c.id)"
-                      class="hover:underline hover:text-red-500"
-                    >
-                      Delete
-                    </button>
+
+                <!-- Comment Body -->
+                <div class="flex-1 space-y-xs">
+                  <div class="flex items-baseline gap-sm select-none">
+                    <span class="text-body-md font-semibold text-on-surface">{{ c.author }}</span>
+                    <span class="text-label-sm text-on-surface-variant">{{
+                      formatDate(c.createdOn)
+                    }}</span>
                   </div>
-                }
+                  <p class="text-body-md text-body-md text-on-surface leading-relaxed">
+                    {{ c.text }}
+                  </p>
+                  <!-- Actions -->
+                  @if (canDeleteComment(c)) {
+                    <div
+                      class="flex items-center gap-md text-label-sm text-on-surface-variant font-bold select-none pt-unit"
+                    >
+                      <button
+                        (click)="deleteComment(c.id)"
+                        class="hover:underline hover:text-red-500"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  }
+                </div>
               </div>
-            </div>
-          }
-        </div>
-      </section>
+            }
+          </div>
+        </section>
+      }
     </div>
 
     <!-- Right Column: Sidebar (Status, Attributes Table) -->
@@ -273,7 +418,7 @@
         <!-- Status & Transitions dropdown -->
         <div class="space-y-sm select-none">
           <label
-            class="text-[10px] font-black text-on-surface-variant uppercase tracking-widest block"
+            class="text-label-sm font-bold text-on-surface-variant uppercase tracking-wider block"
             >Status</label
           >
           <app-select
@@ -287,11 +432,66 @@
         <div
           class="rounded-xl border border-outline-variant bg-surface-container-lowest p-md space-y-md shadow-sm"
         >
+          <!-- Type -->
+          <div
+            class="grid grid-cols-12 gap-xs items-center py-xs border-b border-outline-variant/40"
+          >
+            <span class="col-span-4 text-label-md font-semibold text-on-surface-variant select-none"
+              >Type</span
+            >
+            <div class="col-span-8">
+              <app-select
+                [(ngModel)]="type"
+                [options]="typeOptions"
+                [disabled]="!canEditTask()"
+                (ngModelChange)="onTypeChange()"
+              ></app-select>
+            </div>
+          </div>
+
+          <!-- Parent (only shown when creating a new task) -->
+          @if (id === 'new') {
+            <div
+              class="grid grid-cols-12 gap-xs items-start py-xs border-b border-outline-variant/40"
+            >
+              <span class="col-span-4 text-label-md font-semibold text-on-surface-variant select-none pt-1">
+                Parent
+                @if (type !== 'Epic') {
+                  <span class="text-red-500 ml-0.5">*</span>
+                }
+              </span>
+              <div class="col-span-8">
+                @if (type === 'Epic') {
+                  <span class="text-label-sm text-on-surface-variant italic select-none">
+                    Epics have no parent
+                  </span>
+                } @else if (availableParentItems.length === 0) {
+                  <span class="text-label-sm text-red-500 italic select-none">
+                    No eligible parent items found in this project.
+                  </span>
+                } @else {
+                  <select
+                    [(ngModel)]="parentId"
+                    class="w-full border border-outline-variant rounded-md bg-surface-container-lowest text-body-md p-2 focus:ring-1 focus:ring-primary focus:outline-none text-on-surface"
+                    [class.border-red-400]="!parentId && type !== 'Epic'"
+                  >
+                    <option value="" disabled selected>Select parent...</option>
+                    @for (item of availableParentItems; track item.id) {
+                      <option [value]="item.id">
+                        {{ getTaskLabel(item, item.id) }}
+                      </option>
+                    }
+                  </select>
+                }
+              </div>
+            </div>
+          }
+
           <!-- Assignee -->
           <div
             class="grid grid-cols-12 gap-xs items-center py-xs border-b border-outline-variant/40"
           >
-            <span class="col-span-4 text-xs font-bold text-on-surface-variant select-none"
+            <span class="col-span-4 text-label-md font-semibold text-on-surface-variant select-none"
               >Assignee</span
             >
             <div class="col-span-8">
@@ -307,16 +507,16 @@
           <div
             class="grid grid-cols-12 gap-xs items-center py-xs border-b border-outline-variant/40"
           >
-            <span class="col-span-4 text-xs font-bold text-on-surface-variant select-none"
+            <span class="col-span-4 text-label-md font-semibold text-on-surface-variant select-none"
               >Reporter</span
             >
             <div class="col-span-8 flex items-center gap-sm p-unit select-none">
               <div
-                class="w-6 h-6 rounded-full bg-surface-variant text-on-surface-variant flex items-center justify-center font-bold text-[9px] shrink-0"
+                class="w-6 h-6 rounded-full bg-surface-variant text-on-surface-variant flex items-center justify-center font-bold text-label-sm shrink-0"
               >
                 {{ reporterName ? reporterName.substring(0, 2).toUpperCase() : '?' }}
               </div>
-              <span class="text-xs text-on-surface font-bold truncate">
+              <span class="text-body-md text-on-surface font-semibold truncate">
                 {{ reporterName }}
               </span>
             </div>
@@ -326,7 +526,7 @@
           <div
             class="grid grid-cols-12 gap-xs items-center py-xs border-b border-outline-variant/40"
           >
-            <span class="col-span-4 text-xs font-bold text-on-surface-variant select-none"
+            <span class="col-span-4 text-label-md font-semibold text-on-surface-variant select-none"
               >Priority</span
             >
             <div class="col-span-8">
@@ -340,7 +540,7 @@
 
           <!-- Story Points -->
           <div class="grid grid-cols-12 gap-xs items-center py-xs">
-            <span class="col-span-4 text-xs font-bold text-on-surface-variant select-none"
+            <span class="col-span-4 text-label-md font-semibold text-on-surface-variant select-none"
               >Story Points</span
             >
             <div class="col-span-8">
@@ -348,12 +548,12 @@
                 <input
                   type="number"
                   [(ngModel)]="estimatedEffort"
-                  class="w-full bg-transparent border border-outline-variant rounded px-md py-sm text-xs font-mono font-bold text-on-surface focus:outline-none focus:border-primary"
+                  class="w-full bg-transparent border border-outline-variant rounded px-md py-sm text-body-md font-mono font-semibold text-on-surface focus:outline-none focus:border-primary"
                   placeholder="None"
                 />
               } @else {
                 <span
-                  class="bg-surface-container text-on-surface-variant font-bold text-xs px-2.5 py-1 rounded-full border border-outline-variant font-mono select-none"
+                  class="bg-surface-container text-on-surface-variant font-semibold text-body-md px-2.5 py-1 rounded-full border border-outline-variant font-mono select-none"
                 >
                   {{ estimatedEffort || 'None' }}
                 </span>
@@ -369,13 +569,13 @@
 <!-- Edit Task Dialog -->
 <app-dialog [(visible)]="showEditDialog" title="Edit issue">
   <div class="space-y-md">
-    <label class="text-[11px] font-black uppercase tracking-widest text-on-surface-variant"
+    <label class="text-label-md font-semibold text-on-surface-variant"
       >Description</label
     >
     <textarea
       [(ngModel)]="editTask.description"
       rows="4"
-      class="w-full rounded-lg border border-outline-variant p-md text-sm"
+      class="w-full rounded-lg border border-outline-variant p-md text-body-md text-on-surface"
     ></textarea>
 
     <div class="grid grid-cols-2 gap-md">
@@ -390,13 +590,13 @@
 
     <div class="grid grid-cols-2 gap-md">
       <div>
-        <label class="text-[11px] font-black uppercase tracking-widest text-on-surface-variant"
+        <label class="text-label-md font-semibold text-on-surface-variant"
           >Priority</label
         >
         <input
           type="number"
           [(ngModel)]="editTask.priority"
-          class="w-full rounded-lg border border-outline-variant bg-surface px-3 py-2 text-sm text-on-surface"
+          class="w-full rounded-lg border border-outline-variant bg-surface px-3 py-2 text-body-md text-on-surface"
         />
       </div>
 
@@ -408,13 +608,13 @@
     </div>
 
     <div>
-      <label class="text-[11px] font-black uppercase tracking-widest text-on-surface-variant"
+      <label class="text-label-md font-semibold text-on-surface-variant"
         >Notes</label
       >
       <textarea
         [(ngModel)]="editTask.notes"
         rows="3"
-        class="w-full rounded-lg border border-outline-variant p-md text-sm"
+        class="w-full rounded-lg border border-outline-variant p-md text-body-md text-on-surface"
       ></textarea>
     </div>
   </div>
@@ -433,7 +633,7 @@
   position="top-lg"
   footerStyle="plain"
 >
-  <p class="text-base leading-relaxed text-on-surface">
+  <p class="text-body-md leading-relaxed text-on-surface">
     Are you sure you want to delete this issue? This operation can not be undone and will
     permanently remove the issue.
   </p>
@@ -456,7 +656,7 @@
   position="top-lg"
   footerStyle="plain"
 >
-  <p class="text-base leading-relaxed text-on-surface">
+  <p class="text-body-md leading-relaxed text-on-surface">
     You have unsaved changes. Are you sure you want to leave? Your changes will be permanently lost.
   </p>
   <div footer class="flex items-center justify-end gap-md">
@@ -469,3 +669,4 @@
     >
   </div>
 </app-dialog>
+

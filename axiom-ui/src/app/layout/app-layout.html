@@ -5,7 +5,7 @@
   >
     <!-- Logo / Brand -->
     <div class="mb-lg px-md flex items-center gap-sm">
-      <span class="text-primary font-extrabold text-[22px] font-headline-md tracking-tight">Axiom</span>
+      <span class="app-span app-text-primary font-extrabold text-headline-md tracking-tight">Axiom</span>
     </div>
 
     <!-- Active Project Trigger & Selector Dropdown Component -->
@@ -21,7 +21,7 @@
     <div class="flex flex-col gap-xs flex-1">
       <!-- Section: MENU -->
       <div class="mb-xs px-md">
-        <span class="text-[10px] font-bold uppercase tracking-[0.2em] text-on-surface-variant/50">Menu</span>
+        <span class="app-span text-label-sm font-bold uppercase tracking-[0.2em] text-on-surface-variant/50">Menu</span>
       </div>
 
       <!-- Dashboard -->
@@ -36,7 +36,7 @@
           <div class="absolute left-0 top-1/2 -translate-y-1/2 w-[4px] h-[18px] bg-primary rounded-r-full"></div>
         }
         <span class="material-symbols-outlined text-[20px]">dashboard</span>
-        <span class="text-sm font-semibold">Dashboard</span>
+        <span class="app-span text-body-md font-semibold">Dashboard</span>
       </a>
 
       <!-- Tasks -->
@@ -50,7 +50,7 @@
           <div class="absolute left-0 top-1/2 -translate-y-1/2 w-[4px] h-[18px] bg-primary rounded-r-full"></div>
         }
         <span class="material-symbols-outlined text-[20px]">assignment</span>
-        <span class="text-sm font-semibold">Tasks</span>
+        <span class="app-span text-body-md font-semibold">Tasks</span>
       </a>
 
       <!-- Calendar -->
@@ -59,7 +59,7 @@
         title="Coming soon"
       >
         <span class="material-symbols-outlined text-[20px]">calendar_month</span>
-        <span class="text-sm font-semibold">Calendar</span>
+        <span class="app-span text-body-md font-semibold">Calendar</span>
       </a>
 
       <!-- Analytics -->
@@ -68,7 +68,7 @@
         title="Coming soon"
       >
         <span class="material-symbols-outlined text-[20px]">analytics</span>
-        <span class="text-sm font-semibold">Analytics</span>
+        <span class="app-span text-body-md font-semibold">Analytics</span>
       </a>
 
       <!-- Team -->
@@ -77,22 +77,37 @@
         title="Coming soon"
       >
         <span class="material-symbols-outlined text-[20px]">group</span>
-        <span class="text-sm font-semibold">Team</span>
+        <span class="app-span text-body-md font-semibold">Team</span>
       </a>
 
       <!-- Section: GENERAL -->
       <div class="mt-lg mb-xs px-md">
-        <span class="text-[10px] font-bold uppercase tracking-[0.2em] text-on-surface-variant/50">General</span>
+        <span class="app-span text-label-sm font-bold uppercase tracking-[0.2em] text-on-surface-variant/50">General</span>
       </div>
 
       <!-- Settings -->
-      <a
-        class="relative flex items-center gap-md pl-6 pr-md py-2.5 text-on-surface-variant/40 hover:bg-surface-container-low/30 transition-all rounded-lg cursor-not-allowed"
-        title="Coming soon"
-      >
-        <span class="material-symbols-outlined text-[20px]">settings</span>
-        <span class="text-sm font-semibold">Settings</span>
-      </a>
+      @if (activeProject.id) {
+        <a
+          [routerLink]="['/projects', activeProject.id, 'settings']"
+          routerLinkActive="text-primary font-bold bg-primary/6"
+          #rlaSettings="routerLinkActive"
+          class="relative flex items-center gap-md pl-6 pr-md py-2.5 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low/60 transition-all rounded-lg cursor-pointer"
+        >
+          @if (rlaSettings.isActive) {
+            <div class="absolute left-0 top-1/2 -translate-y-1/2 w-[4px] h-[18px] bg-primary rounded-r-full"></div>
+          }
+          <span class="material-symbols-outlined text-[20px]">settings</span>
+          <span class="app-span text-body-md font-semibold">Settings</span>
+        </a>
+      } @else {
+        <a
+          class="relative flex items-center gap-md pl-6 pr-md py-2.5 text-on-surface-variant/40 hover:bg-surface-container-low/30 transition-all rounded-lg cursor-not-allowed"
+          title="Create or select a project first"
+        >
+          <span class="material-symbols-outlined text-[20px]">settings</span>
+          <span class="app-span text-body-md font-semibold">Settings</span>
+        </a>
+      }
 
       <!-- Help -->
       <a
@@ -100,7 +115,7 @@
         title="Coming soon"
       >
         <span class="material-symbols-outlined text-[20px]">help</span>
-        <span class="text-sm font-semibold">Help</span>
+        <span class="app-span text-body-md font-semibold">Help</span>
       </a>
 
       <!-- Logout -->
@@ -109,7 +124,7 @@
         class="w-full relative flex items-center gap-md pl-6 pr-md py-2.5 text-red-500 hover:bg-red-500/10 transition-all rounded-lg cursor-pointer text-left font-semibold"
       >
         <span class="material-symbols-outlined text-[20px]">logout</span>
-        <span class="text-sm">Logout</span>
+        <span class="app-span text-body-md">Logout</span>
       </button>
     </div>
   </aside>
@@ -125,9 +140,9 @@
           <input
             type="text"
             placeholder="Search task..."
-            class="w-[200px] sm:w-[240px] pl-9 pr-8 py-1.5 border border-outline-variant/60 rounded-full text-xs bg-surface-container-low text-on-surface focus:outline-none focus:border-primary"
+            class="w-[200px] sm:w-[240px] pl-9 pr-8 py-1.5 border border-outline-variant/60 rounded-full text-body-md bg-surface-container-low text-on-surface focus:outline-none focus:border-primary"
           />
-          <span class="absolute right-3 text-[10px] text-on-surface-variant bg-surface-container-high px-1.5 py-0.5 rounded border border-outline-variant font-code pointer-events-none">⌘F</span>
+          <span class="absolute right-3 text-label-sm text-on-surface-variant bg-surface-container-high px-1.5 py-0.5 rounded border border-outline-variant font-code pointer-events-none">⌘F</span>
         </div>
       </div>
 
@@ -150,10 +165,10 @@
                 class="w-7 h-7 rounded-full object-cover border border-outline-variant/40"
               />
               <div class="hidden sm:block text-left max-w-[120px]">
-                <p class="text-xs font-bold text-on-surface truncate leading-tight">
+                <p class="app-p app-text-default text-body-sm font-bold truncate leading-tight">
                   {{ userEmail.split('@')[0] || 'User' }}
                 </p>
-                <p class="text-[9px] text-on-surface-variant truncate leading-none mt-[2.5px]">
+                <p class="app-p app-text-muted text-body-sm truncate leading-none mt-[2.5px]">
                   {{ userEmail }}
                 </p>
               </div>
@@ -172,7 +187,7 @@
                     (click)="openEditProfileDialog()"
                   >
                     <span class="material-symbols-outlined text-[18px]">manage_accounts</span>
-                    <span class="text-sm">Edit profile</span>
+                    <span class="app-span text-body-md">Edit profile</span>
                   </button>
 
                   <button
@@ -180,7 +195,7 @@
                     (click)="openChangePasswordDialog()"
                   >
                     <span class="material-symbols-outlined text-[18px]">lock</span>
-                    <span class="text-sm">Change password</span>
+                    <span class="app-span text-body-md">Change password</span>
                   </button>
                 </div>
 
@@ -192,7 +207,7 @@
                   >
                     <div class="relative flex items-center gap-sm">
                       <span class="material-symbols-outlined text-[18px]">palette</span>
-                      <span class="text-sm">Theme</span>
+                      <span class="app-span text-body-md">Theme</span>
                     </div>
 
                     <span
@@ -208,11 +223,9 @@
                       class="mt-xs w-full bg-surface-container-low border border-outline-variant rounded-xl shadow-inner z-50 p-md flex flex-col gap-sm"
                       (click)="$event.stopPropagation()"
                     >
-                      <div
-                        class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-xs px-xs"
-                      >
+                      <p class="app-p app-text-muted text-label-sm font-bold uppercase tracking-wider mb-xs px-xs">
                         Theme
-                      </div>
+                      </p>
 
                       <!-- Light option -->
                       <div
@@ -232,7 +245,7 @@
                               <div class="h-[2px] bg-on-surface-variant/20 w-5"></div>
                             </div>
                           </div>
-                          <span class="text-xs font-bold text-on-surface">Light</span>
+                          <span class="app-span app-text-default text-body-sm font-bold">Light</span>
                         </div>
                         <span
                           class="material-symbols-outlined text-[18px]"
@@ -265,7 +278,7 @@
                               <div class="h-[2px] bg-white/10 w-5"></div>
                             </div>
                           </div>
-                          <span class="text-xs font-bold text-on-surface">Dark</span>
+                          <span class="app-span app-text-default text-body-sm font-bold">Dark</span>
                         </div>
                         <span
                           class="material-symbols-outlined text-[18px]"
@@ -304,7 +317,7 @@
                               ></div>
                             </div>
                           </div>
-                          <span class="text-xs font-bold text-on-surface">System</span>
+                          <span class="app-span app-text-default text-body-sm font-bold">System</span>
                         </div>
                         <span
                           class="material-symbols-outlined text-[18px]"
