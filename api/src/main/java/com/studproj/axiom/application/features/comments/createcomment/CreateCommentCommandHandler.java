@@ -2,8 +2,8 @@ package com.studproj.axiom.application.features.comments.createcomment;
 
 import com.studproj.axiom.application.features.comments.CommentDto;
 import com.studproj.axiom.application.features.projects.ProjectAccessChecks;
-import com.studproj.axiom.domain.exception.ForbiddenException;
-import com.studproj.axiom.domain.exception.NotFoundException;
+import com.studproj.axiom.domain.exception.AccessDeniedException;
+import com.studproj.axiom.domain.exception.EntityNotFoundException;
 import com.studproj.axiom.domain.model.Comment;
 import com.studproj.axiom.domain.model.WorkItem;
 import com.studproj.axiom.domain.repository.CommentRepository;
@@ -30,10 +30,10 @@ public class CreateCommentCommandHandler {
     @Transactional
     public UUID handle(CreateCommentCommand command) {
         WorkItem workItem = workItemRepository.findById(command.workItemId())
-                .orElseThrow(() -> new NotFoundException("WorkItem not found"));
+                .orElseThrow(() -> new EntityNotFoundException("WorkItem not found"));
 
         if (!ProjectAccessChecks.isProjectMember(projectRepository, projectMembershipRepository, authenticatedUserProvider, workItem.getProjectId())) {
-            throw new ForbiddenException("You are not a member of this project");
+            throw new AccessDeniedException("You are not a member of this project");
         }
 
         var currentUserId = authenticatedUserProvider.getAuthenticatedUserId();

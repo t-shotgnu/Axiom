@@ -6,5 +6,5 @@ import java.util.List;
 import java.util.UUID;
 
 public interface AttachmentJpaRepository extends JpaRepository<AttachmentEntity, UUID> {
-    List<AttachmentEntity> findByWorkItemId(UUID workItemId);
+    List<AttachmentEntity> findByWorkItemIdOrderByUploadedOnDesc(UUID workItemId);
 }

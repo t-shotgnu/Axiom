@@ -1,9 +1,20 @@
-import { Component, OnInit, inject, ChangeDetectionStrategy, ChangeDetectorRef, HostListener } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  inject,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  HostListener,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 
-import { WorkItemService, WorkItem, CreateWorkItemCommand } from '../../core/services/work-item.service';
+import {
+  WorkItemService,
+  WorkItem,
+  CreateWorkItemCommand,
+} from '../../core/services/work-item.service';
 import { ProjectService, Project } from '../../core/services/project.service';
 import { Router } from '@angular/router';
 import { ProjectMemberService } from '../../core/services/project-member.service';
@@ -18,7 +29,14 @@ import { ToastService } from '../../core/services/toast.service';
 @Component({
   selector: 'app-task-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, ButtonComponent, DialogComponent, SelectComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    RouterModule,
+    ButtonComponent,
+    DialogComponent,
+    SelectComponent,
+  ],
   templateUrl: './task-detail.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -66,7 +84,13 @@ export class TaskDetailComponent implements OnInit {
   assigneeName: string = 'Unassigned';
   reporterName: string = 'Unknown';
   // projectMembers: list of users who belong to the current project (for assignment)
-  projectUsers: { id: string; userName?: string; fullName: string; email?: string; role: 'MEMBER' | 'ADMIN' }[] = [];
+  projectUsers: {
+    id: string;
+    userName?: string;
+    fullName: string;
+    email?: string;
+    role: 'MEMBER' | 'ADMIN';
+  }[] = [];
 
   // Edit dialog
   showEditDialog = false;
@@ -79,6 +103,8 @@ export class TaskDetailComponent implements OnInit {
   comments: Comment[] = [];
   attachments: Attachment[] = [];
   newCommentText = '';
+  selectedAttachment: File | null = null;
+  isUploadingAttachment = false;
 
   statusOptions = [
     { label: 'TO DO', value: 'New' },
@@ -86,7 +112,7 @@ export class TaskDetailComponent implements OnInit {
     { label: 'IN DEVELOPMENT', value: 'InDevelopment' },
     { label: 'IN TESTING', value: 'InTesting' },
     { label: 'REVIEW', value: 'Resolved' },
-    { label: 'DONE', value: 'Closed' }
+    { label: 'DONE', value: 'Closed' },
   ];
 
   priorityOptions = [
@@ -94,7 +120,7 @@ export class TaskDetailComponent implements OnInit {
     { label: 'High', value: 3, icon: 'keyboard_arrow_up', colorClass: 'text-[#ff5630]' },
     { label: 'Medium', value: 5, icon: 'keyboard_arrow_up', colorClass: 'text-[#0052cc]' },
     { label: 'Low', value: 7, icon: 'keyboard_arrow_down', colorClass: 'text-[#42526e]' },
-    { label: 'Lowest', value: 9, icon: 'keyboard_double_arrow_down', colorClass: 'text-[#8993a4]' }
+    { label: 'Lowest', value: 9, icon: 'keyboard_double_arrow_down', colorClass: 'text-[#8993a4]' },
   ];
 
   typeOptions = [
@@ -103,7 +129,7 @@ export class TaskDetailComponent implements OnInit {
     { label: 'Epic', value: 'Epic' },
     { label: 'Feature', value: 'Feature' },
     { label: 'User Story', value: 'UserStory' },
-    { label: 'Subtask', value: 'Subtask' }
+    { label: 'Subtask', value: 'Subtask' },
   ];
 
   get assigneeOptions() {
@@ -119,11 +145,10 @@ export class TaskDetailComponent implements OnInit {
       next: (params) => {
         this.id = params.get('id');
         this.loadTask();
-      }
+      },
     });
 
     this.loadCurrentUser();
-
   }
 
   private loadCurrentUser(): void {
@@ -175,7 +200,7 @@ export class TaskDetailComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error updating task', err);
-      }
+      },
     });
   }
 
@@ -232,7 +257,7 @@ export class TaskDetailComponent implements OnInit {
           type: this.type,
           assigneeId: this.assigneeId,
           priority: this.priority,
-          estimatedEffort: this.estimatedEffort
+          estimatedEffort: this.estimatedEffort,
         };
 
         setTimeout(() => {
@@ -248,14 +273,14 @@ export class TaskDetailComponent implements OnInit {
         if (data.projectId) {
           this.projectService.getProjectById(data.projectId).subscribe({
             next: (proj) => {
-                  if (!proj) {
-                    return;
-                  }
-                  this.project = proj;
-                  this.loadProjectMembers(proj.id);
-                  this.cdr.markForCheck();
-                },
-            error: (err) => console.error('Error loading project details', err)
+              if (!proj) {
+                return;
+              }
+              this.project = proj;
+              this.loadProjectMembers(proj.id);
+              this.cdr.markForCheck();
+            },
+            error: (err) => console.error('Error loading project details', err),
           });
         }
 
@@ -292,7 +317,12 @@ export class TaskDetailComponent implements OnInit {
   }
 
   private getUserDisplayName(user: User): string {
-    return `${(user.firstName || '').trim()} ${(user.lastName || '').trim()}`.trim() || user.userName || user.emailAddress || user.id;
+    return (
+      `${(user.firstName || '').trim()} ${(user.lastName || '').trim()}`.trim() ||
+      user.userName ||
+      user.emailAddress ||
+      user.id
+    );
   }
 
   private loadProjectMembers(projectId: string) {
@@ -301,7 +331,11 @@ export class TaskDetailComponent implements OnInit {
         this.projectUsers = members.map((m) => ({
           id: m.userId,
           userName: m.userName,
-          fullName: `${(m.firstName || '').trim()} ${(m.lastName || '').trim()}`.trim() || m.userName || m.emailAddress || 'Unknown',
+          fullName:
+            `${(m.firstName || '').trim()} ${(m.lastName || '').trim()}`.trim() ||
+            m.userName ||
+            m.emailAddress ||
+            'Unknown',
           email: m.emailAddress,
           role: m.role,
         }));
@@ -333,7 +367,9 @@ export class TaskDetailComponent implements OnInit {
       return true;
     }
 
-    return this.projectUsers.some((member) => member.id === this.currentUserId && member.role === 'ADMIN');
+    return this.projectUsers.some(
+      (member) => member.id === this.currentUserId && member.role === 'ADMIN',
+    );
   }
 
   updateStatus() {
@@ -348,12 +384,14 @@ export class TaskDetailComponent implements OnInit {
   assignUser() {
     if (this.id) {
       const normalizedAssigneeId = this.assigneeId.trim();
-      this.workItemService.assignWorkItem(this.id, { assigneeId: normalizedAssigneeId ? normalizedAssigneeId : null }).subscribe({
-        next: () => this.loadTask(),
-        error: (err) => {
-          console.error('Failed to update assignee', err);
-        },
-      });
+      this.workItemService
+        .assignWorkItem(this.id, { assigneeId: normalizedAssigneeId ? normalizedAssigneeId : null })
+        .subscribe({
+          next: () => this.loadTask(),
+          error: (err) => {
+            console.error('Failed to update assignee', err);
+          },
+        });
     }
   }
 
@@ -365,7 +403,7 @@ export class TaskDetailComponent implements OnInit {
         this.comments = list;
         this.cdr.markForCheck();
       },
-      error: (err) => console.error('Error loading comments', err)
+      error: (err) => console.error('Error loading comments', err),
     });
   }
 
@@ -377,7 +415,7 @@ export class TaskDetailComponent implements OnInit {
         this.newCommentText = '';
         this.loadComments();
       },
-      error: (err) => console.error('Error adding comment', err)
+      error: (err) => console.error('Error adding comment', err),
     });
   }
 
@@ -386,7 +424,7 @@ export class TaskDetailComponent implements OnInit {
       next: () => {
         this.loadComments();
       },
-      error: (err) => console.error('Error deleting comment', err)
+      error: (err) => console.error('Error deleting comment', err),
     });
   }
 
@@ -399,7 +437,9 @@ export class TaskDetailComponent implements OnInit {
       return true;
     }
 
-    return this.projectUsers.some((member) => member.id === this.currentUserId && member.role === 'ADMIN');
+    return this.projectUsers.some(
+      (member) => member.id === this.currentUserId && member.role === 'ADMIN',
+    );
   }
 
   // Attachments Management
@@ -410,15 +450,105 @@ export class TaskDetailComponent implements OnInit {
         this.attachments = list;
         this.cdr.markForCheck();
       },
-      error: (err) => console.error('Error loading attachments', err)
+      error: (err) => console.error('Error loading attachments', err),
     });
+  }
+
+  onAttachmentSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] || null;
+
+    if (file && file.size > 10 * 1024 * 1024) {
+      this.toastService.error('Maximum allowed file size is 10 MB.');
+      input.value = '';
+      return;
+    }
+
+    this.selectedAttachment = file;
+  }
+
+  uploadAttachment(): void {
+    if (!this.id || !this.selectedAttachment || this.isUploadingAttachment) return;
+
+    this.isUploadingAttachment = true;
+    this.attachmentService.uploadAttachment(this.id, this.selectedAttachment).subscribe({
+      next: () => {
+        this.selectedAttachment = null;
+        this.isUploadingAttachment = false;
+        this.toastService.success('Attachment uploaded successfully.');
+        this.loadAttachments();
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.isUploadingAttachment = false;
+        const message = err?.error?.detail || err?.error?.message || 'Failed to upload attachment.';
+        this.toastService.error(message);
+        console.error('Error uploading attachment', err);
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  downloadAttachment(file: Attachment): void {
+    this.attachmentService.downloadAttachment(file.id).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = file.fileName;
+        link.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: (err) => {
+        this.toastService.error('Failed to download attachment.');
+        console.error('Error downloading attachment', err);
+      },
+    });
+  }
+
+  deleteAttachment(file: Attachment): void {
+    this.attachmentService.deleteAttachment(file.id).subscribe({
+      next: () => {
+        this.toastService.success('Attachment deleted.');
+        this.loadAttachments();
+      },
+      error: (err) => {
+        this.toastService.error('Failed to delete attachment.');
+        console.error('Error deleting attachment', err);
+      },
+    });
+  }
+
+  canDeleteAttachment(file: Attachment): boolean {
+    if (!this.currentUserId) {
+      return false;
+    }
+
+    if (file.uploadedBy === this.currentUserId) {
+      return true;
+    }
+
+    return this.projectUsers.some(
+      (member) => member.id === this.currentUserId && member.role === 'ADMIN',
+    );
+  }
+
+  formatFileSize(size: number): string {
+    if (!size) return '0 B';
+    if (size < 1024) return `${size} B`;
+    if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
+    return `${(size / (1024 * 1024)).toFixed(1)} MB`;
   }
 
   formatDate(dateStr: string): string {
     if (!dateStr) return 'Just now';
     try {
       const date = new Date(dateStr);
-      return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      return (
+        date.toLocaleDateString() +
+        ' ' +
+        date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      );
     } catch {
       return dateStr;
     }
@@ -482,13 +612,18 @@ export class TaskDetailComponent implements OnInit {
 
   get currentUserInitials(): string {
     if (!this.currentUser) return 'ME';
-    const name = `${(this.currentUser.firstName || '').trim()} ${(this.currentUser.lastName || '').trim()}`.trim() || this.currentUser.userName || this.currentUser.emailAddress;
-    return name
-      .split(/\s+/)
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((part) => part[0]?.toUpperCase())
-      .join('') || 'ME';
+    const name =
+      `${(this.currentUser.firstName || '').trim()} ${(this.currentUser.lastName || '').trim()}`.trim() ||
+      this.currentUser.userName ||
+      this.currentUser.emailAddress;
+    return (
+      name
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part[0]?.toUpperCase())
+        .join('') || 'ME'
+    );
   }
 
   adjustTitleHeight(textarea: any): void {
@@ -554,7 +689,7 @@ export class TaskDetailComponent implements OnInit {
       type: this.type,
       assigneeId: normalizedAssigneeId,
       estimatedEffort: this.estimatedEffort,
-      notes: this.notesText.trim()
+      notes: this.notesText.trim(),
     } as any;
 
     this.workItemService.updateWorkItem(this.id, workItemPayload).subscribe({
@@ -565,7 +700,7 @@ export class TaskDetailComponent implements OnInit {
       error: (err) => {
         this.toastService.error('Failed to update task.');
         console.error('Error saving task modifications', err);
-      }
+      },
     });
   }
 }

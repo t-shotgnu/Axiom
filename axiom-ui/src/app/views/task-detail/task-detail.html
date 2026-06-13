@@ -99,36 +99,88 @@
       </section>
 
       <!-- Attachments Section -->
-      <section class="space-y-md pt-md" *ngIf="attachments && attachments.length > 0">
-        <div class="flex items-center gap-xs select-none">
-          <span class="material-symbols-outlined text-[16px] text-on-surface-variant"
-            >attachment</span
-          >
-          <h3 class="text-xs font-black text-on-surface-variant uppercase tracking-widest">
-            Attachments ({{ attachments.length }})
-          </h3>
+      <section class="space-y-md pt-md">
+        <div class="flex items-center justify-between gap-md select-none">
+          <div class="flex items-center gap-xs">
+            <span class="material-symbols-outlined text-[16px] text-on-surface-variant"
+              >attachment</span
+            >
+            <h3 class="text-xs font-black text-on-surface-variant uppercase tracking-widest">
+              Attachments ({{ attachments.length }})
+            </h3>
+          </div>
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-md select-none">
+
+        @if (canEditTask()) {
+          <div
+            class="flex flex-col sm:flex-row sm:items-center gap-sm rounded-lg border border-dashed border-outline-variant bg-surface-container-lowest p-md"
+          >
+            <input
+              type="file"
+              (change)="onAttachmentSelected($event)"
+              class="min-w-0 flex-1 text-xs text-on-surface file:mr-md file:rounded file:border-0 file:bg-surface-container-high file:px-md file:py-sm file:text-xs file:font-bold file:text-on-surface hover:file:bg-surface-container-medium"
+            />
+            <app-button
+              variant="secondary"
+              icon="upload"
+              [disabled]="!selectedAttachment || isUploadingAttachment"
+              (onClick)="uploadAttachment()"
+              customClass="py-sm px-md text-xs font-bold"
+            >
+              Upload
+            </app-button>
+          </div>
+        }
+
+        @if (attachments.length === 0) {
+          <div
+            class="rounded-lg border border-outline-variant/60 bg-surface-container-lowest p-md text-xs text-on-surface-variant"
+          >
+            No attachments yet.
+          </div>
+        }
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-md">
           @for (file of attachments; track file.id) {
             <div
-              class="flex items-center gap-md bg-surface-container-low border border-outline-variant rounded-xl p-sm hover:bg-surface-container-medium transition-colors cursor-pointer"
+              class="flex items-center gap-md bg-surface-container-low border border-outline-variant rounded-lg p-sm hover:bg-surface-container-medium transition-colors"
             >
               <div
-                class="w-10 h-10 rounded flex items-center justify-center shrink-0"
-                [class.bg-[#e8f0fe]]="file.fileType === 'image'"
-                [class.text-primary]="file.fileType === 'image'"
-                [class.bg-red-500/10]="file.fileType === 'pdf'"
-                [class.text-red-500]="file.fileType === 'pdf'"
+                class="w-10 h-10 rounded flex items-center justify-center shrink-0 bg-surface-container-high text-on-surface-variant"
+                [class.bg-[#e8f0fe]]="file.fileType.startsWith('image/')"
+                [class.text-primary]="file.fileType.startsWith('image/')"
+                [class.bg-red-500/10]="file.fileType.includes('pdf')"
+                [class.text-red-500]="file.fileType.includes('pdf')"
               >
                 <span class="material-symbols-outlined text-[24px]">
-                  {{ file.fileType === 'image' ? 'image' : 'picture_as_pdf' }}
+                  {{ file.fileType.startsWith('image/') ? 'image' : file.fileType.includes('pdf') ? 'picture_as_pdf' : 'description' }}
                 </span>
               </div>
               <div class="min-w-0 flex-1">
                 <div class="text-xs font-bold text-on-surface truncate">{{ file.fileName }}</div>
                 <div class="text-[10px] text-on-surface-variant mt-[2px]">
-                  {{ file.fileSize }} • {{ formatDate(file.uploadedOn) }}
+                  {{ formatFileSize(file.fileSize) }} • {{ formatDate(file.uploadedOn) }}
                 </div>
+              </div>
+              <div class="flex items-center gap-xs shrink-0">
+                <button
+                  type="button"
+                  (click)="downloadAttachment(file)"
+                  class="w-8 h-8 rounded flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-surface-container-high"
+                  title="Download"
+                >
+                  <span class="material-symbols-outlined text-[18px]">download</span>
+                </button>
+                @if (canDeleteAttachment(file)) {
+                  <button
+                    type="button"
+                    (click)="deleteAttachment(file)"
+                    class="w-8 h-8 rounded flex items-center justify-center text-on-surface-variant hover:text-red-500 hover:bg-red-500/10"
+                    title="Delete"
+                  >
+                    <span class="material-symbols-outlined text-[18px]">delete</span>
+                  </button>
+                }
               </div>
             </div>
           }

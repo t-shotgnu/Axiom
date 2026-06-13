@@ -1,8 +1,8 @@
 package com.studproj.axiom.application.features.workitems.updateworkitemnotes;
 
 import com.studproj.axiom.application.features.projects.ProjectAccessChecks;
-import com.studproj.axiom.domain.exception.ForbiddenException;
-import com.studproj.axiom.domain.exception.NotFoundException;
+import com.studproj.axiom.domain.exception.AccessDeniedException;
+import com.studproj.axiom.domain.exception.EntityNotFoundException;
 import com.studproj.axiom.domain.model.WorkItem;
 import com.studproj.axiom.domain.repository.ProjectMembershipRepository;
 import com.studproj.axiom.domain.repository.ProjectRepository;
@@ -27,7 +27,7 @@ public class UpdateWorkItemNotesCommandHandler {
     @Transactional
     public void handle(UpdateWorkItemNotesCommand command) {
         WorkItem workItem = workItemRepository.findById(command.id())
-                .orElseThrow(() -> new NotFoundException("WorkItem not found"));
+                .orElseThrow(() -> new EntityNotFoundException("WorkItem not found"));
 
         ensureAuthorOrProjectAdmin(workItem);
         workItem.updateNotes(command.notes());
@@ -36,7 +36,7 @@ public class UpdateWorkItemNotesCommandHandler {
 
     private void ensureAuthorOrProjectAdmin(WorkItem workItem) {
         if (!ProjectAccessChecks.isProjectMember(projectRepository, projectMembershipRepository, authenticatedUserProvider, workItem.getProjectId())) {
-            throw new ForbiddenException("You are not a member of this project");
+            throw new AccessDeniedException("You are not a member of this project");
         }
 
         UUID currentUserId = authenticatedUserProvider.getAuthenticatedUserId();
@@ -48,6 +48,6 @@ public class UpdateWorkItemNotesCommandHandler {
             return;
         }
 
-        throw new ForbiddenException("Only the author or project admin can modify this work item");
+        throw new AccessDeniedException("Only the author or project admin can modify this work item");
     }
 }

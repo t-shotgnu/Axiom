@@ -1,8 +1,8 @@
 package com.studproj.axiom.application.features.projectmembers.addprojectmember;
 
 import com.studproj.axiom.application.features.projects.ProjectAccessChecks;
-import com.studproj.axiom.domain.exception.BadRequestException;
-import com.studproj.axiom.domain.exception.NotFoundException;
+import com.studproj.axiom.domain.exception.DomainRuleViolationException;
+import com.studproj.axiom.domain.exception.EntityNotFoundException;
 import com.studproj.axiom.domain.model.ProjectMembership;
 import com.studproj.axiom.domain.repository.ProjectMembershipRepository;
 import com.studproj.axiom.domain.repository.ProjectRepository;
@@ -35,14 +35,14 @@ public class AddProjectMemberCommandHandler {
                 projectId);
 
         if (projectMembershipRepository.existsByProjectIdAndUserId(projectId, command.userId())) {
-            throw new BadRequestException("User is already a member of this project");
+            throw new DomainRuleViolationException("User is already a member of this project");
         }
 
         userRepository.findById(command.userId())
-                .orElseThrow(() -> new NotFoundException("User not found"));
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
         var role = projectRoleRepository.findByType(command.role())
-                .orElseThrow(() -> new NotFoundException("Project role not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Project role not found"));
 
         projectMembershipRepository.save(new ProjectMembership(
                 UUID.randomUUID(),

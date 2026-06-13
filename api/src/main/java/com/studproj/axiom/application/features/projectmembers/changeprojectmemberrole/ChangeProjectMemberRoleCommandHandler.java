@@ -1,8 +1,8 @@
 package com.studproj.axiom.application.features.projectmembers.changeprojectmemberrole;
 
 import com.studproj.axiom.application.features.projects.ProjectAccessChecks;
-import com.studproj.axiom.domain.exception.ForbiddenException;
-import com.studproj.axiom.domain.exception.NotFoundException;
+import com.studproj.axiom.domain.exception.AccessDeniedException;
+import com.studproj.axiom.domain.exception.EntityNotFoundException;
 import com.studproj.axiom.domain.model.Project;
 import com.studproj.axiom.domain.model.ProjectMembership;
 import com.studproj.axiom.domain.repository.ProjectMembershipRepository;
@@ -33,21 +33,21 @@ public class ChangeProjectMemberRoleCommandHandler {
                 projectId);
 
         if (authenticatedUserProvider.getAuthenticatedUserId().equals(userId)) {
-            throw new ForbiddenException("You cannot change your own role");
+            throw new AccessDeniedException("You cannot change your own role");
         }
 
         Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new NotFoundException("Project not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Project not found"));
 
         if (project.getOwnerId() != null && project.getOwnerId().equals(userId)) {
-            throw new ForbiddenException("Project lead role cannot be changed");
+            throw new AccessDeniedException("Project lead role cannot be changed");
         }
 
         ProjectMembership membership = projectMembershipRepository.findByProjectIdAndUserId(projectId, userId)
-                .orElseThrow(() -> new NotFoundException("Project member not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Project member not found"));
 
         var role = projectRoleRepository.findByType(command.role())
-                .orElseThrow(() -> new NotFoundException("Project role not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Project role not found"));
 
         membership.changeRole(role.getId());
         projectMembershipRepository.save(membership);

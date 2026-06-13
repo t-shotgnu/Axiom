@@ -1,8 +1,8 @@
 package com.studproj.axiom.application.features.projectmembers.removeprojectmember;
 
 import com.studproj.axiom.application.features.projects.ProjectAccessChecks;
-import com.studproj.axiom.domain.exception.ForbiddenException;
-import com.studproj.axiom.domain.exception.NotFoundException;
+import com.studproj.axiom.domain.exception.AccessDeniedException;
+import com.studproj.axiom.domain.exception.EntityNotFoundException;
 import com.studproj.axiom.domain.model.Project;
 import com.studproj.axiom.domain.repository.ProjectMembershipRepository;
 import com.studproj.axiom.domain.repository.ProjectRepository;
@@ -30,18 +30,18 @@ public class RemoveProjectMemberCommandHandler {
                 command.projectId());
 
         Project project = projectRepository.findById(command.projectId())
-                .orElseThrow(() -> new NotFoundException("Project not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Project not found"));
 
         if (project.getOwnerId() != null && project.getOwnerId().equals(command.userId())) {
-            throw new ForbiddenException("Project lead cannot be removed from the project");
+            throw new AccessDeniedException("Project lead cannot be removed from the project");
         }
 
         if (authenticatedUserProvider.getAuthenticatedUserId().equals(command.userId())) {
-            throw new ForbiddenException("You cannot remove yourself from the project");
+            throw new AccessDeniedException("You cannot remove yourself from the project");
         }
 
         if (projectMembershipRepository.findByProjectIdAndUserId(command.projectId(), command.userId()).isEmpty()) {
-            throw new NotFoundException("Project member not found");
+            throw new EntityNotFoundException("Project member not found");
         }
 
         projectMembershipRepository.deleteByProjectIdAndUserId(command.projectId(), command.userId());

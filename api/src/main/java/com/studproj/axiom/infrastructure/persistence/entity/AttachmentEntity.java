@@ -23,8 +23,10 @@ public class AttachmentEntity {
     @Id
     private UUID id;
     private UUID workItemId;
+    private UUID uploadedBy;
+    private String objectKey;
     private String fileName;
-    private String fileSize;
+    private Long fileSize;
     private String fileType;
     private LocalDateTime uploadedOn;
 }

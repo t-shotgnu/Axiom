@@ -1,7 +1,7 @@
 package com.studproj.axiom.infrastructure.security;
 
-import com.studproj.axiom.domain.exception.ForbiddenException;
-import com.studproj.axiom.domain.exception.UnauthorizedException;
+import com.studproj.axiom.domain.exception.AccessDeniedException;
+import com.studproj.axiom.domain.exception.AuthenticationRequiredException;
 import com.studproj.axiom.domain.service.AuthenticatedUserProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,7 +18,7 @@ public class AuthenticatedUserProviderImpl implements AuthenticatedUserProvider 
                 .getAuthentication();
 
         if (authentication == null || !authentication.isAuthenticated()) {
-            throw new UnauthorizedException("No authenticated user");
+            throw new AuthenticationRequiredException("No authenticated user");
         }
 
         var principal = authentication.getPrincipal();
@@ -26,7 +26,7 @@ public class AuthenticatedUserProviderImpl implements AuthenticatedUserProvider 
             return userDetails.id();
         }
 
-        throw new ForbiddenException("Authenticated principal does not contain user id");
+        throw new AccessDeniedException("Authenticated principal does not contain user id");
     }
 
     @Override
@@ -36,7 +36,7 @@ public class AuthenticatedUserProviderImpl implements AuthenticatedUserProvider 
                 .getAuthentication();
 
         if (authentication == null || !authentication.isAuthenticated()) {
-            throw new UnauthorizedException("No authenticated user");
+            throw new AuthenticationRequiredException("No authenticated user");
         }
 
         return authentication.getName();

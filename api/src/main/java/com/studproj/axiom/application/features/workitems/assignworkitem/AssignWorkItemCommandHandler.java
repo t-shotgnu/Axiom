@@ -1,8 +1,8 @@
 package com.studproj.axiom.application.features.workitems.assignworkitem;
 
 import com.studproj.axiom.application.features.projects.ProjectAccessChecks;
-import com.studproj.axiom.domain.exception.ForbiddenException;
-import com.studproj.axiom.domain.exception.NotFoundException;
+import com.studproj.axiom.domain.exception.AccessDeniedException;
+import com.studproj.axiom.domain.exception.EntityNotFoundException;
 import com.studproj.axiom.domain.model.WorkItem;
 import com.studproj.axiom.domain.repository.ProjectMembershipRepository;
 import com.studproj.axiom.domain.repository.ProjectRepository;
@@ -23,14 +23,14 @@ public class AssignWorkItemCommandHandler {
     @Transactional
     public void handle(AssignWorkItemCommand command) {
         WorkItem workItem = workItemRepository.findById(command.id())
-                .orElseThrow(() -> new NotFoundException("WorkItem not found"));
+                .orElseThrow(() -> new EntityNotFoundException("WorkItem not found"));
 
         if (!ProjectAccessChecks.isProjectMember(projectRepository, projectMembershipRepository, authenticatedUserProvider, workItem.getProjectId())) {
-            throw new ForbiddenException("You are not a member of this project");
+            throw new AccessDeniedException("You are not a member of this project");
         }
 
         if (command.assigneeId() != null && !projectMembershipRepository.existsByProjectIdAndUserId(workItem.getProjectId(), command.assigneeId())) {
-            throw new ForbiddenException("Assignee must be a member of this project");
+            throw new AccessDeniedException("Assignee must be a member of this project");
         }
 
         workItem.assignTo(command.assigneeId());

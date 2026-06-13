@@ -1,6 +1,6 @@
 package com.studproj.axiom.application.features.projects.createproject;
 
-import com.studproj.axiom.domain.exception.NotFoundException;
+import com.studproj.axiom.domain.exception.EntityNotFoundException;
 import com.studproj.axiom.domain.model.Project;
 import com.studproj.axiom.domain.model.ProjectMembership;
 import com.studproj.axiom.domain.model.ProjectRoleType;
@@ -43,7 +43,7 @@ public class CreateProjectCommandHandler {
         projectRepository.save(project);
 
         var adminRole = projectRoleRepository.findByType(ProjectRoleType.ADMIN)
-                .orElseThrow(() -> new NotFoundException("Project role ADMIN not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Project role ADMIN not found"));
 
         projectMembershipRepository.save(new ProjectMembership(
                 UUID.randomUUID(),

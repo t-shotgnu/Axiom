@@ -1,7 +1,7 @@
 package com.studproj.axiom.application.features.projects;
 
-import com.studproj.axiom.domain.exception.ForbiddenException;
-import com.studproj.axiom.domain.exception.NotFoundException;
+import com.studproj.axiom.domain.exception.AccessDeniedException;
+import com.studproj.axiom.domain.exception.EntityNotFoundException;
 import com.studproj.axiom.domain.model.ProjectMembership;
 import com.studproj.axiom.domain.model.ProjectRoleType;
 import com.studproj.axiom.domain.repository.ProjectMembershipRepository;
@@ -17,7 +17,7 @@ public final class ProjectAccessChecks {
 
     public static void ensureProjectExists(ProjectRepository projectRepository, UUID projectId) {
         if (projectRepository.findById(projectId).isEmpty()) {
-            throw new NotFoundException("Project not found");
+            throw new EntityNotFoundException("Project not found");
         }
     }
 
@@ -30,7 +30,7 @@ public final class ProjectAccessChecks {
         ensureProjectExists(projectRepository, projectId);
         UUID userId = authenticatedUserProvider.getAuthenticatedUserId();
         return projectMembershipRepository.findByProjectIdAndUserId(projectId, userId)
-                .orElseThrow(() -> new ForbiddenException("You are not a member of this project"));
+                .orElseThrow(() -> new AccessDeniedException("You are not a member of this project"));
     }
 
     public static boolean isProjectMember(
@@ -58,10 +58,10 @@ public final class ProjectAccessChecks {
                 projectId);
 
         var role = projectRoleRepository.findById(membership.getRoleId())
-                .orElseThrow(() -> new NotFoundException("Project role not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Project role not found"));
 
         if (role.getType() != ProjectRoleType.ADMIN) {
-            throw new ForbiddenException("You are not allowed to manage this project");
+            throw new AccessDeniedException("You are not allowed to manage this project");
         }
     }
 
@@ -78,10 +78,10 @@ public final class ProjectAccessChecks {
 
         UUID userId = authenticatedUserProvider.getAuthenticatedUserId();
         ProjectMembership membership = projectMembershipRepository.findByProjectIdAndUserId(projectId, userId)
-                .orElseThrow(() -> new ForbiddenException("You are not a member of this project"));
+                .orElseThrow(() -> new AccessDeniedException("You are not a member of this project"));
 
         var role = projectRoleRepository.findById(membership.getRoleId())
-                .orElseThrow(() -> new NotFoundException("Project role not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Project role not found"));
 
         return role.getType() == ProjectRoleType.ADMIN;
     }
