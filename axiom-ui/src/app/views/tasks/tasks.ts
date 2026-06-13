@@ -122,7 +122,7 @@ export class TasksComponent implements OnInit {
 
   // Pagination
   currentPage = 1;
-  pageSize = 7;
+  pageSize = 25;
   totalPages = 1;
 
   // Backwards-compatible API used by legacy tests

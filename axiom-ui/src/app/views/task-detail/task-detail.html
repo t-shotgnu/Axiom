@@ -21,6 +21,8 @@
           project?.name || 'Project'
         }}</a>
         <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+        <a routerLink="/tasks" class="hover:underline">Tasks</a>
+        <span class="material-symbols-outlined text-[14px]">chevron_right</span>
         <span class="text-on-surface font-semibold"
           >{{ project?.code || 'AX' }}-{{ id === 'new' ? 'New' : task.controlNo }}</span
         >

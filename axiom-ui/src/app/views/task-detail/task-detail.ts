@@ -318,6 +318,7 @@ export class TaskDetailComponent implements OnInit {
           next: (proj) => {
             if (proj) {
               this.project = proj;
+              this.projectService.setCurrentProject(proj);
               this.loadProjectMembers(proj.id);
               this.loadProjectTasks(proj.id);
             }
@@ -381,6 +382,7 @@ export class TaskDetailComponent implements OnInit {
                 return;
               }
               this.project = proj;
+              this.projectService.setCurrentProject(proj);
               this.loadProjectMembers(proj.id);
               this.loadProjectTasks(proj.id);
               this.cdr.markForCheck();
