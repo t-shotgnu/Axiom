@@ -17,6 +17,11 @@ describe('TaskDetailComponent', () => {
     createWorkItem: ReturnType<typeof vi.fn>;
     updateWorkItemNotes: ReturnType<typeof vi.fn>;
     updateWorkItem: ReturnType<typeof vi.fn>;
+    getRelationshipsByWorkItem: ReturnType<typeof vi.fn>;
+    getWorkItems: ReturnType<typeof vi.fn>;
+    createRelationship: ReturnType<typeof vi.fn>;
+    deleteRelationship: ReturnType<typeof vi.fn>;
+    getTypeHierarchy: ReturnType<typeof vi.fn>;
   };
   let fixture: ComponentFixture<TaskDetailComponent>;
   let component: TaskDetailComponent;
@@ -57,6 +62,11 @@ describe('TaskDetailComponent', () => {
       createWorkItem: vi.fn(() => of('task-new')),
       updateWorkItemNotes: vi.fn(() => of(undefined)),
       updateWorkItem: vi.fn(() => of(undefined)),
+      getRelationshipsByWorkItem: vi.fn(() => of([])),
+      getWorkItems: vi.fn(() => of([])),
+      createRelationship: vi.fn(() => of('rel-new')),
+      deleteRelationship: vi.fn(() => of(undefined)),
+      getTypeHierarchy: vi.fn(() => of({})),
     };
 
     await TestBed.configureTestingModule({
@@ -146,6 +156,7 @@ describe('TaskDetailComponent', () => {
     component.notesText = 'Some notes';
     component.estimatedEffort = 8;
     component.priority = 3;
+    component.parentId = 'parent-1';
 
     component.saveAllChanges();
 
@@ -157,6 +168,11 @@ describe('TaskDetailComponent', () => {
       estimatedEffort: 8,
     }));
     expect(workItemService.updateWorkItemNotes).toHaveBeenCalledWith('task-new', 'Some notes');
+    expect(workItemService.createRelationship).toHaveBeenCalledWith({
+      sourceId: 'task-new',
+      targetId: 'parent-1',
+      linkType: 'ChildOf'
+    });
   });
 
   it('updates status and reloads the task', () => {

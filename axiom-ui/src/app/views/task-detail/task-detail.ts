@@ -14,6 +14,7 @@ import {
   WorkItemService,
   WorkItem,
   CreateWorkItemCommand,
+  TaskRelationship,
 } from '../../core/services/work-item.service';
 import { ProjectService, Project } from '../../core/services/project.service';
 import { Router } from '@angular/router';
@@ -25,6 +26,7 @@ import { ButtonComponent } from '../../shared/components/ui/button';
 import { DialogComponent } from '../../shared/components/ui/dialog';
 import { SelectComponent } from '../../shared/components/ui/select';
 import { ToastService } from '../../core/services/toast.service';
+import { extractErrorMessage } from '../../core/utils/error-utils';
 
 @Component({
   selector: 'app-task-detail',
@@ -65,6 +67,8 @@ export class TaskDetailComponent implements OnInit {
   assigneeId: string = '';
   priority: number = 1;
   estimatedEffort: number | null = null;
+  /** Parent item ID – required for all non-Epic types during task creation */
+  parentId: string = '';
 
   currentUser: User | null = null;
   showDiscardConfirmDialog = false;
@@ -78,6 +82,7 @@ export class TaskDetailComponent implements OnInit {
     assigneeId: string;
     priority: number;
     estimatedEffort: number | null;
+    parentId: string;
   } | null = null;
 
   // Real User Metadata
@@ -105,6 +110,22 @@ export class TaskDetailComponent implements OnInit {
   newCommentText = '';
   selectedAttachment: File | null = null;
   isUploadingAttachment = false;
+
+  // Relationships
+  relationships: TaskRelationship[] = [];
+  allProjectTasks: WorkItem[] = [];
+  newLinkType = 'RelatesTo';
+  newLinkTargetId = '';
+  typeHierarchy: Record<string, string[]> = {};
+  saving = false;
+
+  linkTypeOptions = [
+    { label: 'Parent', value: 'ParentOf' },
+    { label: 'Child', value: 'ChildOf' },
+    { label: 'Depends On (Blocked By)', value: 'BlockedBy' },
+    { label: 'Blocks', value: 'Blocks' },
+    { label: 'Relates To', value: 'RelatesTo' }
+  ];
 
   statusOptions = [
     { label: 'TO DO', value: 'New' },
@@ -149,6 +170,14 @@ export class TaskDetailComponent implements OnInit {
     });
 
     this.loadCurrentUser();
+
+    this.workItemService.getTypeHierarchy().subscribe({
+      next: (h) => {
+        this.typeHierarchy = h;
+        this.cdr.markForCheck();
+      },
+      error: (err) => console.error('Failed to load type hierarchy', err),
+    });
   }
 
   private loadCurrentUser(): void {
@@ -221,7 +250,10 @@ export class TaskDetailComponent implements OnInit {
           this.router.navigate(['/projects', this.task.projectId]);
         }
       },
-      error: (err) => console.error('Error deleting task', err),
+      error: (err) => {
+        this.toastService.error(extractErrorMessage(err, 'Failed to delete issue.'));
+        console.error('Error deleting task', err);
+      },
     });
   }
 
@@ -268,6 +300,7 @@ export class TaskDetailComponent implements OnInit {
       this.notesText = '';
       this.priority = 5;
       this.estimatedEffort = null;
+      this.parentId = this.route.snapshot?.queryParamMap?.get('parentId') || '';
 
       this.originalState = {
         description: this.description,
@@ -277,6 +310,7 @@ export class TaskDetailComponent implements OnInit {
         assigneeId: this.assigneeId,
         priority: this.priority,
         estimatedEffort: this.estimatedEffort,
+        parentId: '',
       };
 
       if (projectId) {
@@ -285,6 +319,7 @@ export class TaskDetailComponent implements OnInit {
             if (proj) {
               this.project = proj;
               this.loadProjectMembers(proj.id);
+              this.loadProjectTasks(proj.id);
             }
             this.cdr.markForCheck();
           },
@@ -325,6 +360,7 @@ export class TaskDetailComponent implements OnInit {
           assigneeId: this.assigneeId,
           priority: this.priority,
           estimatedEffort: this.estimatedEffort,
+          parentId: '',
         };
 
         setTimeout(() => {
@@ -336,6 +372,7 @@ export class TaskDetailComponent implements OnInit {
         this.loadComments();
         this.loadAttachments();
         this.loadReporter(data.authorId);
+        this.loadTaskRelationships();
 
         if (data.projectId) {
           this.projectService.getProjectById(data.projectId).subscribe({
@@ -345,6 +382,7 @@ export class TaskDetailComponent implements OnInit {
               }
               this.project = proj;
               this.loadProjectMembers(proj.id);
+              this.loadProjectTasks(proj.id);
               this.cdr.markForCheck();
             },
             error: (err) => console.error('Error loading project details', err),
@@ -677,7 +715,8 @@ export class TaskDetailComponent implements OnInit {
       this.type !== this.originalState.type ||
       this.assigneeId !== this.originalState.assigneeId ||
       this.priority !== this.originalState.priority ||
-      this.estimatedEffort !== this.originalState.estimatedEffort
+      this.estimatedEffort !== this.originalState.estimatedEffort ||
+      this.parentId !== this.originalState.parentId
     );
   }
 
@@ -742,6 +781,7 @@ export class TaskDetailComponent implements OnInit {
       this.assigneeId = this.originalState.assigneeId;
       this.priority = this.originalState.priority;
       this.estimatedEffort = this.originalState.estimatedEffort;
+      this.parentId = this.originalState.parentId;
     }
     if (this.deactivatePromiseResolve) {
       this.deactivatePromiseResolve(true);
@@ -750,11 +790,25 @@ export class TaskDetailComponent implements OnInit {
   }
 
   saveAllChanges(): void {
-    if (!this.isDirty) return;
+    if (!this.isDirty || this.saving) return;
+
+    this.saving = true;
+    this.cdr.markForCheck();
 
     if (this.id === 'new') {
       if (!this.description.trim()) {
         this.toastService.error('Description is required.');
+        this.saving = false;
+        this.cdr.markForCheck();
+        return;
+      }
+
+      // Enforce parent selection for all non-Epic types
+      const isEpic = this.type === 'Epic';
+      if (!isEpic && !this.parentId) {
+        this.toastService.error('You must select a parent (Feature or User Story) before saving.');
+        this.saving = false;
+        this.cdr.markForCheck();
         return;
       }
 
@@ -771,36 +825,61 @@ export class TaskDetailComponent implements OnInit {
 
       this.workItemService.createWorkItem(createPayload).subscribe({
         next: (newId) => {
-          const notes = this.notesText.trim();
-          if (notes) {
-            this.workItemService.updateWorkItemNotes(newId, notes).subscribe({
-              next: () => {
-                this.toastService.success('Task created successfully.');
-                this.originalState = null; // Bypass pendingChangesGuard
-                this.router.navigate(['/tasks', newId]);
-              },
-              error: (err) => {
-                console.error('Error saving notes for new task', err);
-                this.toastService.success('Task created successfully.');
-                this.originalState = null; // Bypass pendingChangesGuard
-                this.router.navigate(['/tasks', newId]);
-              }
-            });
-          } else {
+          const finalize = () => {
+            this.saving = false;
             this.toastService.success('Task created successfully.');
             this.originalState = null; // Bypass pendingChangesGuard
             this.router.navigate(['/tasks', newId]);
+          };
+
+          const afterNotes = () => {
+            // Create parent relationship if a parent was selected
+            if (this.parentId) {
+              this.workItemService.createRelationship({
+                sourceId: newId,
+                targetId: this.parentId,
+                linkType: 'ChildOf'
+              }).subscribe({
+                next: finalize,
+                error: (err) => {
+                  this.toastService.error(extractErrorMessage(err, 'Issue created but parent link failed.'));
+                  console.error('Error creating parent relationship', err);
+                  finalize();
+                }
+              });
+            } else {
+              finalize();
+            }
+          };
+
+          const notes = this.notesText.trim();
+          if (notes) {
+            this.workItemService.updateWorkItemNotes(newId, notes).subscribe({
+              next: afterNotes,
+              error: (err) => {
+                console.error('Error saving notes for new task', err);
+                afterNotes();
+              }
+            });
+          } else {
+            afterNotes();
           }
         },
         error: (err) => {
-          this.toastService.error('Failed to create task.');
+          this.saving = false;
+          this.toastService.error(extractErrorMessage(err, 'Failed to create issue.'));
           console.error('Error creating task', err);
+          this.cdr.markForCheck();
         },
       });
       return;
     }
 
-    if (!this.id || !this.canEditTask()) return;
+    if (!this.id || !this.canEditTask()) {
+      this.saving = false;
+      this.cdr.markForCheck();
+      return;
+    }
 
     const normalizedAssigneeId = this.assigneeId?.trim() || null;
     const workItemPayload = {
@@ -815,13 +894,176 @@ export class TaskDetailComponent implements OnInit {
 
     this.workItemService.updateWorkItem(this.id, workItemPayload).subscribe({
       next: () => {
+        this.saving = false;
         this.toastService.success('Task updated successfully.');
         this.loadTask();
       },
       error: (err) => {
-        this.toastService.error('Failed to update task.');
+        this.saving = false;
+        this.toastService.error(extractErrorMessage(err, 'Failed to update issue.'));
         console.error('Error saving task modifications', err);
+        this.cdr.markForCheck();
       },
     });
+  }
+
+  loadTaskRelationships(): void {
+    if (!this.id || this.id === 'new') return;
+    this.workItemService.getRelationshipsByWorkItem(this.id).subscribe({
+      next: (list) => {
+        this.relationships = list || [];
+        this.cdr.markForCheck();
+      },
+      error: (err) => console.error('Error loading relationships', err)
+    });
+  }
+
+  loadProjectTasks(projectId: string): void {
+    this.workItemService.getWorkItems(projectId).subscribe({
+      next: (list) => {
+        this.allProjectTasks = list || [];
+        this.cdr.markForCheck();
+      },
+      error: (err) => console.error('Error loading project tasks', err)
+    });
+  }
+
+  addRelationship(): void {
+    if (!this.id || !this.newLinkTargetId) return;
+    this.workItemService.createRelationship({
+      sourceId: this.id,
+      targetId: this.newLinkTargetId,
+      linkType: this.newLinkType
+    }).subscribe({
+      next: () => {
+        this.toastService.success('Relationship added successfully.');
+        this.newLinkTargetId = '';
+        this.loadTaskRelationships();
+      },
+      error: (err) => {
+        const errMsg = err?.error?.detail || err?.error?.message || 'Failed to add relationship.';
+        this.toastService.error(errMsg);
+      }
+    });
+  }
+
+  removeRelationship(relId: string): void {
+    this.workItemService.deleteRelationship(relId).subscribe({
+      next: () => {
+        this.toastService.success('Relationship removed.');
+        this.loadTaskRelationships();
+      },
+      error: (err) => {
+        console.error('Error deleting relationship', err);
+        this.toastService.error('Failed to delete relationship.');
+      }
+    });
+  }
+
+  get parentRelations(): any[] {
+    return this.relationships
+      .filter(r => r.linkType === 'ChildOf' && r.sourceId === this.id)
+      .map(r => ({
+        id: r.id,
+        task: this.getTaskById(r.targetId),
+        targetId: r.targetId
+      }));
+  }
+
+  get childrenRelations(): any[] {
+    return this.relationships
+      .filter(r => r.linkType === 'ChildOf' && r.targetId === this.id)
+      .map(r => ({
+        id: r.id,
+        task: this.getTaskById(r.sourceId),
+        targetId: r.sourceId
+      }));
+  }
+
+  get blockerRelations(): any[] {
+    return this.relationships
+      .filter(r => r.linkType === 'BlockedBy' && r.sourceId === this.id)
+      .map(r => ({
+        id: r.id,
+        task: this.getTaskById(r.targetId),
+        targetId: r.targetId
+      }));
+  }
+
+  get dependentRelations(): any[] {
+    return this.relationships
+      .filter(r => r.linkType === 'BlockedBy' && r.targetId === this.id)
+      .map(r => ({
+        id: r.id,
+        task: this.getTaskById(r.sourceId),
+        targetId: r.sourceId
+      }));
+  }
+
+  get relatedRelations(): any[] {
+    return this.relationships
+      .filter(r => r.linkType === 'RelatesTo')
+      .map(r => {
+        const otherId = r.sourceId === this.id ? r.targetId : r.sourceId;
+        return {
+          id: r.id,
+          task: this.getTaskById(otherId),
+          targetId: otherId
+        };
+      });
+  }
+
+  getTaskById(taskId: string): WorkItem | null {
+    if (this.task && this.task.id === taskId) return this.task;
+    return this.allProjectTasks.find(x => x.id === taskId) || null;
+  }
+
+  getTaskLabel(task: WorkItem | null, taskId: string): string {
+    if (!task) return taskId;
+    const code = this.project?.code?.toUpperCase() || 'AX';
+    return `${code}-${task.controlNo}: ${task.description}`;
+  }
+
+  get availableTasksToLink(): WorkItem[] {
+    if (!this.project || !this.task) return [];
+    const linkedIds = new Set<string>();
+    this.relationships.forEach(r => {
+      linkedIds.add(r.sourceId);
+      linkedIds.add(r.targetId);
+    });
+    return this.allProjectTasks.filter(t => t.id !== this.id && !linkedIds.has(t.id));
+  }
+
+  /**
+   * Returns work items that can be a parent of the currently-selected type.
+   * Based on the typeHierarchy fetched from the backend, falls back to level checks.
+   */
+  get availableParentItems(): WorkItem[] {
+    if (Object.keys(this.typeHierarchy).length === 0) {
+      const levelMap: Record<string, number> = {
+        Epic: 1, Feature: 2, UserStory: 3, Task: 4, Bug: 4, Subtask: 5
+      };
+      const childLevel = levelMap[this.type] ?? 99;
+      return this.allProjectTasks.filter(t => {
+        const parentLevel = levelMap[t.type] ?? 0;
+        return parentLevel < childLevel;
+      });
+    }
+    return this.allProjectTasks.filter(t => {
+      const allowedChildren = this.typeHierarchy[t.type] ?? [];
+      return allowedChildren.includes(this.type);
+    });
+  }
+
+  /** Called when the type selector changes in new-task mode to reset incompatible parent. */
+  onTypeChange(): void {
+    if (this.id !== 'new') return;
+    // Clear parent if selected parent is no longer valid for the new type
+    if (this.parentId) {
+      const stillValid = this.availableParentItems.some(t => t.id === this.parentId);
+      if (!stillValid) {
+        this.parentId = '';
+      }
+    }
   }
 }

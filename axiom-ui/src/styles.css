@@ -202,3 +202,21 @@
 .app-text-secondary { @apply text-secondary; }
 .app-text-error   { @apply text-error; }
 
+/* Jira-style row hover bottom blue border */
+tr.hovered-row td,
+tr.task-row:hover:not(.active-inline-row):not(.insert-active-row) td {
+    box-shadow: inset 0 -2px 0 #388bfd !important;
+}
+
+/* Jira-style active inline row blue outline using box-shadow */
+tr.active-inline-row td {
+    position: relative;
+    box-shadow: inset 0 2px 0 #388bfd, inset 0 -2px 0 #388bfd !important;
+}
+tr.active-inline-row td:first-child {
+    box-shadow: inset 2px 0 0 #388bfd, inset 0 2px 0 #388bfd, inset 0 -2px 0 #388bfd !important;
+}
+tr.active-inline-row td:last-child {
+    box-shadow: inset -2px 0 0 #388bfd, inset 0 2px 0 #388bfd, inset 0 -2px 0 #388bfd !important;
+}
+

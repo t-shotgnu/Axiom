@@ -59,7 +59,8 @@
         }
         <app-button
           variant="primary"
-          [disabled]="!isDirty"
+          [disabled]="!isDirty || saving"
+          [loading]="saving"
           (onClick)="saveAllChanges()"
           customClass="px-lg py-sm font-bold text-body-md"
         >
@@ -188,6 +189,146 @@
           </div>
         </section>
 
+        <!-- Relationships Section -->
+        @if (id !== 'new') {
+          <section class="border-t border-outline-variant/60 pt-lg space-y-md">
+            <h3 class="text-label-sm font-bold text-on-surface-variant uppercase tracking-wider select-none">
+              Relationships
+            </h3>
+
+            <!-- Link creation inline form -->
+            @if (canEditTask() && availableTasksToLink.length > 0) {
+              <div class="flex flex-wrap items-end gap-md p-md bg-surface-container-low border border-outline-variant rounded-xl shadow-sm mb-md">
+                <div class="flex-1 min-w-[200px] space-y-xs">
+                  <label class="text-label-sm font-bold text-on-surface-variant uppercase tracking-wider block">This issue</label>
+                  <app-select
+                    [(ngModel)]="newLinkType"
+                    [options]="linkTypeOptions"
+                    customClass="bg-surface-container-lowest text-body-md py-xs"
+                  ></app-select>
+                </div>
+                <div class="flex-1 min-w-[250px] space-y-xs">
+                  <label class="text-label-sm font-bold text-on-surface-variant uppercase tracking-wider block font-semibold">Target issue</label>
+                  <select
+                    [(ngModel)]="newLinkTargetId"
+                    class="w-full border border-outline-variant rounded-md bg-surface-container-lowest text-body-md p-2 focus:ring-1 focus:ring-primary focus:outline-none text-on-surface"
+                  >
+                    <option value="" disabled selected>Select issue to link...</option>
+                    @for (item of availableTasksToLink; track item.id) {
+                      <option [value]="item.id">
+                        {{ getTaskLabel(item, item.id) }}
+                      </option>
+                    }
+                  </select>
+                </div>
+                <app-button
+                  variant="primary"
+                  icon="add"
+                  [disabled]="!newLinkTargetId"
+                  (onClick)="addRelationship()"
+                  customClass="py-xs font-bold text-body-sm shrink-0"
+                >
+                  Link
+                </app-button>
+              </div>
+            }
+
+            <!-- Relationships List -->
+            <div class="space-y-sm">
+              <!-- Parent Relation -->
+              @for (rel of parentRelations; track rel.id) {
+                <div class="flex items-center justify-between p-sm border border-outline-variant rounded-lg bg-surface-container-low hover:bg-surface-container-medium transition-colors">
+                  <div class="flex items-center gap-sm min-w-0">
+                    <span class="text-label-sm font-bold text-on-surface-variant uppercase tracking-wider shrink-0 bg-surface-container-high px-xs py-unit rounded">Parent</span>
+                    <a [routerLink]="['/tasks', rel.targetId]" class="text-body-md text-primary font-semibold hover:underline truncate">
+                      {{ getTaskLabel(rel.task, rel.targetId) }}
+                    </a>
+                  </div>
+                  @if (canEditTask()) {
+                    <button type="button" (click)="removeRelationship(rel.id)" class="w-8 h-8 rounded flex items-center justify-center text-on-surface-variant hover:text-red-500 hover:bg-red-500/10 shrink-0" title="Remove Link">
+                      <span class="material-symbols-outlined text-[18px]">close</span>
+                    </button>
+                  }
+                </div>
+              }
+
+              <!-- Children Relations -->
+              @for (rel of childrenRelations; track rel.id) {
+                <div class="flex items-center justify-between p-sm border border-outline-variant rounded-lg bg-surface-container-low hover:bg-surface-container-medium transition-colors">
+                  <div class="flex items-center gap-sm min-w-0">
+                    <span class="text-label-sm font-bold text-on-surface-variant uppercase tracking-wider shrink-0 bg-surface-container-high px-xs py-unit rounded">Child</span>
+                    <a [routerLink]="['/tasks', rel.targetId]" class="text-body-md text-primary font-semibold hover:underline truncate">
+                      {{ getTaskLabel(rel.task, rel.targetId) }}
+                    </a>
+                  </div>
+                  @if (canEditTask()) {
+                    <button type="button" (click)="removeRelationship(rel.id)" class="w-8 h-8 rounded flex items-center justify-center text-on-surface-variant hover:text-red-500 hover:bg-red-500/10 shrink-0" title="Remove Link">
+                      <span class="material-symbols-outlined text-[18px]">close</span>
+                    </button>
+                  }
+                </div>
+              }
+
+              <!-- Blocker Relations -->
+              @for (rel of blockerRelations; track rel.id) {
+                <div class="flex items-center justify-between p-sm border border-outline-variant rounded-lg bg-surface-container-low hover:bg-surface-container-medium transition-colors">
+                  <div class="flex items-center gap-sm min-w-0">
+                    <span class="text-label-sm font-bold text-on-surface-variant uppercase tracking-wider shrink-0 bg-surface-container-high px-xs py-unit rounded">Depends On</span>
+                    <a [routerLink]="['/tasks', rel.targetId]" class="text-body-md text-primary font-semibold hover:underline truncate">
+                      {{ getTaskLabel(rel.task, rel.targetId) }}
+                    </a>
+                  </div>
+                  @if (canEditTask()) {
+                    <button type="button" (click)="removeRelationship(rel.id)" class="w-8 h-8 rounded flex items-center justify-center text-on-surface-variant hover:text-red-500 hover:bg-red-500/10 shrink-0" title="Remove Link">
+                      <span class="material-symbols-outlined text-[18px]">close</span>
+                    </button>
+                  }
+                </div>
+              }
+
+              <!-- Dependent Relations -->
+              @for (rel of dependentRelations; track rel.id) {
+                <div class="flex items-center justify-between p-sm border border-outline-variant rounded-lg bg-surface-container-low hover:bg-surface-container-medium transition-colors">
+                  <div class="flex items-center gap-sm min-w-0">
+                    <span class="text-label-sm font-bold text-on-surface-variant uppercase tracking-wider shrink-0 bg-surface-container-high px-xs py-unit rounded">Depended On By</span>
+                    <a [routerLink]="['/tasks', rel.targetId]" class="text-body-md text-primary font-semibold hover:underline truncate">
+                      {{ getTaskLabel(rel.task, rel.targetId) }}
+                    </a>
+                  </div>
+                  @if (canEditTask()) {
+                    <button type="button" (click)="removeRelationship(rel.id)" class="w-8 h-8 rounded flex items-center justify-center text-on-surface-variant hover:text-red-500 hover:bg-red-500/10 shrink-0" title="Remove Link">
+                      <span class="material-symbols-outlined text-[18px]">close</span>
+                    </button>
+                  }
+                </div>
+              }
+
+              <!-- Related Relations -->
+              @for (rel of relatedRelations; track rel.id) {
+                <div class="flex items-center justify-between p-sm border border-outline-variant rounded-lg bg-surface-container-low hover:bg-surface-container-medium transition-colors">
+                  <div class="flex items-center gap-sm min-w-0">
+                    <span class="text-label-sm font-bold text-on-surface-variant uppercase tracking-wider shrink-0 bg-surface-container-high px-xs py-unit rounded">Relates To</span>
+                    <a [routerLink]="['/tasks', rel.targetId]" class="text-body-md text-primary font-semibold hover:underline truncate">
+                      {{ getTaskLabel(rel.task, rel.targetId) }}
+                    </a>
+                  </div>
+                  @if (canEditTask()) {
+                    <button type="button" (click)="removeRelationship(rel.id)" class="w-8 h-8 rounded flex items-center justify-center text-on-surface-variant hover:text-red-500 hover:bg-red-500/10 shrink-0" title="Remove Link">
+                      <span class="material-symbols-outlined text-[18px]">close</span>
+                    </button>
+                  }
+                </div>
+              }
+
+              @if (relationships.length === 0) {
+                <div class="rounded-lg border border-outline-variant/60 bg-surface-container-lowest p-md text-xs text-on-surface-variant">
+                  No relationships linked to this issue yet.
+                </div>
+              }
+            </div>
+          </section>
+        }
+
         <!-- Activity Feed & Comments Section -->
         <section class="pt-lg space-y-lg">
           <h3
@@ -301,9 +442,48 @@
                 [(ngModel)]="type"
                 [options]="typeOptions"
                 [disabled]="!canEditTask()"
+                (ngModelChange)="onTypeChange()"
               ></app-select>
             </div>
           </div>
+
+          <!-- Parent (only shown when creating a new task) -->
+          @if (id === 'new') {
+            <div
+              class="grid grid-cols-12 gap-xs items-start py-xs border-b border-outline-variant/40"
+            >
+              <span class="col-span-4 text-label-md font-semibold text-on-surface-variant select-none pt-1">
+                Parent
+                @if (type !== 'Epic') {
+                  <span class="text-red-500 ml-0.5">*</span>
+                }
+              </span>
+              <div class="col-span-8">
+                @if (type === 'Epic') {
+                  <span class="text-label-sm text-on-surface-variant italic select-none">
+                    Epics have no parent
+                  </span>
+                } @else if (availableParentItems.length === 0) {
+                  <span class="text-label-sm text-red-500 italic select-none">
+                    No eligible parent items found in this project.
+                  </span>
+                } @else {
+                  <select
+                    [(ngModel)]="parentId"
+                    class="w-full border border-outline-variant rounded-md bg-surface-container-lowest text-body-md p-2 focus:ring-1 focus:ring-primary focus:outline-none text-on-surface"
+                    [class.border-red-400]="!parentId && type !== 'Epic'"
+                  >
+                    <option value="" disabled selected>Select parent...</option>
+                    @for (item of availableParentItems; track item.id) {
+                      <option [value]="item.id">
+                        {{ getTaskLabel(item, item.id) }}
+                      </option>
+                    }
+                  </select>
+                }
+              </div>
+            </div>
+          }
 
           <!-- Assignee -->
           <div

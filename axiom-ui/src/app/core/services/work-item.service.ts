@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, shareReplay } from 'rxjs';
 
 export interface WorkItem {
   id: string;
@@ -75,4 +75,48 @@ export class WorkItemService {
   deleteWorkItem(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
+
+  getRelationshipsByProject(projectId: string): Observable<TaskRelationship[]> {
+    return this.http.get<TaskRelationship[]>(`/api/task-relationships?projectId=${projectId}`);
+  }
+
+  getRelationshipsByWorkItem(workItemId: string): Observable<TaskRelationship[]> {
+    return this.http.get<TaskRelationship[]>(`/api/task-relationships/work-item/${workItemId}`);
+  }
+
+  createRelationship(command: CreateTaskRelationshipCommand): Observable<string> {
+    return this.http.post<string>('/api/task-relationships', command);
+  }
+
+  deleteRelationship(id: string): Observable<void> {
+    return this.http.delete<void>(`/api/task-relationships/${id}`);
+  }
+
+  /**
+   * Returns the allowed child types for each work item type, as defined by the backend domain rules.
+   * The result is cached for the lifetime of the app (shareReplay) — one HTTP request ever.
+   */
+  private _typeHierarchy$?: Observable<Record<string, string[]>>;
+  getTypeHierarchy(): Observable<Record<string, string[]>> {
+    if (!this._typeHierarchy$) {
+      this._typeHierarchy$ = this.http
+        .get<Record<string, string[]>>(`${this.apiUrl}/type-hierarchy`)
+        .pipe(shareReplay(1));
+    }
+    return this._typeHierarchy$;
+  }
 }
+
+export interface TaskRelationship {
+  id: string;
+  sourceId: string;
+  targetId: string;
+  linkType: string;
+}
+
+export interface CreateTaskRelationshipCommand {
+  sourceId: string;
+  targetId: string;
+  linkType: string;
+}
+
