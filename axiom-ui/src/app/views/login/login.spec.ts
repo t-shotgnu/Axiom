@@ -99,7 +99,7 @@ describe('LoginComponent', () => {
       emailAddress: 'user@example.com',
       password: 'secret',
     });
-    expect(router.navigateByUrl).toHaveBeenCalledWith('/projects');
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/dashboard');
     expect(component.submitting).toBe(false);
     expect(component.errorMessage).toBe('');
   });
@@ -124,7 +124,7 @@ describe('LoginComponent', () => {
       emailAddress: 'new@example.com',
       password: 'Strong123',
     });
-    expect(router.navigateByUrl).toHaveBeenCalledWith('/projects');
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/dashboard');
     expect(component.submitting).toBe(false);
   });
 

@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 
 import { finalize } from 'rxjs';
@@ -13,7 +14,7 @@ import { ButtonComponent } from '../../shared/components/ui/button';
 @Component({
   selector: 'app-projects',
   standalone: true,
-  imports: [CommonModule, RouterModule, CreateProjectComponent, DialogComponent, ButtonComponent],
+  imports: [CommonModule, FormsModule, RouterModule, CreateProjectComponent, DialogComponent, ButtonComponent],
   templateUrl: './projects.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -25,10 +26,25 @@ export class ProjectsComponent {
   deleteDialogProject: Project | null = null;
   deleting = false;
   deleteErrorMessage = '';
+  searchTerm = '';
 
   listState: 'loading' | 'error' | 'empty' | 'list' = 'loading';
 
   projectStats = new Map<string, { total: number; completed: number; percentage: number }>();
+
+  get filteredProjects(): Project[] {
+    if (!this.searchTerm.trim()) {
+      return this.projects;
+    }
+    const term = this.searchTerm.toLowerCase();
+    return this.projects.filter(
+      (p) =>
+        p.name.toLowerCase().includes(term) ||
+        p.code.toLowerCase().includes(term) ||
+        (p.ownerName || '').toLowerCase().includes(term) ||
+        (p.description || '').toLowerCase().includes(term),
+    );
+  }
 
   constructor(
     private readonly projectService: ProjectService,

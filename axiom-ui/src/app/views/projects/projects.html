@@ -4,14 +4,16 @@
     class="flex flex-col gap-4 border-b border-outline-variant pb-6 sm:flex-row sm:items-center sm:justify-between mb-lg"
   >
     <div class="space-y-1">
-      <nav class="flex items-center gap-xs text-on-surface-variant mb-xs font-semibold text-body-sm">
-        <span class="app-span hover:underline cursor-pointer text-body-sm font-semibold">Organization</span>
+      <nav
+        class="flex items-center gap-xs text-on-surface-variant mb-xs font-semibold text-body-sm"
+      >
+        <span class="app-span hover:underline cursor-pointer text-body-sm font-semibold"
+          >Organization</span
+        >
         <span class="material-symbols-outlined text-[12px]">chevron_right</span>
         <span class="app-span text-body-sm font-semibold">All Projects</span>
       </nav>
-      <h1 class="app-h1 font-extrabold tracking-tight">
-        Projects
-      </h1>
+      <h1 class="app-h1 font-extrabold tracking-tight">Projects</h1>
     </div>
     <div class="flex items-center gap-3">
       <app-button
@@ -25,43 +27,19 @@
     </div>
   </header>
 
-  <!-- Filters Row -->
-  <div
-    class="flex flex-col gap-md sm:flex-row sm:items-center sm:justify-between mb-lg border border-outline-variant rounded p-sm bg-surface-container-lowest"
-  >
-    <div class="flex flex-wrap items-center gap-sm">
-      <span class="app-span app-text-muted text-body-sm font-bold uppercase tracking-wider px-xs">Filter by:</span>
-      <button
-        class="bg-surface-container-low border border-outline-variant rounded px-sm py-[6px] text-body-sm font-bold text-on-surface hover:bg-surface-container-high transition-colors"
+  <!-- Search Bar -->
+  <div class="flex items-center mb-lg">
+    <div class="relative flex items-center w-full">
+      <span
+        class="material-symbols-outlined absolute left-3 text-on-surface-variant text-[18px] pointer-events-none"
+        >search</span
       >
-        Status: <span class="app-span app-text-primary text-body-sm font-bold">All</span>
-      </button>
-      <button
-        class="bg-surface-container-low border border-outline-variant rounded px-sm py-[6px] text-body-sm font-bold text-on-surface hover:bg-surface-container-high transition-colors"
-      >
-        Lead: <span class="app-span app-text-primary text-body-sm font-bold">Everyone</span>
-      </button>
-      <button
-        class="bg-surface-container-low border border-outline-variant rounded px-sm py-[6px] text-body-sm font-bold text-on-surface hover:bg-surface-container-high transition-colors"
-      >
-        Category: <span class="app-span app-text-primary text-body-sm font-bold">All</span>
-      </button>
-      <button
-        class="text-on-surface-variant hover:text-primary font-bold text-body-sm flex items-center gap-xs ml-sm py-1"
-      >
-        <span class="material-symbols-outlined text-[16px]">clear_all</span>
-        <span class="app-span text-body-sm font-bold">Clear All</span>
-      </button>
-    </div>
-    <div class="flex items-center gap-xs border-l border-outline-variant/60 pl-md">
-      <button class="p-1 rounded text-primary hover:bg-primary/10 bg-primary/15 transition-all">
-        <span class="material-symbols-outlined text-[20px] font-bold">list</span>
-      </button>
-      <button
-        class="p-1 rounded text-on-surface-variant hover:bg-surface-container-low transition-all"
-      >
-        <span class="material-symbols-outlined text-[20px]">grid_on</span>
-      </button>
+      <input
+        type="text"
+        placeholder="Search projects..."
+        [(ngModel)]="searchTerm"
+        class="w-full pl-10 pr-4 py-2 border border-outline-variant rounded-lg text-body-md bg-surface-container-lowest text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all"
+      />
     </div>
   </div>
 
@@ -92,7 +70,9 @@
         >
           <span class="material-symbols-outlined text-[32px]">folder_open</span>
         </div>
-        <p class="font-headline-sm text-on-surface font-extrabold text-headline-sm">No projects yet</p>
+        <p class="font-headline-sm text-on-surface font-extrabold text-headline-sm">
+          No projects yet
+        </p>
         <p class="mt-2 text-body-sm text-on-surface-variant font-medium">
           Create the first one using the button above.
         </p>
@@ -110,15 +90,13 @@
               >
                 <th class="py-sm px-md">Project Name</th>
                 <th class="py-sm px-md w-[100px]">Key</th>
-                <th class="py-sm px-md w-[120px]">Type</th>
                 <th class="py-sm px-md w-[160px]">Lead</th>
-                <th class="py-sm px-md w-[120px]">Status</th>
                 <th class="py-sm px-md w-[220px]">Progress</th>
                 <th class="py-sm px-md w-[72px]"></th>
               </tr>
             </thead>
             <tbody class="divide-y divide-outline-variant/65">
-              @for (project of projects; track project.id) {
+              @for (project of filteredProjects; track project.id) {
                 <tr class="hover:bg-surface-container-lowest/50 transition-colors group">
                   <td class="py-md px-md">
                     <div class="flex items-center gap-md">
@@ -141,14 +119,10 @@
                       </div>
                     </div>
                   </td>
-                  <td class="py-md px-md text-body-sm font-semibold text-on-surface-variant font-code">
+                  <td
+                    class="py-md px-md text-body-sm font-semibold text-on-surface-variant font-code"
+                  >
                     {{ project.code | uppercase }}
-                  </td>
-                  <td class="py-md px-md">
-                    <span
-                      class="bg-primary/15 text-primary font-bold text-label-sm px-2 py-0.5 rounded uppercase"
-                      >Software</span
-                    >
                   </td>
                   <td class="py-md px-md">
                     <div class="flex items-center gap-sm">
@@ -161,12 +135,6 @@
                         {{ project.ownerName || 'Unknown lead' }}
                       </span>
                     </div>
-                  </td>
-                  <td class="py-md px-md">
-                    <span
-                      class="bg-green-500/10 text-green-600 dark:text-green-400 font-bold text-label-sm px-2 py-0.5 rounded border border-green-500/20"
-                      >ACTIVE</span
-                    >
                   </td>
                   <td class="py-md px-md">
                     <div class="flex flex-col gap-1 w-full max-w-[180px]">
@@ -206,7 +174,7 @@
           class="flex items-center justify-between border-t border-outline-variant p-md bg-surface-container-lowest"
         >
           <span class="text-body-sm text-on-surface-variant font-semibold"
-            >Showing 1-{{ projects.length }} of {{ projects.length }} projects</span
+            >Showing 1-{{ filteredProjects.length }} of {{ projects.length }} projects</span
           >
           <div class="flex items-center gap-xs">
             <button
@@ -229,61 +197,6 @@
       </div>
     }
   }
-
-  <!-- Bento Analytics Cards (3 Columns) -->
-  <div class="grid grid-cols-12 gap-lg mb-xl">
-    <!-- Card 1 -->
-    <div
-      class="col-span-12 md:col-span-4 bg-surface-container-lowest border border-outline-variant rounded p-md flex flex-col justify-between min-h-[100px]"
-    >
-      <div class="flex justify-between items-start">
-        <div>
-          <p class="text-label-sm font-bold tracking-wider uppercase text-on-surface-variant mb-xs">
-            Efficiency Rate
-          </p>
-          <h3 class="text-headline-lg font-black text-on-surface leading-none">94.2%</h3>
-        </div>
-        <span class="material-symbols-outlined text-primary text-[22px] font-bold"
-          >trending_up</span
-        >
-      </div>
-      <p class="text-label-sm text-green-600 font-bold mt-xs">+2.4% from last month</p>
-    </div>
-
-    <!-- Card 2 -->
-    <div
-      class="col-span-12 md:col-span-4 bg-surface-container-lowest border border-outline-variant rounded p-md flex flex-col justify-between min-h-[100px]"
-    >
-      <div class="flex justify-between items-start">
-        <div>
-          <p class="text-label-sm font-bold tracking-wider uppercase text-on-surface-variant mb-xs">
-            Risk Profile
-          </p>
-          <h3 class="text-headline-lg font-black text-on-surface leading-none">Low</h3>
-        </div>
-        <span class="material-symbols-outlined text-red-500 text-[22px]">warning</span>
-      </div>
-      <p class="text-label-sm text-on-surface-variant font-semibold mt-xs">
-        2 projects require attention
-      </p>
-    </div>
-
-    <!-- Card 3 -->
-    <div
-      class="col-span-12 md:col-span-4 bg-surface-container-lowest border border-outline-variant rounded p-md flex flex-col justify-between min-h-[100px]"
-    >
-      <div class="flex justify-between items-start">
-        <div>
-          <p class="text-label-sm font-bold tracking-wider uppercase text-on-surface-variant mb-xs">
-            Resource Load
-          </p>
-          <h3 class="text-headline-lg font-black text-on-surface leading-none">Balanced</h3>
-        </div>
-        <span class="material-symbols-outlined text-primary text-[22px]">group</span>
-      </div>
-      <p class="text-label-sm text-on-surface-variant font-semibold mt-xs">Avg. 4.2 tasks per member</p>
-    </div>
-  </div>
 
   <app-create-project #createProjectDialog (projectCreated)="loadProjects()"></app-create-project>
 
