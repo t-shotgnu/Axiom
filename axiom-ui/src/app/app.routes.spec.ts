@@ -39,6 +39,7 @@ describe('routes', () => {
       'projects/:id/settings',
       'tasks',
       'tasks/:id',
+      'team',
     ]);
   });
 
