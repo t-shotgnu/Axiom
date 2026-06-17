@@ -1,17 +1,12 @@
 import { routes } from './app.routes';
 import { authGuard } from './core/guards/auth.guard';
 import { AppLayoutComponent } from './layout/app-layout';
-import { LoginComponent } from './views/login/login';
-// The Register view was moved/renamed in the app. Provide a local
-// test stub so the routes spec can assert presence without importing
-// the real component implementation.
-class RegisterComponent { }
 
 describe('routes', () => {
   it('exposes login as a public route', () => {
     expect(routes).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ path: 'login', component: LoginComponent }),
+        expect.objectContaining({ path: 'login', loadComponent: expect.any(Function) }),
       ]),
     );
   });
@@ -41,6 +36,23 @@ describe('routes', () => {
       'tasks/:id',
       'team',
     ]);
+  });
+
+  it('lazy loads feature views under the guarded shell', () => {
+    const shellRoute = routes.find((route) => route.path === '');
+    const featureChildren = shellRoute?.children?.filter((route) => route.path && route.path !== '');
+
+    expect(featureChildren).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ path: 'dashboard', loadComponent: expect.any(Function) }),
+        expect.objectContaining({ path: 'projects', loadComponent: expect.any(Function) }),
+        expect.objectContaining({ path: 'projects/:id', loadComponent: expect.any(Function) }),
+        expect.objectContaining({ path: 'projects/:id/settings', loadComponent: expect.any(Function) }),
+        expect.objectContaining({ path: 'tasks', loadComponent: expect.any(Function) }),
+        expect.objectContaining({ path: 'tasks/:id', loadComponent: expect.any(Function) }),
+        expect.objectContaining({ path: 'team', loadComponent: expect.any(Function) }),
+      ]),
+    );
   });
 
   it('redirects unknown routes to the guarded shell', () => {
