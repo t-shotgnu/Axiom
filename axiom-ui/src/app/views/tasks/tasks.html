@@ -65,6 +65,33 @@
     >
       Newest First
     </button>
+
+    <div class="ml-auto inline-flex h-9 items-center rounded border border-outline-variant bg-surface-container-lowest p-0.5">
+      <button
+        type="button"
+        (click)="setViewMode('list')"
+        class="inline-flex h-8 items-center gap-1.5 rounded px-3 text-body-sm font-bold transition-colors"
+        [class.bg-primary]="viewMode === 'list'"
+        [class.text-white]="viewMode === 'list'"
+        [class.text-on-surface-variant]="viewMode !== 'list'"
+        [class.hover:bg-surface-container-low]="viewMode !== 'list'"
+      >
+        <span class="material-symbols-outlined text-[17px]">view_list</span>
+        List
+      </button>
+      <button
+        type="button"
+        (click)="setViewMode('board')"
+        class="inline-flex h-8 items-center gap-1.5 rounded px-3 text-body-sm font-bold transition-colors"
+        [class.bg-primary]="viewMode === 'board'"
+        [class.text-white]="viewMode === 'board'"
+        [class.text-on-surface-variant]="viewMode !== 'board'"
+        [class.hover:bg-surface-container-low]="viewMode !== 'board'"
+      >
+        <span class="material-symbols-outlined text-[17px]">view_kanban</span>
+        Board
+      </button>
+    </div>
   </div>
 
   <!-- Loading State -->
@@ -89,14 +116,156 @@
         <div>
           <h3 class="font-headline-sm text-headline-sm font-bold text-on-surface">No issues yet</h3>
           <p class="text-on-surface-variant mt-xs text-body-md">
-            Create your first issue to get started with this project.
+            {{ tasks.length === 0 ? 'Create your first issue to get started with this project.' : 'Adjust filters or search terms to find issues.' }}
           </p>
         </div>
       </div>
     </div>
   } @else {
-    <!-- Task List Table View -->
-    <div class="flex-1 overflow-auto rounded-xl border border-outline-variant bg-surface-container-lowest shadow-sm mb-md">
+    @if (viewMode === 'board') {
+      <!-- Kanban Board View -->
+      <div class="flex-1 min-h-0 overflow-x-auto pb-md">
+        <div class="grid h-full min-w-[1320px] grid-cols-6 gap-md">
+          @for (column of statusOptions; track column.value) {
+            <section
+              class="flex min-h-0 flex-col rounded-lg border bg-surface-container-lowest shadow-sm transition-colors"
+              [class.border-outline-variant]="dragOverStatus !== column.value"
+              [class.border-primary]="dragOverStatus === column.value"
+              [class.ring-2]="dragOverStatus === column.value"
+              [class.ring-primary/40]="dragOverStatus === column.value"
+              [class.bg-primary/5]="dragOverStatus === column.value"
+              (dragenter)="allowBoardDrop($event, column.value)"
+              (dragover)="allowBoardDrop($event, column.value)"
+              (dragleave)="onBoardDragLeave($event, column.value)"
+              (drop)="dropTaskOnStatus($event, column.value)"
+            >
+              <header class="flex items-center justify-between border-b border-outline-variant bg-surface-container-low px-md py-sm">
+                <span class="text-label-sm font-black uppercase tracking-widest text-on-surface-variant">
+                  {{ getStatusLabel(column.value) }}
+                </span>
+                <span class="rounded-full bg-surface-container-high px-2 py-0.5 text-label-sm font-bold text-on-surface-variant">
+                  {{ getBoardTasks(column.value).length }}
+                </span>
+              </header>
+
+              <div class="flex-1 space-y-sm overflow-y-auto p-sm">
+                @if (getBoardTasks(column.value).length === 0) {
+                  <div
+                    class="flex h-24 items-center justify-center rounded border border-dashed text-center text-body-sm font-semibold transition-colors"
+                    [class.border-outline-variant]="dragOverStatus !== column.value"
+                    [class.text-on-surface-variant]="dragOverStatus !== column.value"
+                    [class.border-primary]="dragOverStatus === column.value"
+                    [class.text-primary]="dragOverStatus === column.value"
+                  >
+                    {{ dragOverStatus === column.value ? 'Release to drop' : 'Drop issues here' }}
+                  </div>
+                }
+
+                @for (task of getBoardTasks(column.value); track task.id) {
+                  <article
+                    [routerLink]="['/tasks', task.id]"
+	                    draggable="true"
+	                    (dragstart)="onBoardDragStart($event, task)"
+	                    (dragend)="onBoardDragEnd()"
+	                    class="group cursor-grab select-none rounded-md border border-outline-variant bg-surface p-sm shadow-sm transition-all hover:border-primary/40 hover:shadow-md active:cursor-grabbing"
+	                    [class.opacity-60]="isStatusUpdating(task.id)"
+	                    [class.opacity-40]="draggedTaskId === task.id"
+	                    [class.ring-2]="draggedTaskId === task.id"
+	                    [class.ring-primary/30]="draggedTaskId === task.id"
+	                  >
+                    <div class="mb-sm flex items-start justify-between gap-sm">
+                      <div class="min-w-0">
+                        @if (task.parentControlNo !== null) {
+                          <div class="mb-xs flex items-center gap-xs text-label-sm font-bold text-on-surface-variant/70">
+                            <span class="material-symbols-outlined text-[13px]">subdirectory_arrow_right</span>
+                            <span class="material-symbols-outlined text-[13px]" [ngClass]="getTypeColor(task.parentType)">
+                              {{ getTypeIcon(task.parentType) }}
+                            </span>
+                            <span class="font-mono truncate">
+                              {{ currentProject.code.toUpperCase() }}-{{ task.parentControlNo }}
+                            </span>
+                          </div>
+                        }
+                        <div class="mb-xs flex items-center gap-xs">
+                          <span class="material-symbols-outlined text-[16px]" [ngClass]="getTypeColor(task.type)">
+                            {{ getTypeIcon(task.type) }}
+                          </span>
+                          <span class="font-mono text-code font-bold text-on-surface-variant">
+                            {{ currentProject.code.toUpperCase() }}-{{ task.controlNo }}
+                          </span>
+                          @if (task.hasChildren) {
+                            <span
+                              class="inline-flex items-center gap-0.5 rounded-full bg-surface-container-high px-1.5 py-0.5 text-label-sm font-bold text-on-surface-variant"
+                              [title]="task.childCount + ' child issue' + (task.childCount === 1 ? '' : 's')"
+                            >
+                              <span class="material-symbols-outlined text-[12px]">account_tree</span>
+                              {{ task.childCount }}
+                            </span>
+                          }
+                        </div>
+                        <p class="line-clamp-3 text-body-md font-semibold leading-snug text-on-surface">
+                          {{ task.description }}
+                        </p>
+                      </div>
+                      @if (task.hasDependencies) {
+                        <button
+                          type="button"
+                          (click)="openDepsDialog($event, task)"
+                          class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded text-amber-500 transition-colors hover:bg-amber-500/10"
+                          title="View dependencies"
+                        >
+                          <span class="material-symbols-outlined text-[18px]">link</span>
+                        </button>
+                      }
+                    </div>
+
+                    <div class="flex items-center justify-between gap-sm">
+                      <div class="flex min-w-0 items-center gap-xs">
+                        <div class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-label-sm font-bold text-primary">
+                          {{ getAssigneeInitials(task) }}
+                        </div>
+                        <span class="truncate text-body-sm font-semibold text-on-surface-variant">
+                          {{ getAssigneeName(task) }}
+                        </span>
+                      </div>
+                      <div class="flex shrink-0 items-center gap-xs">
+                        <span
+                          class="material-symbols-outlined text-[16px] font-bold"
+                          [ngClass]="getPriorityColorClass(task.priority)"
+                          [title]="getPriorityLabel(task.priority)"
+                        >
+                          {{ getPriorityIcon(task.priority) }}
+                        </span>
+                        <button
+                          type="button"
+                          (click)="moveBoardTask(task, -1, $event)"
+                          [disabled]="column.value === statusOptions[0].value || isStatusUpdating(task.id)"
+                          class="inline-flex h-7 w-7 items-center justify-center rounded border border-outline-variant text-on-surface-variant transition-colors hover:bg-surface-container-low disabled:cursor-not-allowed disabled:opacity-40"
+                          title="Move left"
+                        >
+                          <span class="material-symbols-outlined text-[16px]">chevron_left</span>
+                        </button>
+                        <button
+                          type="button"
+                          (click)="moveBoardTask(task, 1, $event)"
+                          [disabled]="column.value === statusOptions[statusOptions.length - 1].value || isStatusUpdating(task.id)"
+                          class="inline-flex h-7 w-7 items-center justify-center rounded border border-outline-variant text-on-surface-variant transition-colors hover:bg-surface-container-low disabled:cursor-not-allowed disabled:opacity-40"
+                          title="Move right"
+                        >
+                          <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+                        </button>
+                      </div>
+                    </div>
+                  </article>
+                }
+              </div>
+            </section>
+          }
+        </div>
+      </div>
+    } @else {
+      <!-- Task List Table View -->
+      <div class="flex-1 overflow-auto rounded-xl border border-outline-variant bg-surface-container-lowest shadow-sm mb-md">
       <table class="w-full border-collapse text-left">
         <thead>
           <tr class="bg-surface-container-low border-b border-outline-variant text-label-sm font-bold text-on-surface-variant uppercase tracking-wider select-none">
@@ -412,10 +581,10 @@
           }
         </tbody>
       </table>
-    </div>
+      </div>
 
-    <!-- Pagination Footer -->
-    <div class="flex justify-between items-center text-body-sm text-on-surface-variant select-none">
+      <!-- Pagination Footer -->
+      <div class="flex justify-between items-center text-body-sm text-on-surface-variant select-none">
       <div>
         Showing
         <span class="font-bold text-on-surface">{{ (currentPage - 1) * pageSize + 1 }}</span>
@@ -461,7 +630,8 @@
           chevron_right
         </button>
       </div>
-    </div>
+      </div>
+    }
   }
 </div>
 

@@ -8,6 +8,7 @@ describe('TasksComponent', () => {
   let workItemService: {
     getWorkItems: ReturnType<typeof vi.fn>;
     createWorkItem: ReturnType<typeof vi.fn>;
+    updateWorkItemStatus: ReturnType<typeof vi.fn>;
     getRelationshipsByProject: ReturnType<typeof vi.fn>;
     getTypeHierarchy: ReturnType<typeof vi.fn>;
   };
@@ -34,6 +35,7 @@ describe('TasksComponent', () => {
     workItemService = {
       getWorkItems: vi.fn(() => of(workItems)),
       createWorkItem: vi.fn(() => of('task-2')),
+      updateWorkItemStatus: vi.fn(() => of(void 0)),
       getRelationshipsByProject: vi.fn(() => of([])),
       getTypeHierarchy: vi.fn(() => of({})),
     };
@@ -99,5 +101,17 @@ describe('TasksComponent', () => {
     component.createTask();
 
     expect(workItemService.createWorkItem).not.toHaveBeenCalled();
+  });
+
+  it('moves an issue between board status columns', () => {
+    component.tasks = [...workItems];
+    component.relationships = [];
+    component.applyFiltersAndPagination();
+
+    component.moveTaskToStatus(component.tasks[0], 'Active');
+
+    expect(workItemService.updateWorkItemStatus).toHaveBeenCalledWith('task-1', { status: 'Active' });
+    expect(component.tasks[0].status).toBe('Active');
+    expect(component.getBoardTasks('Active')).toHaveLength(1);
   });
 });
