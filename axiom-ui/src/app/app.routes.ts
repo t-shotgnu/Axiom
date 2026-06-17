@@ -7,6 +7,7 @@ import { TaskDetailComponent } from './views/task-detail/task-detail';
 import { LoginComponent } from './views/login/login';
 import { ProjectDetailComponent } from './views/project-detail/project-detail';
 import { ProjectSettingsComponent } from './views/project-settings/project-settings';
+import { TeamComponent } from './views/team/team';
 import { authGuard } from './core/guards/auth.guard';
 import { pendingChangesGuard } from './core/guards/pending-changes.guard';
 
@@ -24,6 +25,7 @@ export const routes: Routes = [
 			{ path: 'projects/:id/settings', component: ProjectSettingsComponent },
 			{ path: 'tasks', component: TasksComponent },
 			{ path: 'tasks/:id', component: TaskDetailComponent, canDeactivate: [pendingChangesGuard] },
+			{ path: 'team', component: TeamComponent },
 		],
 	},
 	{ path: '**', redirectTo: '' },

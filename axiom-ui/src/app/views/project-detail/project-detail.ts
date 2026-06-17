@@ -9,7 +9,6 @@ import { ButtonComponent } from '../../shared/components/ui/button';
 import { CardComponent } from '../../shared/components/ui/card';
 import { DialogComponent } from '../../shared/components/ui/dialog';
 import { ProjectMembersPanelComponent } from './components/project-members-panel';
-import { ProjectBacklogPanelComponent } from './components/project-backlog-panel';
 
 @Component({
   selector: 'app-project-detail',
@@ -21,7 +20,6 @@ import { ProjectBacklogPanelComponent } from './components/project-backlog-panel
     CardComponent,
     DialogComponent,
     ProjectMembersPanelComponent,
-    ProjectBacklogPanelComponent,
   ],
   templateUrl: './project-detail.html',
 })

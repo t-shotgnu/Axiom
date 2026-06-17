@@ -85,10 +85,20 @@
         (canManageProjectChange)="canManageProject.set($event)"
       ></app-project-members-panel>
 
-      <app-project-backlog-panel
-        [projectId]="project()!.id"
-        [projectCode]="project()!.code"
-      ></app-project-backlog-panel>
+      <!-- Tasks quick-link card -->
+      <a
+        routerLink="/tasks"
+        class="rounded-2xl border border-outline-variant bg-surface-container-lowest shadow-sm overflow-hidden flex items-center gap-md p-lg hover:bg-surface-container-low/60 transition-all cursor-pointer group"
+      >
+        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary shrink-0">
+          <span class="material-symbols-outlined text-[24px]">assignment</span>
+        </div>
+        <div class="min-w-0 flex-1">
+          <p class="text-body-md font-bold text-on-surface group-hover:text-primary transition-colors">Go to Tasks</p>
+          <p class="text-body-sm text-on-surface-variant">View, create and manage all issues for this project</p>
+        </div>
+        <span class="material-symbols-outlined text-[20px] text-on-surface-variant group-hover:text-primary transition-colors">arrow_forward</span>
+      </a>
     </div>
   </div>
 }

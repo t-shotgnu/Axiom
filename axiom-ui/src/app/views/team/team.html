@@ -1,0 +1,57 @@
+<div class="max-w-container-max mx-auto px-lg py-lg">
+  <div class="mb-lg">
+    <h1 class="text-headline-lg font-bold tracking-tight text-on-surface">Team</h1>
+    <p class="mt-1 text-body-md text-on-surface-variant">
+      @if (currentProject) {
+        Members of <span class="font-semibold">{{ currentProject.name }}</span>
+      } @else {
+        Select a project to view team members
+      }
+    </p>
+  </div>
+
+  @if (loading) {
+    <div class="flex justify-center items-center py-24 text-primary">
+      <span class="material-symbols-outlined animate-spin text-[48px]">progress_activity</span>
+    </div>
+  } @else if (!currentProject) {
+    <div class="rounded-2xl border border-dashed border-outline-variant bg-surface-container-lowest p-xl text-center">
+      <span class="material-symbols-outlined text-[48px] text-on-surface-variant/40 mb-md">group_off</span>
+      <p class="text-body-lg text-on-surface-variant">No project selected</p>
+      <p class="text-body-md text-on-surface-variant/70 mt-1">Choose a project from the sidebar to see its team members.</p>
+    </div>
+  } @else if (members.length === 0) {
+    <div class="rounded-2xl border border-dashed border-outline-variant bg-surface-container-lowest p-xl text-center">
+      <span class="material-symbols-outlined text-[48px] text-on-surface-variant/40 mb-md">person_off</span>
+      <p class="text-body-lg text-on-surface-variant">No members yet</p>
+      <p class="text-body-md text-on-surface-variant/70 mt-1">This project doesn't have any members assigned.</p>
+    </div>
+  } @else {
+    <div class="grid gap-md sm:grid-cols-2 lg:grid-cols-3">
+      @for (member of members; track member.userId) {
+        <div class="rounded-2xl border border-outline-variant bg-surface-container-lowest p-lg shadow-sm flex flex-col gap-sm">
+          <div class="flex items-center gap-sm">
+            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary font-black text-body-md shrink-0">
+              {{ getMemberInitial(member) }}
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="text-body-md font-bold text-on-surface truncate">{{ getMemberDisplayName(member) }}</div>
+              <div class="text-label-sm text-on-surface-variant truncate">{{ member.emailAddress }}</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-sm mt-xs">
+            <span class="inline-flex items-center rounded-full px-sm py-1 text-label-sm font-black uppercase tracking-widest {{ getRoleBadgeClass(member) }}">
+              {{ getRoleLabel(member) }}
+            </span>
+          </div>
+        </div>
+      }
+    </div>
+
+    <div class="mt-lg pt-md border-t border-outline-variant/50">
+      <p class="text-body-sm text-on-surface-variant">
+        Total members: <span class="font-bold text-on-surface">{{ members.length }}</span>
+      </p>
+    </div>
+  }
+</div>

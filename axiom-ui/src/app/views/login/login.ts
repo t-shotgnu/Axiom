@@ -35,7 +35,7 @@ export class LoginComponent {
   constructor(
     private readonly authService: AuthService,
     private readonly router: Router,
-  ) { }
+  ) {}
 
   get canSubmit(): boolean {
     const baseFieldsReady = this.isEmailValid(this.emailAddress) && this.password.trim() !== '';
@@ -118,18 +118,22 @@ export class LoginComponent {
         ? this.authService.login(this.toLoginCommand())
         : this.authService.register(this.toRegisterCommand());
 
-    request.pipe(finalize(() => {
-      this.submitting = false;
-      this.cdr.detectChanges();
-    })).subscribe({
-      next: () => {
-        void this.router.navigateByUrl('/projects');
-      },
-      error: (err: unknown) => {
-        this.errorMessage = this.mapAuthError(err);
-        this.cdr.detectChanges();
-      },
-    });
+    request
+      .pipe(
+        finalize(() => {
+          this.submitting = false;
+          this.cdr.detectChanges();
+        }),
+      )
+      .subscribe({
+        next: () => {
+          void this.router.navigateByUrl('/dashboard');
+        },
+        error: (err: unknown) => {
+          this.errorMessage = this.mapAuthError(err);
+          this.cdr.detectChanges();
+        },
+      });
   }
 
   toggleMode(): void {
