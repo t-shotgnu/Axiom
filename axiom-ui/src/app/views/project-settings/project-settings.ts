@@ -97,13 +97,15 @@ export class ProjectSettingsComponent {
       return;
     }
 
+    const name = this.form.name.trim();
+    const code = this.form.code.trim().toUpperCase();
     this.savingProject.set(true);
     this.projectSaveError.set('');
 
     this.projectService
       .updateProject(project.id, {
-        name: this.form.name.trim(),
-        code: this.form.code.trim().toUpperCase(),
+        name,
+        code,
       })
       .pipe(
         finalize(() => this.savingProject.set(false)),
@@ -114,8 +116,8 @@ export class ProjectSettingsComponent {
           this.loadProject(project.id);
           this.projectService.setCurrentProject({
             ...project,
-            name: this.form.name.trim(),
-            code: this.form.code.trim().toUpperCase(),
+            name,
+            code,
           });
         },
         error: (err) => {

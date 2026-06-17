@@ -92,6 +92,51 @@ describe('AuthService', () => {
     expect(service.getRefreshToken()).toBe('new-refresh');
   });
 
+  it('throws when refreshing without a stored refresh token', () => {
+    expect(() => service.refresh()).toThrow('No refresh token available');
+    httpMock.expectNone('/api/auth/refresh-token');
+  });
+
+  it('posts password change data without changing stored tokens', () => {
+    localStorage.setItem('axiom_jwt_token', 'existing-token');
+    localStorage.setItem('axiom_refresh_token', 'existing-refresh-token');
+    const command = {
+      oldPassword: 'old-secret',
+      newPassword: 'NewSecret123',
+      newPasswordConfirmation: 'NewSecret123',
+    };
+
+    service.changePassword(command).subscribe((result) => {
+      expect(result).toBeNull();
+    });
+
+    const request = httpMock.expectOne('/api/auth/change-password');
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual(command);
+    request.flush(null);
+
+    expect(service.getToken()).toBe('existing-token');
+    expect(service.getRefreshToken()).toBe('existing-refresh-token');
+  });
+
+  it('initializes as authenticated when a token is already stored', () => {
+    localStorage.setItem('axiom_jwt_token', 'existing-token');
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    });
+
+    const freshService = TestBed.inject(AuthService);
+    const freshHttpMock = TestBed.inject(HttpTestingController);
+    const authStates: boolean[] = [];
+    freshService.authStatus$.subscribe((state) => authStates.push(state));
+
+    expect(freshService.hasToken()).toBe(true);
+    expect(authStates).toEqual([true]);
+
+    freshHttpMock.verify();
+  });
+
   it('removes the token and publishes an unauthenticated state on logout', () => {
     localStorage.setItem('axiom_jwt_token', 'existing-token');
     localStorage.setItem('axiom_refresh_token', 'existing-refresh-token');
