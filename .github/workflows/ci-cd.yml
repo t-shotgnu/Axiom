@@ -32,7 +32,10 @@ jobs:
         run: npm ci
 
       - name: Run unit tests
-        run: npm test -- --watch=false
+        run: npm run test:ci
+
+      - name: Run performance smoke tests
+        run: npm run test:performance
 
       - name: Build frontend
         run: npm run build
@@ -67,6 +70,9 @@ jobs:
 
       - name: Run tests
         run: ./mvnw test
+
+      - name: Run performance smoke tests
+        run: ./mvnw -Dtest='*PerformanceSmokeTest' test
 
       - name: Package backend
         run: ./mvnw package -DskipTests

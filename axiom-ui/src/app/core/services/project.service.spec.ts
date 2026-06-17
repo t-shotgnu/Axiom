@@ -76,6 +76,19 @@ describe('ProjectService', () => {
     request.flush('project-1');
   });
 
+  it('updates a project', () => {
+    const command = { name: 'Renamed project', code: 'RP' };
+
+    service.updateProject('project-1', command).subscribe((result) => {
+      expect(result).toBeNull();
+    });
+
+    const request = httpMock.expectOne('/api/projects/project-1');
+    expect(request.request.method).toBe('PUT');
+    expect(request.request.body).toEqual(command);
+    request.flush(null);
+  });
+
   it('deletes a project', () => {
     service.deleteProject('project-1').subscribe((result) => {
       expect(result).toBeNull();
@@ -84,5 +97,25 @@ describe('ProjectService', () => {
     const request = httpMock.expectOne('/api/projects/project-1');
     expect(request.request.method).toBe('DELETE');
     request.flush(null);
+  });
+
+  it('publishes and returns the selected current project', () => {
+    const project = {
+      id: 'project-1',
+      name: 'Axiom',
+      code: 'AX',
+      description: 'Main project',
+      createdOn: '2026-01-01',
+      ownerId: 'user-1',
+    };
+    const seenProjects: Array<typeof project | null> = [];
+    service.currentProject$.subscribe((currentProject) => seenProjects.push(currentProject));
+
+    service.setCurrentProject(project);
+    expect(service.getCurrentProject()).toEqual(project);
+
+    service.setCurrentProject(null);
+    expect(service.getCurrentProject()).toBeNull();
+    expect(seenProjects).toEqual([null, project, null]);
   });
 });

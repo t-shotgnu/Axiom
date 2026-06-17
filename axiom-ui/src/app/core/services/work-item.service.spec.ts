@@ -86,4 +86,117 @@ describe('WorkItemService', () => {
     expect(request.request.body).toEqual({ status: 'Resolved' });
     request.flush(null);
   });
+
+  it('updates work item notes', () => {
+    service.updateWorkItemNotes('task-1', 'New notes').subscribe((result) => {
+      expect(result).toBeNull();
+    });
+
+    const request = httpMock.expectOne('/api/work-items/task-1/notes');
+    expect(request.request.method).toBe('PATCH');
+    expect(request.request.body).toEqual({ notes: 'New notes' });
+    request.flush(null);
+  });
+
+  it('updates a work item with partial fields', () => {
+    const command = {
+      description: 'Renamed task',
+      estimatedEffort: 5,
+      assigneeId: null,
+    };
+
+    service.updateWorkItem('task-1', command).subscribe((result) => {
+      expect(result).toBeNull();
+    });
+
+    const request = httpMock.expectOne('/api/work-items/task-1');
+    expect(request.request.method).toBe('PUT');
+    expect(request.request.body).toEqual(command);
+    request.flush(null);
+  });
+
+  it('deletes a work item', () => {
+    service.deleteWorkItem('task-1').subscribe((result) => {
+      expect(result).toBeNull();
+    });
+
+    const request = httpMock.expectOne('/api/work-items/task-1');
+    expect(request.request.method).toBe('DELETE');
+    request.flush(null);
+  });
+
+  it('loads task relationships for a project', () => {
+    service.getRelationshipsByProject('project-1').subscribe((relationships) => {
+      expect(relationships).toEqual([
+        {
+          id: 'relationship-1',
+          sourceId: 'task-1',
+          targetId: 'task-2',
+          linkType: 'Blocks',
+        },
+      ]);
+    });
+
+    const request = httpMock.expectOne('/api/task-relationships?projectId=project-1');
+    expect(request.request.method).toBe('GET');
+    request.flush([
+      {
+        id: 'relationship-1',
+        sourceId: 'task-1',
+        targetId: 'task-2',
+        linkType: 'Blocks',
+      },
+    ]);
+  });
+
+  it('loads task relationships for a work item', () => {
+    service.getRelationshipsByWorkItem('task-1').subscribe((relationships) => {
+      expect(relationships).toEqual([]);
+    });
+
+    const request = httpMock.expectOne('/api/task-relationships/work-item/task-1');
+    expect(request.request.method).toBe('GET');
+    request.flush([]);
+  });
+
+  it('creates and deletes task relationships', () => {
+    service
+      .createRelationship({ sourceId: 'task-1', targetId: 'task-2', linkType: 'Blocks' })
+      .subscribe((id) => {
+        expect(id).toBe('relationship-1');
+      });
+
+    const createRequest = httpMock.expectOne('/api/task-relationships');
+    expect(createRequest.request.method).toBe('POST');
+    expect(createRequest.request.body).toEqual({
+      sourceId: 'task-1',
+      targetId: 'task-2',
+      linkType: 'Blocks',
+    });
+    createRequest.flush('relationship-1');
+
+    service.deleteRelationship('relationship-1').subscribe((result) => {
+      expect(result).toBeNull();
+    });
+
+    const deleteRequest = httpMock.expectOne('/api/task-relationships/relationship-1');
+    expect(deleteRequest.request.method).toBe('DELETE');
+    deleteRequest.flush(null);
+  });
+
+  it('caches the type hierarchy response for later subscribers', () => {
+    const firstResult: Array<Record<string, string[]>> = [];
+    const secondResult: Array<Record<string, string[]>> = [];
+
+    service.getTypeHierarchy().subscribe((hierarchy) => firstResult.push(hierarchy));
+    const request = httpMock.expectOne('/api/work-items/type-hierarchy');
+    expect(request.request.method).toBe('GET');
+    request.flush({ Epic: ['Feature'], Task: ['Subtask'] });
+
+    service.getTypeHierarchy().subscribe((hierarchy) => secondResult.push(hierarchy));
+
+    httpMock.expectNone('/api/work-items/type-hierarchy');
+    expect(firstResult).toEqual([{ Epic: ['Feature'], Task: ['Subtask'] }]);
+    expect(secondResult).toEqual([{ Epic: ['Feature'], Task: ['Subtask'] }]);
+  });
 });

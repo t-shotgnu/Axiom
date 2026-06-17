@@ -8,7 +8,12 @@
     "db:logs": "node scripts/compose-run.mjs logs -f postgres",
     "dev": "npm run db:up && concurrently -k -n api,ui \"npm run dev:api\" \"npm run dev:ui\"",
     "dev:api": "cd api && ./mvnw spring-boot:run",
-    "dev:ui": "npm run start --prefix axiom-ui"
+    "dev:ui": "npm run start --prefix axiom-ui",
+    "test": "npm run test:ui && npm run test:api",
+    "test:api": "cd api && ./mvnw test",
+    "test:api:performance": "cd api && ./mvnw -Dtest='*PerformanceSmokeTest' test",
+    "test:ui": "npm run test:ci --prefix axiom-ui",
+    "test:ui:performance": "npm run test:performance --prefix axiom-ui"
   },
   "devDependencies": {
     "concurrently": "^9.2.0"
