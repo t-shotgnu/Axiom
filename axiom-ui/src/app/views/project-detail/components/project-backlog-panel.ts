@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, DestroyRef, Input, OnInit, inject, signal } from '@angular/core';
+import { Component, DestroyRef, Input, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -65,6 +65,25 @@ export class ProjectBacklogPanelComponent implements OnInit {
     deleting = signal(false);
     taskToDelete = signal<WorkItem | null>(null);
     deleteErrorMessage = signal('');
+    currentPage = signal(1);
+    readonly pageSize = 10;
+
+    totalPages = computed(() => Math.max(Math.ceil(this.tasks().length / this.pageSize), 1));
+    pagedTasks = computed(() => {
+        const page = Math.min(this.currentPage(), this.totalPages());
+        const start = (page - 1) * this.pageSize;
+        return this.tasks().slice(start, start + this.pageSize);
+    });
+    firstVisibleTaskIndex = computed(() => {
+        if (this.tasks().length === 0) {
+            return 0;
+        }
+        return (Math.min(this.currentPage(), this.totalPages()) - 1) * this.pageSize + 1;
+    });
+    lastVisibleTaskIndex = computed(() => Math.min(
+        Math.min(this.currentPage(), this.totalPages()) * this.pageSize,
+        this.tasks().length,
+    ));
 
     newTask: Partial<CreateWorkItemCommand> = this.emptyTask();
 
@@ -118,11 +137,31 @@ export class ProjectBacklogPanelComponent implements OnInit {
             .subscribe({
                 next: (data) => {
                     this.tasks.set(data);
+                    this.currentPage.set(1);
                 },
                 error: (err) => {
                     console.error(err);
                 },
             });
+    }
+
+    goToPage(page: number): void {
+        this.currentPage.set(Math.min(Math.max(page, 1), this.totalPages()));
+    }
+
+    getPagesArray(): number[] {
+        const totalPages = this.totalPages();
+        if (totalPages <= 7) {
+            return Array.from({ length: totalPages }, (_, index) => index + 1);
+        }
+
+        const pages = new Set<number>([1, totalPages]);
+        for (let page = this.currentPage() - 2; page <= this.currentPage() + 2; page++) {
+            if (page > 1 && page < totalPages) {
+                pages.add(page);
+            }
+        }
+        return Array.from(pages).sort((a, b) => a - b);
     }
 
     loadMembers(): void {
