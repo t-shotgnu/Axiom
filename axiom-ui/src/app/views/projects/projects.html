@@ -38,6 +38,7 @@
         type="text"
         placeholder="Search projects..."
         [(ngModel)]="searchTerm"
+        (ngModelChange)="onSearchTermChange()"
         class="w-full pl-10 pr-4 py-2 border border-outline-variant rounded-lg text-body-md bg-surface-container-lowest text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all"
       />
     </div>
@@ -96,7 +97,14 @@
               </tr>
             </thead>
             <tbody class="divide-y divide-outline-variant/65">
-              @for (project of filteredProjects; track project.id) {
+              @if (filteredProjects.length === 0) {
+                <tr>
+                  <td colspan="5" class="py-xl px-md text-center text-body-md font-semibold text-on-surface-variant">
+                    No projects match your search.
+                  </td>
+                </tr>
+              }
+              @for (project of pagedProjects; track project.id) {
                 <tr class="hover:bg-surface-container-lowest/50 transition-colors group">
                   <td class="py-md px-md">
                     <div class="flex items-center gap-md">
@@ -174,21 +182,37 @@
           class="flex items-center justify-between border-t border-outline-variant p-md bg-surface-container-lowest"
         >
           <span class="text-body-sm text-on-surface-variant font-semibold"
-            >Showing 1-{{ filteredProjects.length }} of {{ projects.length }} projects</span
+            >Showing {{ firstVisibleProjectIndex }}-{{ lastVisibleProjectIndex }} of {{ filteredProjects.length }} projects</span
           >
           <div class="flex items-center gap-xs">
             <button
-              class="p-1 border border-outline-variant rounded hover:bg-surface-container-low transition-all"
+              type="button"
+              (click)="goToPage(currentPage - 1)"
+              [disabled]="currentPage === 1"
+              class="p-1 border border-outline-variant rounded hover:bg-surface-container-low transition-all disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
             >
               <span class="material-symbols-outlined text-[16px] font-bold">chevron_left</span>
             </button>
+            @for (page of getPagesArray(); track page) {
+              <button
+                type="button"
+                (click)="goToPage(page)"
+                class="w-6 h-6 text-body-sm font-bold rounded border flex items-center justify-center transition-colors"
+                [class.bg-primary]="currentPage === page"
+                [class.text-white]="currentPage === page"
+                [class.border-primary]="currentPage === page"
+                [class.border-outline-variant]="currentPage !== page"
+                [class.text-on-surface-variant]="currentPage !== page"
+                [class.hover:bg-surface-container-low]="currentPage !== page"
+              >
+                {{ page }}
+              </button>
+            }
             <button
-              class="w-6 h-6 text-body-sm font-bold rounded bg-primary text-white flex items-center justify-center"
-            >
-              1
-            </button>
-            <button
-              class="p-1 border border-outline-variant rounded hover:bg-surface-container-low transition-all"
+              type="button"
+              (click)="goToPage(currentPage + 1)"
+              [disabled]="currentPage === totalPages"
+              class="p-1 border border-outline-variant rounded hover:bg-surface-container-low transition-all disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
             >
               <span class="material-symbols-outlined text-[16px] font-bold">chevron_right</span>
             </button>

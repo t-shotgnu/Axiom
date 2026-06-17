@@ -35,7 +35,7 @@
         <p class="text-body-md mt-1">Create an issue to add to the backlog.</p>
       </div>
     } @else {
-      @for (task of tasks(); track task.id) {
+      @for (task of pagedTasks(); track task.id) {
         <div
           class="issue-row flex items-center justify-between gap-md p-sm bg-surface-container-lowest hover:bg-surface-container-low transition-colors"
         >
@@ -81,6 +81,49 @@
       }
     }
   </div>
+
+  @if (!loadingTasks() && tasks().length > pageSize) {
+    <div class="flex items-center justify-between gap-md border-t border-outline-variant bg-surface-container-lowest px-md py-sm text-body-sm text-on-surface-variant">
+      <span class="font-semibold">
+        Showing {{ firstVisibleTaskIndex() }}-{{ lastVisibleTaskIndex() }} of {{ tasks().length }} issues
+      </span>
+      <div class="flex items-center gap-xs">
+        <button
+          type="button"
+          (click)="goToPage(currentPage() - 1)"
+          [disabled]="currentPage() === 1"
+          class="inline-flex h-7 w-7 items-center justify-center rounded border border-outline-variant transition-colors hover:bg-surface-container-low disabled:cursor-not-allowed disabled:opacity-40"
+          title="Previous page"
+        >
+          <span class="material-symbols-outlined text-[16px]">chevron_left</span>
+        </button>
+        @for (page of getPagesArray(); track page) {
+          <button
+            type="button"
+            (click)="goToPage(page)"
+            class="flex h-7 w-7 items-center justify-center rounded border text-body-sm font-bold transition-colors"
+            [class.bg-primary]="currentPage() === page"
+            [class.text-white]="currentPage() === page"
+            [class.border-primary]="currentPage() === page"
+            [class.border-outline-variant]="currentPage() !== page"
+            [class.text-on-surface-variant]="currentPage() !== page"
+            [class.hover:bg-surface-container-low]="currentPage() !== page"
+          >
+            {{ page }}
+          </button>
+        }
+        <button
+          type="button"
+          (click)="goToPage(currentPage() + 1)"
+          [disabled]="currentPage() === totalPages()"
+          class="inline-flex h-7 w-7 items-center justify-center rounded border border-outline-variant transition-colors hover:bg-surface-container-low disabled:cursor-not-allowed disabled:opacity-40"
+          title="Next page"
+        >
+          <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+        </button>
+      </div>
+    </div>
+  }
 </div>
 
 <app-dialog [(visible)]="showCreateDialogVisible" title="New Task">

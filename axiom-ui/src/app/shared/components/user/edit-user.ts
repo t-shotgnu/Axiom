@@ -14,6 +14,7 @@ import { FormsModule } from '@angular/forms';
 import { UserService } from '../../../core/services/user.service';
 import { ButtonComponent } from '../ui/button';
 import { InputComponent } from '../ui/input';
+import { extractErrorMessage } from '../../../core/utils/error-utils';
 
 interface EditProfileForm {
     firstName: string;
@@ -91,26 +92,18 @@ export class EditUserComponent implements OnChanges {
 
         this.userService.getCurrentUserProfile().subscribe({
             next: (u) => {
-                console.log('EditUserComponent: profile loaded', u);
-                // flip loading off immediately to ensure UI is responsive even if rendering throws
                 this.loading = false;
-                try {
-                    this.form = {
-                        firstName: u.firstName ?? '',
-                        lastName: u.lastName ?? '',
-                        dateOfBirth: u.dateOfBirth ?? '',
-                    };
-                } catch (e) {
-                    console.error('EditUserComponent: error assigning form', e);
-                }
+                this.form = {
+                    firstName: u.firstName ?? '',
+                    lastName: u.lastName ?? '',
+                    dateOfBirth: u.dateOfBirth ?? '',
+                };
                 this.cdr.markForCheck();
             },
             error: (err) => {
                 this.loading = false;
                 console.error('EditUserComponent: loadProfile error', err);
-                this.errorMessage = (err && typeof err.status !== 'undefined')
-                    ? `Failed to load profile: ${err.status} ${err?.error?.message ?? err.message}`
-                    : 'Failed to load profile.';
+                this.errorMessage = extractErrorMessage(err, 'Failed to load profile.');
                 this.cdr.markForCheck();
             },
         });
@@ -141,7 +134,7 @@ export class EditUserComponent implements OnChanges {
                 },
                 error: (err) => {
                     this.loading = false;
-                    this.errorMessage = err.message.detail ?? err?.message ?? 'Failed to update profile.';
+                    this.errorMessage = extractErrorMessage(err, 'Failed to update profile.');
                     this.cdr.markForCheck();
                 },
             });

@@ -90,6 +90,11 @@ export class TasksComponent implements OnInit {
   showDepsDialog = false;
   selectedTaskForDeps: any = null;
   dependenciesList: any[] = [];
+  viewMode: 'list' | 'board' = 'list';
+  statusUpdatingIds = new Set<string>();
+  draggedTaskId: string | null = null;
+  dragOverStatus: string | null = null;
+  boardColumns: Record<string, any[]> = {};
 
   /** IDs of parent items whose children are currently collapsed */
   collapsedItems = new Set<string>();
@@ -111,6 +116,7 @@ export class TasksComponent implements OnInit {
   showInsertTypePicker = false;
   insertInlineCreating = false;
   private hoverTimeout: any;
+  private boardDragPreviewElement: HTMLElement | null = null;
 
   /** Allowed child types per parent type — loaded once from the backend. */
   typeHierarchy: Record<string, string[]> = {};
@@ -494,12 +500,16 @@ export class TasksComponent implements OnInit {
         const hasDependencies = this.relationships.some(r => r.sourceId === taskId && r.linkType === 'BlockedBy');
         const childIds = childrenMap.get(taskId) || [];
         const hasChildren = childIds.length > 0;
+        const parentTask = parentId ? this.tasks.find(t => t.id === parentId) : null;
         ordered.push({
           ...task,
           level: currentLevel,
           hasDependencies,
           hasChildren,
+          childCount: childIds.length,
           parentId: parentId ?? null,
+          parentControlNo: parentTask?.controlNo ?? null,
+          parentType: parentTask?.type ?? null,
         });
         const childTasks = this.tasks
           .filter(t => childIds.includes(t.id))
@@ -530,7 +540,10 @@ export class TasksComponent implements OnInit {
           level: 0,
           hasDependencies,
           hasChildren: childIds.length > 0,
+          childCount: childIds.length,
           parentId: null,
+          parentControlNo: null,
+          parentType: null,
         });
       }
     });
@@ -545,6 +558,9 @@ export class TasksComponent implements OnInit {
 
       return matchesSearch && matchesMyIssues;
     });
+
+    // Memoize board columns so the template doesn't re-filter on every CD pass
+    this.boardColumns = this.buildBoardColumns(this.filteredTasks);
 
     // 2. Collapse: hide children whose ancestor is collapsed
     const visibleFiltered = this.filteredTasks.filter(t => {
@@ -572,6 +588,12 @@ export class TasksComponent implements OnInit {
   onSearchChange(): void {
     this.currentPage = 1;
     this.applyFiltersAndPagination();
+  }
+
+  setViewMode(mode: 'list' | 'board'): void {
+    this.viewMode = mode;
+    this.cancelInsert();
+    this.cdr.markForCheck();
   }
 
   toggleOnlyMyIssues(): void {
@@ -610,11 +632,117 @@ export class TasksComponent implements OnInit {
   }
 
   getPagesArray(): number[] {
-    const pages: number[] = [];
-    for (let i = 1; i <= this.totalPages; i++) {
-      pages.push(i);
+    return this.getPaginationPages(this.totalPages, this.currentPage);
+  }
+
+  getBoardTasks(status: string): any[] {
+    return this.boardColumns[status] ?? [];
+  }
+
+  private buildBoardColumns(tasks: any[]): Record<string, any[]> {
+    const columns: Record<string, any[]> = {};
+    for (const option of this.statusOptions) {
+      columns[option.value] = [];
     }
-    return pages;
+    for (const task of tasks) {
+      (columns[task.status] ??= []).push(task);
+    }
+    return columns;
+  }
+
+  isStatusUpdating(taskId: string): boolean {
+    return this.statusUpdatingIds.has(taskId);
+  }
+
+  onBoardDragStart(event: DragEvent, task: WorkItem): void {
+    this.draggedTaskId = task.id;
+    const sourceCard = event.currentTarget instanceof HTMLElement ? event.currentTarget : null;
+    event.dataTransfer?.setData('text/plain', task.id);
+    if (event.dataTransfer) {
+      event.dataTransfer.effectAllowed = 'move';
+      if (sourceCard && typeof event.dataTransfer.setDragImage === 'function') {
+        const preview = this.createBoardDragPreview(sourceCard);
+        event.dataTransfer.setDragImage(preview, preview.offsetWidth / 2, 28);
+      }
+    }
+    this.cdr.markForCheck();
+  }
+
+  onBoardDragEnd(): void {
+    this.draggedTaskId = null;
+    this.dragOverStatus = null;
+    this.removeBoardDragPreview();
+    this.cdr.markForCheck();
+  }
+
+  allowBoardDrop(event: DragEvent, status: string): void {
+    event.preventDefault();
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = 'move';
+    }
+    if (this.dragOverStatus !== status) {
+      this.dragOverStatus = status;
+      this.cdr.markForCheck();
+    }
+  }
+
+  onBoardDragLeave(event: DragEvent, status: string): void {
+    // Only clear when the pointer actually leaves the column, not when moving
+    // between child elements inside it.
+    const related = event.relatedTarget as Node | null;
+    const column = event.currentTarget as HTMLElement;
+    if (related && column.contains(related)) {
+      return;
+    }
+    if (this.dragOverStatus === status) {
+      this.dragOverStatus = null;
+      this.cdr.markForCheck();
+    }
+  }
+
+  dropTaskOnStatus(event: DragEvent, status: string): void {
+    event.preventDefault();
+    const taskId = event.dataTransfer?.getData('text/plain') || this.draggedTaskId;
+    const task = this.tasks.find((item) => item.id === taskId);
+    this.draggedTaskId = null;
+    this.dragOverStatus = null;
+    this.removeBoardDragPreview();
+    if (!task) {
+      this.cdr.markForCheck();
+      return;
+    }
+    this.moveTaskToStatus(task, status);
+  }
+
+  moveBoardTask(task: WorkItem, direction: -1 | 1, event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    const currentIndex = this.statusOptions.findIndex((option) => option.value === task.status);
+    const nextStatus = this.statusOptions[currentIndex + direction]?.value;
+    if (nextStatus) {
+      this.moveTaskToStatus(task, nextStatus);
+    }
+  }
+
+  moveTaskToStatus(task: WorkItem, status: string): void {
+    if (task.status === status || this.statusUpdatingIds.has(task.id)) {
+      return;
+    }
+
+    const previousStatus = task.status;
+    this.setStatusUpdating(task.id, true);
+    this.updateTaskStatusLocally(task.id, status);
+
+    this.workItemService.updateWorkItemStatus(task.id, { status }).pipe(
+      finalize(() => this.setStatusUpdating(task.id, false)),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe({
+      error: (err) => {
+        this.updateTaskStatusLocally(task.id, previousStatus);
+        this.toastService.error(extractErrorMessage(err, 'Failed to update issue status.'));
+        console.error('Error updating task status from board', err);
+      },
+    });
   }
 
   openCreateDialog(): void {
@@ -786,5 +914,68 @@ export class TasksComponent implements OnInit {
       this.collapsedItems.add(taskId);
     }
     this.applyFiltersAndPagination();
+  }
+
+  private updateTaskStatusLocally(taskId: string, status: string): void {
+    this.tasks = this.tasks.map((task) => task.id === taskId ? { ...task, status } : task);
+    this.applyFiltersAndPagination();
+    this.cdr.markForCheck();
+  }
+
+  private setStatusUpdating(taskId: string, updating: boolean): void {
+    const next = new Set(this.statusUpdatingIds);
+    if (updating) {
+      next.add(taskId);
+    } else {
+      next.delete(taskId);
+    }
+    this.statusUpdatingIds = next;
+    this.cdr.markForCheck();
+  }
+
+  private createBoardDragPreview(sourceCard: HTMLElement): HTMLElement {
+    this.removeBoardDragPreview();
+
+    const sourceRect = sourceCard.getBoundingClientRect();
+    const preview = sourceCard.cloneNode(true) as HTMLElement;
+    preview.classList.add('kanban-drag-preview');
+    preview.removeAttribute('routerLink');
+    preview.style.position = 'fixed';
+    preview.style.top = '-1000px';
+    preview.style.left = '-1000px';
+    preview.style.width = `${Math.max(sourceRect.width, 240)}px`;
+    preview.style.minHeight = `${Math.max(sourceRect.height, 96)}px`;
+    preview.style.boxSizing = 'border-box';
+    preview.style.pointerEvents = 'none';
+    preview.style.zIndex = '2147483647';
+    preview.style.opacity = '1';
+    preview.style.border = '1px solid var(--color-primary)';
+    preview.style.borderRadius = '8px';
+    preview.style.background = 'var(--bg-surface-container-lowest)';
+    preview.style.boxShadow = '0 14px 32px rgba(9, 30, 66, 0.28)';
+    preview.style.transform = 'none';
+
+    document.body.appendChild(preview);
+    this.boardDragPreviewElement = preview;
+    return preview;
+  }
+
+  private removeBoardDragPreview(): void {
+    this.boardDragPreviewElement?.remove();
+    this.boardDragPreviewElement = null;
+  }
+
+  private getPaginationPages(totalPages: number, currentPage: number): number[] {
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, index) => index + 1);
+    }
+
+    const pages = new Set<number>([1, totalPages]);
+    for (let page = currentPage - 2; page <= currentPage + 2; page++) {
+      if (page > 1 && page < totalPages) {
+        pages.add(page);
+      }
+    }
+    return Array.from(pages).sort((a, b) => a - b);
   }
 }

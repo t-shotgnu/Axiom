@@ -93,5 +93,31 @@ describe('ProjectsComponent', () => {
 
     expect(component.errorMessage).toBe('Backend said no.');
   });
+
+  it('paginates project results', () => {
+    const { component, loadProjects$ } = createComponent();
+    const projects = Array.from({ length: 9 }, (_, index) => ({
+      id: `project-${index + 1}`,
+      name: `Project ${index + 1}`,
+      code: `P${index + 1}`,
+      description: 'Project description',
+      createdOn: '2026-01-01',
+      ownerId: 'user-1',
+    }));
+
+    loadProjects$.next(projects);
+    loadProjects$.complete();
+
+    expect(component.totalPages).toBe(2);
+    expect(component.pagedProjects).toHaveLength(8);
+    expect(component.firstVisibleProjectIndex).toBe(1);
+    expect(component.lastVisibleProjectIndex).toBe(8);
+
+    component.goToPage(2);
+
+    expect(component.pagedProjects).toHaveLength(1);
+    expect(component.firstVisibleProjectIndex).toBe(9);
+    expect(component.lastVisibleProjectIndex).toBe(9);
+  });
   // Creation UI moved into CreateProjectComponent; creation tests belong there.
 });

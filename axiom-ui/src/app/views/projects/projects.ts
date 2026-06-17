@@ -27,6 +27,8 @@ export class ProjectsComponent {
   deleting = false;
   deleteErrorMessage = '';
   searchTerm = '';
+  currentPage = 1;
+  readonly pageSize = 8;
 
   listState: 'loading' | 'error' | 'empty' | 'list' = 'loading';
 
@@ -44,6 +46,27 @@ export class ProjectsComponent {
         (p.ownerName || '').toLowerCase().includes(term) ||
         (p.description || '').toLowerCase().includes(term),
     );
+  }
+
+  get totalPages(): number {
+    return Math.max(Math.ceil(this.filteredProjects.length / this.pageSize), 1);
+  }
+
+  get pagedProjects(): Project[] {
+    const page = Math.min(this.currentPage, this.totalPages);
+    const start = (page - 1) * this.pageSize;
+    return this.filteredProjects.slice(start, start + this.pageSize);
+  }
+
+  get firstVisibleProjectIndex(): number {
+    if (this.filteredProjects.length === 0) {
+      return 0;
+    }
+    return (Math.min(this.currentPage, this.totalPages) - 1) * this.pageSize + 1;
+  }
+
+  get lastVisibleProjectIndex(): number {
+    return Math.min(Math.min(this.currentPage, this.totalPages) * this.pageSize, this.filteredProjects.length);
   }
 
   constructor(
@@ -83,12 +106,35 @@ export class ProjectsComponent {
       .subscribe({
         next: (projects) => {
           this.projects = projects;
+          this.currentPage = 1;
           this.loadAllProjectStats();
         },
         error: (err: unknown) => {
           this.errorMessage = this.mapProjectLoadError(err);
         },
       });
+  }
+
+  onSearchTermChange(): void {
+    this.currentPage = 1;
+  }
+
+  goToPage(page: number): void {
+    this.currentPage = Math.min(Math.max(page, 1), this.totalPages);
+  }
+
+  getPagesArray(): number[] {
+    if (this.totalPages <= 7) {
+      return Array.from({ length: this.totalPages }, (_, index) => index + 1);
+    }
+
+    const pages = new Set<number>([1, this.totalPages]);
+    for (let page = this.currentPage - 2; page <= this.currentPage + 2; page++) {
+      if (page > 1 && page < this.totalPages) {
+        pages.add(page);
+      }
+    }
+    return Array.from(pages).sort((a, b) => a - b);
   }
 
   private loadAllProjectStats(): void {
