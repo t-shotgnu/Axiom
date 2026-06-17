@@ -6,7 +6,9 @@
     "start": "ng serve --proxy-config proxy.conf.json",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "test:ci": "ng test --watch=false --exclude='src/app/performance/**/*.spec.ts'",
+    "test:performance": "ng test --watch=false --include='src/app/performance/**/*.spec.ts'"
   },
   "private": true,
   "packageManager": "npm@11.11.0",
