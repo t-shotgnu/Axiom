@@ -2,7 +2,7 @@ import { of } from 'rxjs';
 import { WorkItem, WorkItemService } from '../../core/services/work-item.service';
 import { TasksComponent } from './tasks';
 import { TestBed, ComponentFixture } from '@angular/core/testing';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 describe('TasksComponent', () => {
   let workItemService: {
@@ -14,6 +14,7 @@ describe('TasksComponent', () => {
   };
   let fixture: ComponentFixture<TasksComponent>;
   let component: TasksComponent;
+  let router: { navigate: ReturnType<typeof vi.fn> };
 
   const workItems: WorkItem[] = [
     {
@@ -39,12 +40,14 @@ describe('TasksComponent', () => {
       getRelationshipsByProject: vi.fn(() => of([])),
       getTypeHierarchy: vi.fn(() => of({})),
     };
+    router = { navigate: vi.fn(() => Promise.resolve(true)) };
 
     TestBed.configureTestingModule({
       imports: [TasksComponent],
       providers: [
         { provide: WorkItemService, useValue: workItemService },
         { provide: ActivatedRoute, useValue: { paramMap: { subscribe: () => ({ unsubscribe: () => { } }) } } },
+        { provide: Router, useValue: router },
       ],
     });
 
@@ -101,6 +104,14 @@ describe('TasksComponent', () => {
     component.createTask();
 
     expect(workItemService.createWorkItem).not.toHaveBeenCalled();
+  });
+
+  it('passes the selected project when navigating to task creation', () => {
+    component.navigateToCreate();
+
+    expect(router.navigate).toHaveBeenCalledWith(['/tasks/new'], {
+      queryParams: { projectId: 'project-1' },
+    });
   });
 
   it('moves an issue between board status columns', () => {
