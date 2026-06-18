@@ -30,12 +30,19 @@
 
       <!-- Issue Title (Editable summary) -->
       @if (canEditTask()) {
+        <label
+          for="issue-summary"
+          class="mb-xs block text-label-sm font-bold uppercase tracking-wider text-on-surface-variant"
+        >
+          Issue summary <span class="text-red-500">*</span>
+        </label>
         <textarea
+          id="issue-summary"
           [(ngModel)]="description"
           rows="1"
           (input)="adjustTitleHeight($event.target)"
           class="w-full font-headline-xl text-headline-xl text-on-surface font-black tracking-tight leading-tight bg-transparent border-none outline-none resize-none focus:ring-0 p-0 focus:border-b focus:border-outline-variant"
-          placeholder="Issue summary"
+          placeholder="Enter issue summary"
         ></textarea>
       } @else {
         <h1
@@ -81,7 +88,7 @@
           <h3
             class="text-label-sm font-bold text-on-surface-variant uppercase tracking-wider select-none"
           >
-            Description
+            Description <span class="normal-case font-normal">(optional)</span>
           </h3>
         </div>
 

@@ -8,6 +8,7 @@ import { UserService } from '../../core/services/user.service';
 import { ProjectMemberService } from '../../core/services/project-member.service';
 import { CommentService } from '../../core/services/comment.service';
 import { AttachmentService } from '../../core/services/attachment.service';
+import { ToastService } from '../../core/services/toast.service';
 
 describe('TaskDetailComponent', () => {
   let workItemService: {
@@ -173,6 +174,19 @@ describe('TaskDetailComponent', () => {
       targetId: 'parent-1',
       linkType: 'ChildOf'
     });
+  });
+
+  it('identifies the required summary field when creating a task', () => {
+    const toastService = TestBed.inject(ToastService);
+    const errorSpy = vi.spyOn(toastService, 'error');
+    component.id = 'new';
+    component.loadTask();
+    component.notesText = 'Detailed description';
+
+    component.saveAllChanges();
+
+    expect(errorSpy).toHaveBeenCalledWith('Issue summary is required.');
+    expect(workItemService.createWorkItem).not.toHaveBeenCalled();
   });
 
   it('updates status and reloads the task', () => {
