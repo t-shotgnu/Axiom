@@ -365,7 +365,7 @@ export class TaskDetailComponent implements OnInit {
         };
 
         setTimeout(() => {
-          const el = document.querySelector('textarea[placeholder="Issue summary"]');
+          const el = document.querySelector('#issue-summary');
           this.adjustTitleHeight(el);
         }, 0);
 
@@ -799,9 +799,12 @@ export class TaskDetailComponent implements OnInit {
 
     if (this.id === 'new') {
       if (!this.description.trim()) {
-        this.toastService.error('Description is required.');
+        this.toastService.error('Issue summary is required.');
         this.saving = false;
         this.cdr.markForCheck();
+        setTimeout(() => {
+          document.querySelector<HTMLTextAreaElement>('#issue-summary')?.focus();
+        });
         return;
       }
 
