@@ -155,8 +155,22 @@ export class TaskDetailComponent implements OnInit {
 
   get assigneeOptions() {
     const opts = [{ label: 'Unassigned', value: '' }];
+
+    if (
+      this.currentUser &&
+      !this.projectUsers.some((user) => user.id === this.currentUser!.id)
+    ) {
+      opts.push({
+        label: `${this.getUserDisplayName(this.currentUser)} (You)`,
+        value: this.currentUser.id,
+      });
+    }
+
     for (const u of this.projectUsers) {
-      opts.push({ label: u.fullName, value: u.id });
+      opts.push({
+        label: `${u.fullName}${u.id === this.currentUserId ? ' (You)' : ''}`,
+        value: u.id,
+      });
     }
     return opts;
   }

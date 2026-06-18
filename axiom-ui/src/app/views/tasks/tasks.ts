@@ -752,7 +752,10 @@ export class TasksComponent implements OnInit {
   }
 
   navigateToCreate(): void {
-    this.router.navigate(['/tasks/new']);
+    if (!this.currentProject) return;
+    this.router.navigate(['/tasks/new'], {
+      queryParams: { projectId: this.currentProject.id },
+    });
   }
 
   cancelCreateDialog(): void {

@@ -189,6 +189,41 @@ describe('TaskDetailComponent', () => {
     expect(workItemService.createWorkItem).not.toHaveBeenCalled();
   });
 
+  it('offers the current user as an assignee when they are not in the member response', () => {
+    component.currentUser = {
+      id: 'user-1',
+      firstName: 'Current',
+      lastName: 'User',
+      userName: 'current',
+      emailAddress: 'current@example.com',
+    };
+    component.currentUserId = 'user-1';
+    component.projectUsers = [];
+
+    expect(component.assigneeOptions).toContainEqual({
+      label: 'Current User (You)',
+      value: 'user-1',
+    });
+  });
+
+  it('does not duplicate the current user in assignee options', () => {
+    component.currentUser = {
+      id: 'user-1',
+      userName: 'current',
+      emailAddress: 'current@example.com',
+    };
+    component.currentUserId = 'user-1';
+    component.projectUsers = [{
+      id: 'user-1',
+      fullName: 'Current User',
+      role: 'MEMBER',
+    }];
+
+    expect(component.assigneeOptions.filter((option) => option.value === 'user-1')).toEqual([
+      { label: 'Current User (You)', value: 'user-1' },
+    ]);
+  });
+
   it('updates status and reloads the task', () => {
     fixture.detectChanges(); // trigger ngOnInit
     component.status = 'Resolved';
